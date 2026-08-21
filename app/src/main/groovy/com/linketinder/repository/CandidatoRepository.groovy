@@ -7,7 +7,7 @@ import com.linketinder.model.Candidato
     private  List<Candidato> candidatos = []
 
     CandidatoRepository(){
-        incializarDados()
+        inicializarDados()
     }
 
     private void inicializarDados() {

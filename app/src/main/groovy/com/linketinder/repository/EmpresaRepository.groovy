@@ -2,7 +2,7 @@ package com.linketinder.repository
 
 import com.linketinder.model.Empresa
 
-class EmpresaRepository {
+ class EmpresaRepository {
 
     private List<Empresa> empresas = []
 
@@ -77,4 +77,4 @@ class EmpresaRepository {
     void adicionarEmpresaRepository(Empresa empresa) {
         empresas.add(empresa)
     }
-}
+ }

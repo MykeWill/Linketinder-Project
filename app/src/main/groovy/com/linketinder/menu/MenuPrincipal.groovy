@@ -1,9 +1,9 @@
-package com.linketinder.menu
+ package com.linketinder.menu
 
-import com.linketinder.service.CandidatoService
-import com.linketinder.service.EmpresaService
+ import com.linketinder.service.CandidatoService
+ import com.linketinder.service.EmpresaService
 
-class MenuPrincipal {
+ class MenuPrincipal {
 
     private CandidatoService candidatoService
     private EmpresaService empresaService
@@ -22,18 +22,13 @@ class MenuPrincipal {
             String opcao = scanner.nextLine().trim()
 
             switch (opcao) {
-                case "1":
-                    listarCandidatos()
-                    break
-                case "2":
-                    listarEmpresas()
-                    break
-                case "0":
+                case "1" -> listarCandidatos()
+                case "2" -> listarEmpresas()
+                case "0" -> {
                     continuar = false
                     println "Encerrando o Linketinder. Até logo!"
-                    break
-                default:
-                    println "Opção inválida, tente novamente."
+                }
+                default -> println "Opção inválida, tente novamente."
             }
         }
     }
@@ -50,15 +45,15 @@ class MenuPrincipal {
 
     private void listarCandidatos() {
         println "\n--- Candidatos cadastrados ---"
-        candidatoService.listarTodos().each { candidato ->
+        candidatoService.listarTodosCandidatosService().each { candidato ->
             println candidato.exibirDetalhes()
         }
     }
 
     private void listarEmpresas() {
         println "\n--- Empresas cadastradas ---"
-        empresaService.listarTodos().each { empresa ->
+        empresaService.listarTodasEmpresasService().each { empresa ->
             println empresa.exibirDetalhes()
         }
     }
-}
+ }

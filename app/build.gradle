@@ -46,5 +46,9 @@ java {
 
 application {
     // Define the main class for the application.
-    mainClass = 'com.linketinder.App'
+    mainClass = 'com.linketinder.Main'
+}
+
+tasks.named('run') {
+    standardInput = System.in
 }

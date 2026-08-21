@@ -3,7 +3,7 @@ package com.linketinder.service
 import com.linketinder.model.Empresa
 import com.linketinder.repository.EmpresaRepository
 
-class EmpresaService {
+ class EmpresaService {
 
     private EmpresaRepository empresaRepository
 
@@ -18,4 +18,4 @@ class EmpresaService {
     void cadastrarEmpresaService(Empresa empresa) {
         empresaRepository.adicionarEmpresaRepository(empresa)
     }
-}
+ }
