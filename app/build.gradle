@@ -25,6 +25,10 @@ dependencies {
 
     // This dependency is used by the application.
     implementation libs.guava
+
+    testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
+
+    testImplementation 'net.bytebuddy:byte-buddy:1.14.11'
 }
 
 testing {
@@ -32,7 +36,7 @@ testing {
         // Configure the built-in test suite
         test {
             // Use Spock test framework
-            useSpock('2.4-groovy-4.0')
+            useSpock('2.3-groovy-4.0')
         }
     }
 }
