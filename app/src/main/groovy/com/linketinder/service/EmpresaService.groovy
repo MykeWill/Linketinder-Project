@@ -16,6 +16,10 @@ import com.linketinder.repository.EmpresaRepository
     }
 
     void cadastrarEmpresaService(Empresa empresa) {
+        boolean existeCNPJ = empresaRepository.listarTodasEmpresasRepository().any {it.cnpj == empresa.cnpj }
+        if (existeCNPJ) {
+            throw new IllegalArgumentException("CNPJ já cadastrado")
+        }
         empresaRepository.adicionarEmpresaRepository(empresa)
     }
  }

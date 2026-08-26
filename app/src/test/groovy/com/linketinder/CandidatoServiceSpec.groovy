@@ -32,4 +32,22 @@ class CandidatoServiceSpec extends Specification {
         then:
         1 * repositoryMock.adicionarCandidatoRepository(candidato)
     }
+
+    def "não deve cadastrar candidato com CPF duplicado"() {
+        given:
+        def repositoryMock = Mock(CandidatoRepository)
+        def service = new CandidatoService(repositoryMock)
+        def candidatoExistente = new Candidato("João", "joao@email.com", "123", 30, "SP", "000", "", [])
+        def novoCandidato = new Candidato("Maria", "maria@email.com", "123", 25, "RJ", "000", "", [])
+
+        repositoryMock.listarTodosCandidatosRepository() >> [candidatoExistente]
+
+        when:
+        service.cadastrarCandidatoService(novoCandidato)
+
+        then:
+        thrown(IllegalArgumentException)
+    }
+
+
 }

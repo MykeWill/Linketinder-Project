@@ -16,6 +16,10 @@ class CandidatoService {
     }
 
     void cadastrarCandidatoService(Candidato candidato) {
+        boolean existeCPF = candidatoRepository.listarTodosCandidatosRepository().any{ it.cpf == candidato.cpf }
+        if (existeCPF) {
+            throw new IllegalArgumentException("CPF já cadastrado")
+        }
         candidatoRepository.adicionarCandidatoRepository(candidato)
     }
 }
