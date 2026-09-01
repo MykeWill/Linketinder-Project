@@ -1,0 +1,74 @@
+import type { EmpresaInterface } from '../types/models'
+
+const empresas: EmpresaInterface[] = [
+    {
+        id: '1',
+        nome: 'Arroz-Gostoso',
+        emailCorporativo: 'contato@arrozgostoso.com',
+        cnpj: '11.111.111/0001-11',
+        pais: 'Brasil',
+        estado: 'SP',
+        cep: '01000-000',
+        descricao: 'Empresa do ramo alimentício.',
+        competencias: ['Java', 'Spring Framework']
+    },
+    {
+        id: '2',
+        nome: 'Império do Boliche',
+        emailCorporativo: 'rh@imperiodoboliche.com',
+        cnpj: '22.222.222/0001-22',
+        pais: 'Brasil',
+        estado: 'RJ',
+        cep: '20000-000',
+        descricao: 'Rede de entretenimento e lazer.',
+        competencias: ['Angular', 'JavaScript']
+    },
+    {
+        id: '3',
+        nome: 'TechNova',
+        emailCorporativo: 'vagas@technova.com',
+        cnpj: '33.333.333/0001-33',
+        pais: 'Brasil',
+        estado: 'MG',
+        cep: '30000-000',
+        descricao: 'Startup de soluções em nuvem.',
+        competencias: ['Python', 'SQL']
+    },
+    {
+        id: '4',
+        nome: 'QualiTest Corp',
+        emailCorporativo: 'recrutamento@qualitest.com',
+        cnpj: '44.444.444/0001-44',
+        pais: 'Brasil',
+        estado: 'PR',
+        cep: '80000-000',
+        descricao: 'Empresa especializada em qualidade de software.',
+        competencias: ['Python', 'Selenium']
+    },
+    {
+        id: '5',
+        nome: 'DevBridge',
+        emailCorporativo: 'contato@devbridge.com',
+        cnpj: '55.555.555/0001-55',
+        pais: 'Brasil',
+        estado: 'BA',
+        cep: '40000-000',
+        descricao: 'Consultoria em desenvolvimento full stack.',
+        competencias: ['Java', 'Angular', 'SQL']
+    }
+]
+
+export function listarTodasEmpresasRepository(): EmpresaInterface[] {
+    return empresas
+}
+
+export function adicionarEmpresaRepository(empresa: EmpresaInterface): void {
+    empresas.push(empresa)
+}
+
+export function removerEmpresaRepository(id: string): void {
+    const index = empresas.findIndex(e => e.id === id)
+    if (index !== -1) {
+        empresas.splice(index, 1)
+    }
+}
