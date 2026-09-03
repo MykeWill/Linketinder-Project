@@ -21,6 +21,7 @@ export function renderizarPerfilEmpresa() {
         <tr title="${vaga.descricao}">
             <td>${vaga.titulo}</td>
             <td>${vaga.competencias.join(', ')}</td>
+            <td><button class="btn-remover-vaga" data-id="${vaga.id}">Remover</button></td>
         </tr>
     `).join('')
 
@@ -32,6 +33,7 @@ export function renderizarPerfilEmpresa() {
                 <tr>
                     <th>Título</th>
                     <th>Competências</th>
+                    <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
@@ -84,19 +86,25 @@ export function renderizarPerfilEmpresa() {
 
   formularioVaga.addEventListener('submit', (evento) => {
     evento.preventDefault()
-
     const titulo = (document.getElementById('titulo') as HTMLInputElement).value
     const descricao = (document.getElementById('descricao') as HTMLTextAreaElement).value
     const competencias = (document.getElementById('competencias') as HTMLInputElement).value
         .split(',')
         .map(c => c.trim())
         .filter(c => c.length > 0)
-
     try {
       vagaService.cadastrarVagaService({ empresaId: EMPRESA_LOGADA_ID, titulo, descricao, competencias })
       renderizarPerfilEmpresa()
     } catch (erro) {
       document.getElementById('mensagem-erro')!.textContent = (erro as Error).message
     }
+  })
+
+  document.querySelectorAll('.btn-remover-vaga').forEach(botao => {
+    botao.addEventListener('click', () => {
+      const id = (botao as HTMLElement).dataset.id!
+      vagaService.removerVagaService(id)
+      renderizarPerfilEmpresa()
+    })
   })
 }
