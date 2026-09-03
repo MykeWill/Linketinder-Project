@@ -20,5 +20,5 @@ export function cadastrarService(dados: Omit<CandidatoInterface, 'id'>): Candida
 }
 
 export function removerService(id: string): void {
-    candidatoRepository.removerRepositpry(id)
+    candidatoRepository.removerRepository(id)
 }
