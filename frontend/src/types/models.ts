@@ -20,5 +20,12 @@ export interface EmpresaInterface {
   estado: string
   cep: string
   descricao: string
+}
+
+export interface VagaInterface {
+  id: string
+  empresaId: string
+  titulo: string
+  descricao: string
   competencias: string[]
 }
