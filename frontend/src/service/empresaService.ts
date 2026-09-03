@@ -20,3 +20,7 @@ export function cadastrarEmpresaService(dados: Omit<EmpresaInterface, 'id'>): Em
 export function removerEmpresaService(id: string): void {
     empresaRepository.removerEmpresaRepository(id)
 }
+
+export function buscarEmpresaPorEmailService(email: string): EmpresaInterface | undefined {
+    return empresaRepository.buscarEmpresaPorEmailRepository(email)
+}

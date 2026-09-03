@@ -1,6 +1,8 @@
 import type { EmpresaInterface } from '../types/models'
 
-const empresas: EmpresaInterface[] = [
+const CHAVE_STORAGE = 'linketinder:empresas'
+
+const empresasIniciais: EmpresaInterface[] = [
     {
         id: '1',
         nome: 'Arroz-Gostoso',
@@ -53,17 +55,34 @@ const empresas: EmpresaInterface[] = [
     }
 ]
 
+function carregarEmpresas(): EmpresaInterface[] {
+    const dados = localStorage.getItem(CHAVE_STORAGE)
+    return dados ? JSON.parse(dados) : empresasIniciais
+}
+
+function salvarEmpresas(empresas: EmpresaInterface[]): void {
+    localStorage.setItem(CHAVE_STORAGE, JSON.stringify(empresas))
+}
+
+let empresas: EmpresaInterface[] = carregarEmpresas()
+
 export function listarTodasEmpresasRepository(): EmpresaInterface[] {
     return empresas
 }
 
 export function adicionarEmpresaRepository(empresa: EmpresaInterface): void {
     empresas.push(empresa)
+    salvarEmpresas(empresas)
 }
 
 export function removerEmpresaRepository(id: string): void {
     const index = empresas.findIndex(e => e.id === id)
     if (index !== -1) {
         empresas.splice(index, 1)
+        salvarEmpresas(empresas)
     }
+}
+
+export function buscarEmpresaPorEmailRepository(email: string): EmpresaInterface | undefined {
+    return empresas.find(e => e.emailCorporativo === email)
 }

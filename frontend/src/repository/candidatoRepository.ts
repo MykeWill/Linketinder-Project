@@ -1,6 +1,8 @@
-import type {CandidatoInterface} from '../types/models'
+import type { CandidatoInterface } from '../types/models'
 
-const candidatos: CandidatoInterface[] = [
+const CHAVE_STORAGE = 'linketinder:candidatos'
+
+const candidatosIniciais: CandidatoInterface[] = [
     {
         id: '1',
         nome: 'Ana Souza',
@@ -63,6 +65,16 @@ const candidatos: CandidatoInterface[] = [
     }
 ]
 
+function carregarCandidatos(): CandidatoInterface[] {
+    const dados = localStorage.getItem(CHAVE_STORAGE)
+    return dados ? JSON.parse(dados) : candidatosIniciais
+}
+
+function salvarCandidatos(candidatos: CandidatoInterface[]): void {
+    localStorage.setItem(CHAVE_STORAGE, JSON.stringify(candidatos))
+}
+
+let candidatos: CandidatoInterface[] = carregarCandidatos()
 
 export function listarTodosCandidatosRepository(): CandidatoInterface[] {
     return candidatos
@@ -70,11 +82,17 @@ export function listarTodosCandidatosRepository(): CandidatoInterface[] {
 
 export function adicionarCandidatoRepository(candidato: CandidatoInterface): void {
     candidatos.push(candidato)
+    salvarCandidatos(candidatos)
 }
 
 export function removerCandidatoRepository(id: string): void {
     const index = candidatos.findIndex(c => c.id === id)
     if (index !== -1) {
         candidatos.splice(index, 1)
+        salvarCandidatos(candidatos)
     }
+}
+
+export function buscarCandidatoPorEmailRepository(email: string): CandidatoInterface | undefined {
+    return candidatos.find(c => c.email === email)
 }
