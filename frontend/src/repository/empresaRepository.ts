@@ -9,8 +9,7 @@ const empresas: EmpresaInterface[] = [
         pais: 'Brasil',
         estado: 'SP',
         cep: '01000-000',
-        descricao: 'Empresa do ramo alimentício.',
-        competencias: ['Java', 'Spring Framework']
+        descricao: 'Empresa do ramo alimentício.'
     },
     {
         id: '2',
@@ -20,8 +19,7 @@ const empresas: EmpresaInterface[] = [
         pais: 'Brasil',
         estado: 'RJ',
         cep: '20000-000',
-        descricao: 'Rede de entretenimento e lazer.',
-        competencias: ['Angular', 'JavaScript']
+        descricao: 'Rede de entretenimento e lazer.'
     },
     {
         id: '3',
@@ -31,8 +29,7 @@ const empresas: EmpresaInterface[] = [
         pais: 'Brasil',
         estado: 'MG',
         cep: '30000-000',
-        descricao: 'Startup de soluções em nuvem.',
-        competencias: ['Python', 'SQL']
+        descricao: 'Startup de soluções em nuvem.'
     },
     {
         id: '4',
@@ -42,8 +39,7 @@ const empresas: EmpresaInterface[] = [
         pais: 'Brasil',
         estado: 'PR',
         cep: '80000-000',
-        descricao: 'Empresa especializada em qualidade de software.',
-        competencias: ['Python', 'Selenium']
+        descricao: 'Empresa especializada em qualidade de software.'
     },
     {
         id: '5',
@@ -53,8 +49,7 @@ const empresas: EmpresaInterface[] = [
         pais: 'Brasil',
         estado: 'BA',
         cep: '40000-000',
-        descricao: 'Consultoria em desenvolvimento full stack.',
-        competencias: ['Java', 'Angular', 'SQL']
+        descricao: 'Consultoria em desenvolvimento full stack.'
     }
 ]
 

@@ -294,3 +294,7 @@ code {
     border-right-color: var(--border);
   }
 }
+
+.escondido {
+  display: none;
+}
