@@ -40,7 +40,7 @@ export function renderizarCadastroCandidato() {
         .filter(c => c.length > 0)
 
     try {
-      candidatoService.cadastrarService({ nome, email, cpf, idade, estado, cep, descricao, formacao, competencias })
+      candidatoService.cadastrarCandidatoService({ nome, email, cpf, idade, estado, cep, descricao, formacao, competencias })
       window.location.hash = '#/perfil-candidato'
     } catch (erro) {
       document.getElementById('mensagem-erro')!.textContent = (erro as Error).message

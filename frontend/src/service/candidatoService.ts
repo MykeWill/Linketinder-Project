@@ -1,11 +1,11 @@
 import type { CandidatoInterface } from '../types/models'
 import * as candidatoRepository from '../repository/candidatoRepository'
 
-export function listarTodosService(): CandidatoInterface[] {
-    return candidatoRepository.listarTodosRepository()
+export function listarTodosCandidatosService(): CandidatoInterface[] {
+    return candidatoRepository.listarTodosCandidatosRepository()
 }
 
-export function cadastrarService(dados: Omit<CandidatoInterface, 'id'>): CandidatoInterface {
+export function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 'id'>): CandidatoInterface {
     if (!dados.nome || !dados.email || !dados.cpf) {
         throw new Error('Preencha nome, e-mail e CPF.')
     }
@@ -15,10 +15,23 @@ export function cadastrarService(dados: Omit<CandidatoInterface, 'id'>): Candida
         ...dados
     }
 
-    candidatoRepository.adicionarRepository(novoCandidatoService)
+    candidatoRepository.adicionarCandidatoRepository(novoCandidatoService)
     return novoCandidatoService
 }
 
-export function removerService(id: string): void {
-    candidatoRepository.removerRepository(id)
+export function removerCandidatoService(id: string): void {
+    candidatoRepository.removerCandidatoRepository(id)
+}
+
+export function contarCandidatosPorCompetenciaService(): Record<string, number> {
+    const candidatos = candidatoRepository.listarTodosCandidatosRepository()
+    const contagem: Record<string, number> = {}
+
+    candidatos.forEach(candidato => {
+        candidato.competencias.forEach(competencia => {
+            contagem[competencia] = (contagem[competencia] ?? 0) + 1
+        })
+    })
+
+    return contagem
 }
