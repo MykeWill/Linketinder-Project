@@ -35,3 +35,7 @@ export function contarCandidatosPorCompetenciaService(): Record<string, number> 
 
     return contagem
 }
+
+export function buscarCandidatoPorEmailService(email: string): CandidatoInterface | undefined {
+    return candidatoRepository.buscarCandidatoPorEmailRepository(email)
+}

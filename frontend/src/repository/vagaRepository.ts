@@ -1,6 +1,8 @@
 import type { VagaInterface } from '../types/models'
 
-const vagas: VagaInterface[] = [
+const CHAVE_STORAGE = 'linketinder:vagas'
+
+const vagasIniciais: VagaInterface[] = [
     {
         id: '1',
         empresaId: '1',
@@ -38,6 +40,17 @@ const vagas: VagaInterface[] = [
     }
 ]
 
+function carregarVagas(): VagaInterface[] {
+    const dados = localStorage.getItem(CHAVE_STORAGE)
+    return dados ? JSON.parse(dados) : vagasIniciais
+}
+
+function salvarVagas(vagas: VagaInterface[]): void {
+    localStorage.setItem(CHAVE_STORAGE, JSON.stringify(vagas))
+}
+
+let vagas: VagaInterface[] = carregarVagas()
+
 export function listarTodasVagasRepository(): VagaInterface[] {
     return vagas
 }
@@ -48,11 +61,13 @@ export function listarVagasPorEmpresaRepository(empresaId: string): VagaInterfac
 
 export function adicionarVagaRepository(vaga: VagaInterface): void {
     vagas.push(vaga)
+    salvarVagas(vagas)
 }
 
 export function removerVagaRepository(id: string): void {
     const index = vagas.findIndex(v => v.id === id)
     if (index !== -1) {
         vagas.splice(index, 1)
+        salvarVagas(vagas)
     }
 }
