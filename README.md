@@ -78,3 +78,31 @@ A classe `Pessoa` define os métodos obrigatórios comuns a candidatos (pessoa f
 ## Autor
 
 Desenvolvido por **Myke William Silva** durante o Acelera ZG.
+
+
+------------------------------------------------------------------------------------
+
+# Linketinder – Banco de Dados (Parte 1)
+
+Repositório para a entrega da modelagem e scripts SQL do projeto Linketinder, conforme requisitos da trilha K1-T9.
+
+## Requisitos atendidos
+
+- [x] Pelo menos 4 tabelas: `candidato`, `empresa`, `competencia`, `vaga`.
+- [x] Tabelas de relacionamento N:N (`candidato_competencia`, `vaga_competencia`).
+- [x] Tabelas de curtidas para controle de match (`curtida_candidato_vaga`, `curtida_empresa_candidato`).
+- [x] Scripts SQL com criação do banco, inserts de 5 candidatos e 5 empresas fictícios.
+- [x] Queries de exemplo (anônimas, completas e de match).
+- [x] MER/DER em imagem (abaixo).
+- [x] Indicação da ferramenta de modelagem.
+
+# Modelo DER
+
+![DER](docs/der-linketinder.png)  
+*Ferramenta: [dbdiagram.io](https://dbdiagram.io/)*
+
+## Scripts SQL
+
+- `sql/01-schema.sql` – criação das tabelas.
+- `sql/02-inserts.sql` – inserção de dados fictícios.
+- `sql/03-queries.sql` – consultas de exemplo.
