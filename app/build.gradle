@@ -26,6 +26,9 @@ dependencies {
     // This dependency is used by the application.
     implementation libs.guava
 
+    // Driver JDBC do PostgreSQL
+    implementation 'org.postgresql:postgresql:42.7.4'
+
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 
     testImplementation 'net.bytebuddy:byte-buddy:1.14.11'
