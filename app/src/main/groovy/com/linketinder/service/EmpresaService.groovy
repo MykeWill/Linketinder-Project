@@ -1,25 +1,24 @@
 package com.linketinder.service
 
-import com.linketinder.model.Empresa
-import com.linketinder.repository.EmpresaRepository
+import com.linketinder.dao.EmpresaDao
 
- class EmpresaService {
+class EmpresaService {
 
-    private EmpresaRepository empresaRepository
+    private EmpresaDao empresaDao = new EmpresaDao()
 
-    EmpresaService(EmpresaRepository empresaRepository) {
-        this.empresaRepository = empresaRepository
+    Integer cadastrarEmpresa(String nome, String cnpj, String email, String descricao, String pais, String cep, String senha) {
+        return empresaDao.inserirEmpresa(nome, cnpj, email, descricao, pais, cep, senha)
     }
 
-    List<Empresa> listarTodasEmpresasService() {
-        empresaRepository.listarTodasEmpresasRepository()
+    List<Map> listarTodasEmpresasService() {
+        return empresaDao.listarTodasEmpresas()
     }
 
-    void cadastrarEmpresaService(Empresa empresa) {
-        boolean existeCNPJ = empresaRepository.listarTodasEmpresasRepository().any {it.cnpj == empresa.cnpj }
-        if (existeCNPJ) {
-            throw new IllegalArgumentException("CNPJ já cadastrado")
-        }
-        empresaRepository.adicionarEmpresaRepository(empresa)
+    void atualizarEmpresaService(Integer id, String descricao) {
+        empresaDao.atualizarEmpresa(id, descricao)
     }
- }
+
+    void removerEmpresaService(Integer id) {
+        empresaDao.removerEmpresa(id)
+    }
+}
