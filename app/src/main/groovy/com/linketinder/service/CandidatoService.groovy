@@ -1,25 +1,35 @@
 package com.linketinder.service
 
-import com.linketinder.model.Candidato
-import com.linketinder.repository.CandidatoRepository
+import com.linketinder.dao.CandidatoDao
+import com.linketinder.dao.CompetenciaDao
 
 class CandidatoService {
 
-    private CandidatoRepository candidatoRepository
+    private CandidatoDao candidatoDao = new CandidatoDao()
+    private CompetenciaDao competenciaDao = new CompetenciaDao()
 
-    CandidatoService(CandidatoRepository candidatoRepository) {
-        this.candidatoRepository = candidatoRepository
-    }
+    Integer cadastrarCandidato(String nome, String sobrenome, String dataNasc, String email, String cpf,
+                               String pais, String cep, String descricao, String senha, List<String> competencias) {
 
-    List<Candidato> listarTodosCandidatosService() {
-        candidatoRepository.listarTodosCandidatosRepository()
-    }
+        Integer candidatoId = candidatoDao.inserirCandidato(nome, sobrenome, dataNasc, email, cpf, pais, cep, descricao, senha)
 
-    void cadastrarCandidatoService(Candidato candidato) {
-        boolean existeCPF = candidatoRepository.listarTodosCandidatosRepository().any{ it.cpf == candidato.cpf }
-        if (existeCPF) {
-            throw new IllegalArgumentException("CPF já cadastrado")
+        competencias.each { nomeCompetencia ->
+            Integer competenciaId = competenciaDao.buscarOuCriar(nomeCompetencia)
+            candidatoDao.vincularCompetenciaAoCandidato(candidatoId, competenciaId)
         }
-        candidatoRepository.adicionarCandidatoRepository(candidato)
+
+        return candidatoId
+    }
+
+    List<Map> listarTodosCandidatosService() {
+        return candidatoDao.listarTodosCandidatos()
+    }
+
+    void atualizarCandidatoService(Integer id, String descricao) {
+        candidatoDao.atualizarCandidato(id, descricao)
+    }
+
+    void removerCandidatoService(Integer id) {
+        candidatoDao.removerCandidato(id)
     }
 }
