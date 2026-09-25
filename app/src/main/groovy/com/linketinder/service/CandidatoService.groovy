@@ -2,18 +2,17 @@ package com.linketinder.service
 
 import com.linketinder.dao.CandidatoDao
 import com.linketinder.dao.CompetenciaDao
+import com.linketinder.model.Candidato
 
 class CandidatoService {
 
     private CandidatoDao candidatoDao = new CandidatoDao()
     private CompetenciaDao competenciaDao = new CompetenciaDao()
 
-    Integer cadastrarCandidato(String nome, String sobrenome, String dataNasc, String email, String cpf,
-                               String pais, String cep, String descricao, String senha, List<String> competencias) {
+    Integer cadastrarCandidato(Candidato c) {
+        Integer candidatoId = candidatoDao.inserirCandidato(c)
 
-        Integer candidatoId = candidatoDao.inserirCandidato(nome, sobrenome, dataNasc, email, cpf, pais, cep, descricao, senha)
-
-        competencias.each { nomeCompetencia ->
+        c.competencias.each { nomeCompetencia ->
             Integer competenciaId = competenciaDao.buscarOuCriar(nomeCompetencia)
             candidatoDao.vincularCompetenciaAoCandidato(candidatoId, competenciaId)
         }
@@ -21,12 +20,16 @@ class CandidatoService {
         return candidatoId
     }
 
-    List<Map> listarTodosCandidatosService() {
+    List<Map> listarCandidatosAnonimosService() {
+        return candidatoDao.listarCandidatosAnonimos()
+    }
+
+    List<Candidato> listarTodosCandidatosService() {
         return candidatoDao.listarTodosCandidatos()
     }
 
-    void atualizarCandidatoService(Integer id, String descricao) {
-        candidatoDao.atualizarCandidato(id, descricao)
+    void atualizarCandidatoService(Candidato c) {
+        candidatoDao.atualizarCandidato(c)
     }
 
     void removerCandidatoService(Integer id) {

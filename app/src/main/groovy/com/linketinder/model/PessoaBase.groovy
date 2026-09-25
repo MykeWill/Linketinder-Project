@@ -6,15 +6,13 @@ package com.linketinder.model
     String estado
     String cep
     String descricao
-    List<String> competencias
 
-    PessoaBase(String nome, String email, String estado, String cep, String descricao, List<String> competencias) {
+    PessoaBase(String nome, String email, String estado, String cep, String descricao) {
         this.nome = nome
         this.email = email
         this.estado = estado
         this.cep = cep
         this.descricao = descricao
-        this.competencias = competencias
     }
 
      @Override
@@ -31,8 +29,5 @@ package com.linketinder.model
 
      @Override
      String getDescricao() { descricao }
-
-     @Override
-     List<String> getCompetencias() { competencias }
 
  }

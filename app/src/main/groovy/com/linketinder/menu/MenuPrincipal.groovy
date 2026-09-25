@@ -1,19 +1,22 @@
- package com.linketinder.menu
+package com.linketinder.menu
 
- import com.linketinder.model.Candidato
- import com.linketinder.model.Empresa
- import com.linketinder.service.CandidatoService
- import com.linketinder.service.EmpresaService
+import com.linketinder.model.Candidato
+import com.linketinder.model.Empresa
+import com.linketinder.service.CandidatoService
+import com.linketinder.service.EmpresaService
+import com.linketinder.service.VagaService
 
- class MenuPrincipal {
+class MenuPrincipal {
 
     private CandidatoService candidatoService
     private EmpresaService empresaService
+    private VagaService vagaService
     private Scanner scanner
 
-    MenuPrincipal(CandidatoService candidatoService, EmpresaService empresaService) {
+    MenuPrincipal(CandidatoService candidatoService, EmpresaService empresaService, VagaService vagaService) {
         this.candidatoService = candidatoService
         this.empresaService = empresaService
+        this.vagaService = vagaService
         this.scanner = new Scanner(System.in)
     }
 
@@ -63,85 +66,86 @@
         }
     }
 
-     private void cadastrarCandidato() {
-         println("\n--- Cadastro de Candidato ---")
-         try {
-             print "Nome: "
-             String nome = scanner.nextLine()
+    private void cadastrarCandidato() {
+        println("\n--- Cadastro de Candidato ---")
+        try {
+            print "Nome: "
+            String nome = scanner.nextLine()
 
-             print "email: "
-             String email = scanner.nextLine()
+            print "E-mail: "
+            String email = scanner.nextLine()
 
-             print "CPF: "
-             String cpf = scanner.nextLine()
+            print "CPF: "
+            String cpf = scanner.nextLine()
 
-             print "Idade: "
-             int idade = Integer.parseInt(scanner.nextLine())
+            print "Idade: "
+            int idade = Integer.parseInt(scanner.nextLine())
 
-             print "Estado (UF): "
-             String estado = scanner.nextLine()
+            print "Estado (UF): "
+            String estado = scanner.nextLine()
 
-             print "CEP: "
-             String cep = scanner.nextLine()
+            print "CEP: "
+            String cep = scanner.nextLine()
 
-             print "Descrição: "
-             String descricao = scanner.nextLine()
+            print "Descrição: "
+            String descricao = scanner.nextLine()
 
-             print "Competências (separadas por vírgula): "
-             List<String> competencias = scanner.nextLine().split(",").collect { it.trim() }
+            print "Senha: "
+            String senha = scanner.nextLine()
 
-             Candidato candidato = new Candidato(nome, email, cpf, idade, estado, cep, descricao, competencias)
+            print "Competências (separadas por vírgula): "
+            List<String> competencias = scanner.nextLine().split(",").collect { it.trim() }
 
-             candidatoService.cadastrarCandidatoService(candidato)
+            Candidato candidato = new Candidato(nome, email, cpf, idade, estado, cep, descricao, senha, competencias)
 
-             println "Candidato cadastrado com sucesso!"
+            candidatoService.cadastrarCandidato(candidato)
 
-         }catch (NumberFormatException e) {
-             println "Erro: Idade deve ser um número válido."
-         } catch (IllegalArgumentException e) {
-             println "Erro ao cadastrar candidato: ${e.getMessage()}"
-         } catch (Exception e) {
-             println "Ocorreu um erro inesperado: ${e.getMessage()}"
-         }
-     }
+            println "Candidato cadastrado com sucesso!"
 
-     private void cadastrarEmpresa() {
-         println "\n--- Cadastro de Empresa ---"
-         try {
-             print "Nome: "
-             String nome = scanner.nextLine()
+        } catch (NumberFormatException e) {
+            println "Erro: Idade deve ser um número válido."
+        } catch (IllegalArgumentException e) {
+            println "Erro ao cadastrar candidato: ${e.getMessage()}"
+        } catch (Exception e) {
+            println "Ocorreu um erro inesperado: ${e.getMessage()}"
+        }
+    }
 
-             print "E-mail corporativo: "
-             String email = scanner.nextLine()
+    private void cadastrarEmpresa() {
+        println "\n--- Cadastro de Empresa ---"
+        try {
+            print "Nome: "
+            String nome = scanner.nextLine()
 
-             print "CNPJ (somente números): "
-             String cnpj = scanner.nextLine()
+            print "E-mail corporativo: "
+            String email = scanner.nextLine()
 
-             print "País: "
-             String pais = scanner.nextLine()
+            print "CNPJ (somente números): "
+            String cnpj = scanner.nextLine()
 
-             print "Estado (UF): "
-             String estado = scanner.nextLine()
+            print "País: "
+            String pais = scanner.nextLine()
 
-             print "CEP: "
-             String cep = scanner.nextLine()
+            print "Estado (UF): "
+            String estado = scanner.nextLine()
 
-             print "Descrição: "
-             String descricao = scanner.nextLine()
+            print "CEP: "
+            String cep = scanner.nextLine()
 
-             print "Competências buscadas (separadas por vírgula): "
-             List<String> competencias = scanner.nextLine().split(",").collect { it.trim() }
+            print "Descrição: "
+            String descricao = scanner.nextLine()
 
-             Empresa empresa = new Empresa(nome, email, cnpj, pais, estado, cep, descricao, competencias)
-             empresaService.cadastrarEmpresaService(empresa)
-             println "✅ Empresa cadastrada com sucesso!"
+            print "Senha: "
+            String senha = scanner.nextLine()
 
-         } catch (IllegalArgumentException e) {
-             println "❌ Erro ao cadastrar empresa: ${e.getMessage()}"
-         } catch (Exception e) {
-             println "❌ Ocorreu um erro inesperado: ${e.getMessage()}"
-         }
-     }
+            Empresa empresa = new Empresa(nome, email, cnpj, pais, estado, cep, descricao, senha)
+            empresaService.cadastrarEmpresa(empresa)
+            println "✅ Empresa cadastrada com sucesso!"
 
-
- }
+        } catch (IllegalArgumentException e) {
+            println "❌ Erro ao cadastrar empresa: ${e.getMessage()}"
+        } catch (Exception e) {
+            println "❌ Ocorreu um erro inesperado: ${e.getMessage()}"
+        }
+    }
+}

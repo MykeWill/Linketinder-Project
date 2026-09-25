@@ -106,3 +106,54 @@ Repositório para a entrega da modelagem e scripts SQL do projeto Linketinder, c
 - `sql/01-schema.sql` – criação das tabelas.
 - `sql/02-inserts.sql` – inserção de dados fictícios.
 - `sql/03-queries.sql` – consultas de exemplo.
+
+
+---
+
+# Parte 2 – Integração com Banco de Dados (JDBC)
+
+Integração entre a aplicação Groovy e o banco de dados PostgreSQL, utilizando JDBC puro (sem JPA/Hibernate).
+
+## Tecnologias
+
+- Groovy
+- Gradle
+- PostgreSQL
+- JDBC (`org.postgresql:postgresql:42.7.4`)
+- JDK 21
+
+## Arquitetura
+
+```
+com.linketinder
+├── model         -> Pessoa (interface), PessoaBase (abstrata), Candidato, Empresa, Vaga, Competencia
+├── dao           -> CandidatoDao, EmpresaDao, VagaDao, CompetenciaDao, ConexaoDB
+├── service       -> CandidatoService, EmpresaService, VagaService, CompetenciaService
+├── menu          -> MenuPrincipal (interação via terminal)
+└── Main.groovy   -> ponto de entrada da aplicação
+```
+
+## O que foi implementado
+
+- CRUD de candidato, empresa, vaga e competência.
+- Relacionamento N:N entre candidato e competência.
+- Relacionamento N:N entre vaga e competência.
+- Relacionamento 1:N entre empresa e vaga.
+- Tabelas de curtida para controle de match.
+- Lógica de anonimato antes do match.
+
+## Scripts SQL
+
+Os scripts estão na pasta `sql/`:
+
+- `sql/01-schema.sql` – criação das tabelas.
+- `sql/02-inserts.sql` – inserção de dados fictícios.
+- `sql/03-queries.sql` – consultas de exemplo.
+
+## Lógica de Anonimato
+
+Antes do match:
+- O candidato vê apenas a descrição, local e competências exigidas da vaga (sem o nome da empresa).
+- A empresa vê apenas a descrição pessoal e as competências do candidato (sem nome, e-mail, etc.).
+
+Após o match, as informações completas são reveladas para ambas as partes.

@@ -2,16 +2,17 @@ package com.linketinder.service
 
 import com.linketinder.dao.VagaDao
 import com.linketinder.dao.CompetenciaDao
+import com.linketinder.model.Vaga
 
 class VagaService {
 
     private VagaDao vagaDao = new VagaDao()
     private CompetenciaDao competenciaDao = new CompetenciaDao()
 
-    Integer cadastrarVaga(Integer empresaId, String nome, String descricao, String local, List<String> competencias) {
-        Integer vagaId = vagaDao.inserirVaga(empresaId, nome, descricao, local)
+    Integer cadastrarVaga(Vaga v) {
+        Integer vagaId = vagaDao.inserirVaga(v)
 
-        competencias.each { nomeCompetencia ->
+        v.competencias.each { nomeCompetencia ->
             Integer competenciaId = competenciaDao.buscarOuCriar(nomeCompetencia)
             vagaDao.vincularCompetenciaAVaga(vagaId, competenciaId)
         }
@@ -19,16 +20,16 @@ class VagaService {
         return vagaId
     }
 
-    List<Map> listarTodasVagasService() {
+    List<Vaga> listarTodasVagasService() {
         return vagaDao.listarTodasVagas()
     }
 
-    List<Map> listarVagasPorEmpresaService(Integer empresaId) {
+    List<Vaga> listarVagasPorEmpresaService(Integer empresaId) {
         return vagaDao.listarVagasPorEmpresa(empresaId)
     }
 
-    void atualizarVagaService(Integer id, String descricao) {
-        vagaDao.atualizarVaga(id, descricao)
+    void atualizarVagaService(Vaga v) {
+        vagaDao.atualizarVaga(v)
     }
 
     void removerVagaService(Integer id) {

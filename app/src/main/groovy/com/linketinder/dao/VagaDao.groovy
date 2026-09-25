@@ -1,12 +1,13 @@
 package com.linketinder.dao
 
+import com.linketinder.model.Vaga
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 class VagaDao {
 
-    Integer inserirVaga(Integer empresaId, String nome, String descricao, String local) {
+    Integer inserirVaga(Vaga v) {
         String sql = '''
             INSERT INTO vaga (empresa_id, nome, descricao, local)
             VALUES (?, ?, ?, ?)
@@ -15,10 +16,10 @@ class VagaDao {
         Connection conexao = ConexaoDB.obterConexao()
         try {
             PreparedStatement stmt = conexao.prepareStatement(sql)
-            stmt.setInt(1, empresaId)
-            stmt.setString(2, nome)
-            stmt.setString(3, descricao)
-            stmt.setString(4, local)
+            stmt.setInt(1, v.empresaId)
+            stmt.setString(2, v.nome)
+            stmt.setString(3, v.descricao)
+            stmt.setString(4, v.local)
             ResultSet resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getInt('id')
@@ -40,21 +41,31 @@ class VagaDao {
         }
     }
 
-    List<Map> listarTodasVagas() {
-        String sql = 'SELECT id, empresa_id, nome, descricao, local FROM vaga'
+    List<Vaga> listarTodasVagas() {
+        String sql = '''
+            SELECT v.id, v.empresa_id, v.nome, v.descricao, v.local,
+                   array_agg(comp.nome) AS competencias
+            FROM vaga v
+            LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
+            LEFT JOIN competencia comp ON vc.competencia_id = comp.id
+            GROUP BY v.id
+            ORDER BY v.id
+        '''
         Connection conexao = ConexaoDB.obterConexao()
         try {
             PreparedStatement stmt = conexao.prepareStatement(sql)
             ResultSet resultado = stmt.executeQuery()
-            List<Map> vagas = []
+            List<Vaga> vagas = []
             while (resultado.next()) {
-                vagas << [
-                        id       : resultado.getInt('id'),
-                        empresaId: resultado.getInt('empresa_id'),
-                        nome     : resultado.getString('nome'),
-                        descricao: resultado.getString('descricao'),
-                        local    : resultado.getString('local')
-                ]
+                Vaga v = new Vaga(
+                        resultado.getInt('empresa_id'),
+                        resultado.getString('nome'),
+                        resultado.getString('descricao'),
+                        resultado.getString('local'),
+                        (resultado.getArray('competencias')?.array as List)?.toList() ?: []
+                )
+                v.id = resultado.getInt('id')
+                vagas << v
             }
             return vagas
         } finally {
@@ -62,22 +73,33 @@ class VagaDao {
         }
     }
 
-    List<Map> listarVagasPorEmpresa(Integer empresaId) {
-        String sql = 'SELECT id, empresa_id, nome, descricao, local FROM vaga WHERE empresa_id = ?'
+    List<Vaga> listarVagasPorEmpresa(Integer empresaId) {
+        String sql = '''
+            SELECT v.id, v.empresa_id, v.nome, v.descricao, v.local,
+                   array_agg(comp.nome) AS competencias
+            FROM vaga v
+            LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
+            LEFT JOIN competencia comp ON vc.competencia_id = comp.id
+            WHERE v.empresa_id = ?
+            GROUP BY v.id
+            ORDER BY v.id
+        '''
         Connection conexao = ConexaoDB.obterConexao()
         try {
             PreparedStatement stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, empresaId)
             ResultSet resultado = stmt.executeQuery()
-            List<Map> vagas = []
+            List<Vaga> vagas = []
             while (resultado.next()) {
-                vagas << [
-                        id       : resultado.getInt('id'),
-                        empresaId: resultado.getInt('empresa_id'),
-                        nome     : resultado.getString('nome'),
-                        descricao: resultado.getString('descricao'),
-                        local    : resultado.getString('local')
-                ]
+                Vaga v = new Vaga(
+                        resultado.getInt('empresa_id'),
+                        resultado.getString('nome'),
+                        resultado.getString('descricao'),
+                        resultado.getString('local'),
+                        (resultado.getArray('competencias')?.array as List)?.toList() ?: []
+                )
+                v.id = resultado.getInt('id')
+                vagas << v
             }
             return vagas
         } finally {
@@ -85,13 +107,16 @@ class VagaDao {
         }
     }
 
-    void atualizarVaga(Integer id, String descricao) {
-        String sql = 'UPDATE vaga SET descricao = ? WHERE id = ?'
+    void atualizarVaga(Vaga v) {
+        String sql = 'UPDATE vaga SET empresa_id = ?, nome = ?, descricao = ?, local = ? WHERE id = ?'
         Connection conexao = ConexaoDB.obterConexao()
         try {
             PreparedStatement stmt = conexao.prepareStatement(sql)
-            stmt.setString(1, descricao)
-            stmt.setInt(2, id)
+            stmt.setInt(1, v.empresaId)
+            stmt.setString(2, v.nome)
+            stmt.setString(3, v.descricao)
+            stmt.setString(4, v.local)
+            stmt.setInt(5, v.id)
             stmt.executeUpdate()
         } finally {
             conexao.close()

@@ -3,20 +3,17 @@ package com.linketinder
 // Autor: Myke William Silva
 
 import com.linketinder.menu.MenuPrincipal
-import com.linketinder.repository.CandidatoRepository
-import com.linketinder.repository.EmpresaRepository
 import com.linketinder.service.CandidatoService
 import com.linketinder.service.EmpresaService
+import com.linketinder.service.VagaService
 
- class Main {
+class Main {
     static void main(String[] args) {
-        def candidatoRepository = new CandidatoRepository()
-        def empresaRepository = new EmpresaRepository()
+        def candidatoService = new CandidatoService()
+        def empresaService = new EmpresaService()
+        def vagaService = new VagaService()
 
-        def candidatoService = new CandidatoService(candidatoRepository)
-        def empresaService = new EmpresaService(empresaRepository)
-
-        def menu = new MenuPrincipal(candidatoService, empresaService)
+        def menu = new MenuPrincipal(candidatoService, empresaService, vagaService)
         menu.iniciar()
     }
- }
+}

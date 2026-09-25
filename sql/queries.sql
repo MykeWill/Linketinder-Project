@@ -21,10 +21,10 @@ ORDER BY v.id;
 -- deu match
 SELECT c.id,
        c.nome,
-       c.sobrenome,
        c.email,
        c.cpf,
-       c.pais,
+       c.idade,
+       c.estado,
        c.cep,
        c.descricao,
        array_agg(comp.nome) AS competencias
@@ -47,10 +47,9 @@ FROM vaga v
 GROUP BY v.id, e.nome
 ORDER BY v.id;
 
-
---- dados gerais
+-- dados gerais (match)
 SELECT c.id                         AS candidato_id,
-       c.nome || ' ' || c.sobrenome AS nome_candidato,
+       c.nome                       AS nome_candidato,
        c.email                      AS email_candidato,
        e.id                         AS empresa_id,
        e.nome                       AS empresa,
