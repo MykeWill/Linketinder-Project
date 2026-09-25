@@ -1,27 +1,29 @@
 package com.linketinder.dao
 
+import com.linketinder.model.Empresa
 import java.sql.Connection
 import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 class EmpresaDao {
 
-    Integer inserirEmpresa(String nome, String cnpj, String email, String descricao, String pais, String cep, String senha) {
+    Integer inserirEmpresa(Empresa e) {
         String sql = '''
-            INSERT INTO empresa (nome, cnpj, email, descricao, pais, cep, senha)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO empresa (nome, cnpj, email, descricao, pais, estado, cep, senha)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id
         '''
         Connection conexao = ConexaoDB.obterConexao()
         try {
             PreparedStatement stmt = conexao.prepareStatement(sql)
-            stmt.setString(1, nome)
-            stmt.setString(2, cnpj)
-            stmt.setString(3, email)
-            stmt.setString(4, descricao)
-            stmt.setString(5, pais)
-            stmt.setString(6, cep)
-            stmt.setString(7, senha)
+            stmt.setString(1, e.nome)
+            stmt.setString(2, e.cnpj)
+            stmt.setString(3, e.email)
+            stmt.setString(4, e.descricao)
+            stmt.setString(5, e.pais)
+            stmt.setString(6, e.estado)
+            stmt.setString(7, e.cep)
+            stmt.setString(8, e.senha)
             ResultSet resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getInt('id')
@@ -30,23 +32,26 @@ class EmpresaDao {
         }
     }
 
-    List<Map> listarTodasEmpresas() {
-        String sql = 'SELECT id, nome, cnpj, email, descricao, pais, cep FROM empresa'
+    List<Empresa> listarTodasEmpresas() {
+        String sql = 'SELECT id, nome, cnpj, email, descricao, pais, estado, cep, senha FROM empresa'
         Connection conexao = ConexaoDB.obterConexao()
         try {
             PreparedStatement stmt = conexao.prepareStatement(sql)
             ResultSet resultado = stmt.executeQuery()
-            List<Map> empresas = []
+            List<Empresa> empresas = []
             while (resultado.next()) {
-                empresas << [
-                        id       : resultado.getInt('id'),
-                        nome     : resultado.getString('nome'),
-                        cnpj     : resultado.getString('cnpj'),
-                        email    : resultado.getString('email'),
-                        descricao: resultado.getString('descricao'),
-                        pais     : resultado.getString('pais'),
-                        cep      : resultado.getString('cep')
-                ]
+                Empresa e = new Empresa(
+                        resultado.getString('nome'),
+                        resultado.getString('email'),
+                        resultado.getString('cnpj'),
+                        resultado.getString('pais'),
+                        resultado.getString('estado'),
+                        resultado.getString('cep'),
+                        resultado.getString('descricao'),
+                        resultado.getString('senha')
+                )
+                e.id = resultado.getInt('id')
+                empresas << e
             }
             return empresas
         } finally {
@@ -54,13 +59,50 @@ class EmpresaDao {
         }
     }
 
-    void atualizarEmpresa(Integer id, String descricao) {
-        String sql = 'UPDATE empresa SET descricao = ? WHERE id = ?'
+    List<Map> listarEmpresasAnonimas() {
+        String sql = '''
+            SELECT v.id AS vaga_id, v.nome AS vaga_nome, v.descricao, v.local,
+                   array_agg(comp.nome) AS competencias_exigidas
+            FROM vaga v
+            LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
+            LEFT JOIN competencia comp ON vc.competencia_id = comp.id
+            GROUP BY v.id
+            ORDER BY v.id
+        '''
         Connection conexao = ConexaoDB.obterConexao()
         try {
             PreparedStatement stmt = conexao.prepareStatement(sql)
-            stmt.setString(1, descricao)
-            stmt.setInt(2, id)
+            ResultSet resultado = stmt.executeQuery()
+            List<Map> vagas = []
+            while (resultado.next()) {
+                vagas << [
+                        id                  : resultado.getInt('vaga_id'),
+                        nome                : resultado.getString('vaga_nome'),
+                        descricao           : resultado.getString('descricao'),
+                        local               : resultado.getString('local'),
+                        competenciasExigidas: (resultado.getArray('competencias_exigidas')?.array as List)?.toList() ?: []
+                ]
+            }
+            return vagas
+        } finally {
+            conexao.close()
+        }
+    }
+
+    void atualizarEmpresa(Empresa e) {
+        String sql = 'UPDATE empresa SET nome = ?, cnpj = ?, email = ?, descricao = ?, pais = ?, estado = ?, cep = ?, senha = ? WHERE id = ?'
+        Connection conexao = ConexaoDB.obterConexao()
+        try {
+            PreparedStatement stmt = conexao.prepareStatement(sql)
+            stmt.setString(1, e.nome)
+            stmt.setString(2, e.cnpj)
+            stmt.setString(3, e.email)
+            stmt.setString(4, e.descricao)
+            stmt.setString(5, e.pais)
+            stmt.setString(6, e.estado)
+            stmt.setString(7, e.cep)
+            stmt.setString(8, e.senha)
+            stmt.setInt(9, e.id)
             stmt.executeUpdate()
         } finally {
             conexao.close()

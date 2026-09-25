@@ -2,11 +2,10 @@ CREATE TABLE candidato
 (
     id        SERIAL PRIMARY KEY,
     nome      VARCHAR(100)        NOT NULL,
-    sobrenome VARCHAR(100)        NOT NULL,
-    data_nasc DATE                NOT NULL,
     email     VARCHAR(150) UNIQUE NOT NULL,
     cpf       VARCHAR(14) UNIQUE  NOT NULL,
-    pais      VARCHAR(100)        NOT NULL,
+    idade     INTEGER             NOT NULL,
+    estado    VARCHAR(100)        NOT NULL,
     cep       VARCHAR(20)         NOT NULL,
     descricao TEXT,
     senha     VARCHAR(255)        NOT NULL
@@ -20,6 +19,7 @@ CREATE TABLE empresa
     email     VARCHAR(150) UNIQUE NOT NULL,
     descricao TEXT,
     pais      VARCHAR(100)        NOT NULL,
+    estado    VARCHAR(100)        NOT NULL,
     cep       VARCHAR(20)         NOT NULL,
     senha     VARCHAR(255)        NOT NULL
 );
