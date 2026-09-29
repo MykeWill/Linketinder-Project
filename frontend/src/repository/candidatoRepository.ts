@@ -13,7 +13,7 @@ const candidatosIniciais: CandidatoInterface[] = [
         cep: '01000-000',
         descricao: 'Desenvolvedora backend apaixonada por dados.',
         competencias: ['Java', 'Spring Framework', 'SQL'],
-        formacao: 'Ciência da Computação'
+        senha: 'senha123'
     },
     {
         id: '2',
@@ -25,7 +25,7 @@ const candidatosIniciais: CandidatoInterface[] = [
         cep: '20000-000',
         descricao: 'Front-end entusiasta de acessibilidade web.',
         competencias: ['Angular', 'JavaScript', 'CSS'],
-        formacao: 'Sistemas de Informação'
+        senha: 'senha123'
     },
     {
         id: '3',
@@ -37,7 +37,7 @@ const candidatosIniciais: CandidatoInterface[] = [
         cep: '30000-000',
         descricao: 'Especialista em automação de testes.',
         competencias: ['Python', 'Selenium', 'Java'],
-        formacao: 'Engenharia de Software'
+        senha: 'senha123'
     },
     {
         id: '4',
@@ -49,7 +49,7 @@ const candidatosIniciais: CandidatoInterface[] = [
         cep: '80000-000',
         descricao: 'Full stack com foco em APIs REST.',
         competencias: ['Java', 'Spring Framework', 'Angular'],
-        formacao: 'Análise e Desenvolvimento de Sistemas'
+        senha: 'senha123'
     },
     {
         id: '5',
@@ -61,7 +61,7 @@ const candidatosIniciais: CandidatoInterface[] = [
         cep: '40000-000',
         descricao: 'Recém-formada, buscando primeira oportunidade.',
         competencias: ['Python', 'SQL'],
-        formacao: 'Ciência da Computação'
+        senha: 'senha123'
     }
 ]
 

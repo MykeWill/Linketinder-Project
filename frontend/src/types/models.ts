@@ -8,18 +8,19 @@ export interface CandidatoInterface {
   cep: string
   descricao: string
   competencias: string[]
-  formacao: string
+  senha: string
 }
 
 export interface EmpresaInterface {
   id: string
   nome: string
-  emailCorporativo: string
+  email: string
   cnpj: string
   pais: string
   estado: string
   cep: string
   descricao: string
+  senha: string
 }
 
 export interface VagaInterface {

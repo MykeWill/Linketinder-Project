@@ -13,7 +13,7 @@ export function renderizarCadastroCandidato() {
       <input type="text" id="estado" placeholder="Estado" required>
       <input type="text" id="cep" placeholder="CEP" required>
       <textarea id="descricao" placeholder="Descrição pessoal" required></textarea>
-      <input type="text" id="formacao" placeholder="Formação" required>
+      <input type="password" id="senha" placeholder="Senha" required>
       <input type="text" id="competencias" placeholder="Competências (separadas por vírgula)" required>
       <button type="submit">Cadastrar</button>
     </form>
@@ -33,14 +33,16 @@ export function renderizarCadastroCandidato() {
     const estado = (document.getElementById('estado') as HTMLInputElement).value
     const cep = (document.getElementById('cep') as HTMLInputElement).value
     const descricao = (document.getElementById('descricao') as HTMLTextAreaElement).value
-    const formacao = (document.getElementById('formacao') as HTMLInputElement).value
+    const senha = (document.getElementById('senha') as HTMLInputElement).value
     const competencias = (document.getElementById('competencias') as HTMLInputElement).value
         .split(',')
         .map(c => c.trim())
         .filter(c => c.length > 0)
 
     try {
-      candidatoService.cadastrarCandidatoService({ nome, email, cpf, idade, estado, cep, descricao, formacao, competencias })
+      candidatoService.cadastrarCandidatoService({
+        nome, email, cpf, idade, estado, cep, descricao, senha, competencias
+      })
       window.location.hash = '#/perfil-candidato'
     } catch (erro) {
       document.getElementById('mensagem-erro')!.textContent = (erro as Error).message
