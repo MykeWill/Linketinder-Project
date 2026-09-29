@@ -6,52 +6,57 @@ const empresasIniciais: EmpresaInterface[] = [
     {
         id: '1',
         nome: 'Arroz-Gostoso',
-        emailCorporativo: 'contato@arrozgostoso.com',
+        email: 'contato@arrozgostoso.com',
         cnpj: '11.111.111/0001-11',
         pais: 'Brasil',
         estado: 'SP',
         cep: '01000-000',
-        descricao: 'Empresa do ramo alimentício.'
+        descricao: 'Empresa do ramo alimentício.',
+        senha: 'senha123'
     },
     {
         id: '2',
         nome: 'Império do Boliche',
-        emailCorporativo: 'rh@imperiodoboliche.com',
+        email: 'rh@imperiodoboliche.com',
         cnpj: '22.222.222/0001-22',
         pais: 'Brasil',
         estado: 'RJ',
         cep: '20000-000',
-        descricao: 'Rede de entretenimento e lazer.'
+        descricao: 'Rede de entretenimento e lazer.',
+        senha: 'senha123'
     },
     {
         id: '3',
         nome: 'TechNova',
-        emailCorporativo: 'vagas@technova.com',
+        email: 'vagas@technova.com',
         cnpj: '33.333.333/0001-33',
         pais: 'Brasil',
         estado: 'MG',
         cep: '30000-000',
-        descricao: 'Startup de soluções em nuvem.'
+        descricao: 'Startup de soluções em nuvem.',
+        senha: 'senha123'
     },
     {
         id: '4',
         nome: 'QualiTest Corp',
-        emailCorporativo: 'recrutamento@qualitest.com',
+        email: 'recrutamento@qualitest.com',
         cnpj: '44.444.444/0001-44',
         pais: 'Brasil',
         estado: 'PR',
         cep: '80000-000',
-        descricao: 'Empresa especializada em qualidade de software.'
+        descricao: 'Empresa especializada em qualidade de software.',
+        senha: 'senha123'
     },
     {
         id: '5',
         nome: 'DevBridge',
-        emailCorporativo: 'contato@devbridge.com',
+        email: 'contato@devbridge.com',
         cnpj: '55.555.555/0001-55',
         pais: 'Brasil',
         estado: 'BA',
         cep: '40000-000',
-        descricao: 'Consultoria em desenvolvimento full stack.'
+        descricao: 'Consultoria em desenvolvimento full stack.',
+        senha: 'senha123'
     }
 ]
 
@@ -84,5 +89,5 @@ export function removerEmpresaRepository(id: string): void {
 }
 
 export function buscarEmpresaPorEmailRepository(email: string): EmpresaInterface | undefined {
-    return empresas.find(e => e.emailCorporativo === email)
+    return empresas.find(e => e.email === email)
 }
