@@ -157,3 +157,25 @@ Antes do match:
 - A empresa vê apenas a descrição pessoal e as competências do candidato (sem nome, e-mail, etc.).
 
 Após o match, as informações completas são reveladas para ambas as partes.
+
+
+---
+
+# Validação com Regex
+
+Os formulários de cadastro de **candidato** e **empresa** possuem validação de dados com **expressões regulares (Regex)**, implementadas em **TypeScript**, garantindo que apenas dados no formato correto sejam persistidos.
+
+## O que é validado
+
+### Candidato
+- Nome, e-mail, CPF, idade, estado, CEP, senha e descrição.
+
+### Empresa
+- Nome, e-mail, CNPJ, estado, CEP, senha e descrição.
+
+## Como funciona
+
+- As validações estão centralizadas em `frontend/src/utils/validacoes.ts`.
+- Cada função retorna `null` se o dado for válido, ou uma **mensagem de erro** caso contrário.
+- A validação é executada na **camada de service** (`candidatoService.ts` e `empresaService.ts`), antes de persistir os dados.
+- Se houver erro, a mensagem é exibida para o usuário no formulário.
