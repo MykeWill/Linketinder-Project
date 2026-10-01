@@ -12,4 +12,13 @@ class ConexaoDB {
     static Connection obterConexao() {
         return DriverManager.getConnection(URL, USUARIO, SENHA)
     }
+
+    static <T> T executar(Closure<T> bloco) {
+        Connection conexao = obterConexao()
+        try {
+            return bloco(conexao)
+        } finally {
+            conexao.close()
+        }
+    }
 }
