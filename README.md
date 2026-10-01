@@ -179,3 +179,35 @@ Os formulários de cadastro de **candidato** e **empresa** possuem validação d
 - Cada função retorna `null` se o dado for válido, ou uma **mensagem de erro** caso contrário.
 - A validação é executada na **camada de service** (`candidatoService.ts` e `empresaService.ts`), antes de persistir os dados.
 - Se houver erro, a mensagem é exibida para o usuário no formulário.
+
+
+# Refatoração com Clean Code
+
+Refatorações aplicadas no projeto Linketinder com foco em DRY, funções pequenas, tratamento de erros e testabilidade.
+
+## Wrapper de conexão
+
+Criado o método `ConexaoDB.executar(Closure)` para substituir o bloco repetido de abrir/fechar conexão que existia em todo método de DAO.
+
+## Extração do mapeamento
+
+Criado método privado `mapearX(ResultSet)` em cada DAO (`mapearCandidato`, `mapearEmpresa`, `mapearVaga`, `mapearCompetencia`) para substituir o bloco repetido de montar objetos a partir do banco.
+
+## Tratamento de erros
+
+Criadas exceções customizadas no pacote `exception/`:
+
+- `DadosInvalidosException`
+- `RegistroDuplicadoException`
+- `RegistroNaoEncontradoException`
+- `ErroBancoException`
+
+Criada classe `MensagensErro` para centralizar as mensagens de erro. Os services agora traduzem `SQLException` para essas exceções amigáveis, substituindo as mensagens técnicas que apareciam pro usuário.
+
+## Injeção de dependência
+
+Os services agora recebem seus DAOs pelo construtor, em vez de instanciá-los internamente. A criação dos DAOs foi movida pro `Main.groovy`. Isso permite substituir o DAO por um mock nos testes.
+
+## Testes unitários
+
+Reescritos com Spock, usando `Mock(DAO)` para simular o banco. Testam fluxos de sucesso e de erro. Os testes antigos que usavam `Repository` (classe removida) foram deletados ou reescritos.

@@ -1,8 +1,6 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Empresa
-import java.sql.Connection
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 class EmpresaDao {
@@ -13,9 +11,8 @@ class EmpresaDao {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id
         '''
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
             stmt.setString(1, e.nome)
             stmt.setString(2, e.cnpj)
             stmt.setString(3, e.email)
@@ -24,38 +21,22 @@ class EmpresaDao {
             stmt.setString(6, e.estado)
             stmt.setString(7, e.cep)
             stmt.setString(8, e.senha)
-            ResultSet resultado = stmt.executeQuery()
+            def resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getInt('id')
-        } finally {
-            conexao.close()
         }
     }
 
     List<Empresa> listarTodasEmpresas() {
         String sql = 'SELECT id, nome, cnpj, email, descricao, pais, estado, cep, senha FROM empresa'
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
-            ResultSet resultado = stmt.executeQuery()
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            def resultado = stmt.executeQuery()
             List<Empresa> empresas = []
             while (resultado.next()) {
-                Empresa e = new Empresa(
-                        resultado.getString('nome'),
-                        resultado.getString('email'),
-                        resultado.getString('cnpj'),
-                        resultado.getString('pais'),
-                        resultado.getString('estado'),
-                        resultado.getString('cep'),
-                        resultado.getString('descricao'),
-                        resultado.getString('senha')
-                )
-                e.id = resultado.getInt('id')
-                empresas << e
+                empresas << mapearEmpresa(resultado)
             }
             return empresas
-        } finally {
-            conexao.close()
         }
     }
 
@@ -69,10 +50,9 @@ class EmpresaDao {
             GROUP BY v.id
             ORDER BY v.id
         '''
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
-            ResultSet resultado = stmt.executeQuery()
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            def resultado = stmt.executeQuery()
             List<Map> vagas = []
             while (resultado.next()) {
                 vagas << [
@@ -84,16 +64,13 @@ class EmpresaDao {
                 ]
             }
             return vagas
-        } finally {
-            conexao.close()
         }
     }
 
     void atualizarEmpresa(Empresa e) {
         String sql = 'UPDATE empresa SET nome = ?, cnpj = ?, email = ?, descricao = ?, pais = ?, estado = ?, cep = ?, senha = ? WHERE id = ?'
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
+        ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
             stmt.setString(1, e.nome)
             stmt.setString(2, e.cnpj)
             stmt.setString(3, e.email)
@@ -104,20 +81,30 @@ class EmpresaDao {
             stmt.setString(8, e.senha)
             stmt.setInt(9, e.id)
             stmt.executeUpdate()
-        } finally {
-            conexao.close()
         }
     }
 
     void removerEmpresa(Integer id) {
         String sql = 'DELETE FROM empresa WHERE id = ?'
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
+        ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, id)
             stmt.executeUpdate()
-        } finally {
-            conexao.close()
         }
+    }
+
+    private Empresa mapearEmpresa(ResultSet resultado) {
+        Empresa e = new Empresa(
+                resultado.getString('nome'),
+                resultado.getString('email'),
+                resultado.getString('cnpj'),
+                resultado.getString('pais'),
+                resultado.getString('estado'),
+                resultado.getString('cep'),
+                resultado.getString('descricao'),
+                resultado.getString('senha')
+        )
+        e.id = resultado.getInt('id')
+        return e
     }
 }

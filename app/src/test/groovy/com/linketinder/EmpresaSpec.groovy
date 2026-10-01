@@ -13,10 +13,10 @@ class EmpresaSpec extends Specification {
         def estado = "SP"
         def cep = "01000-000"
         def descricao = "Startup de tecnologia"
-        def competencias = ["Java", "Cloud"]
+        def senha = "senha123"
 
         when:
-        def empresa = new Empresa(nome, email, cnpj, pais, estado, cep, descricao, competencias)
+        def empresa = new Empresa(nome, email, cnpj, pais, estado, cep, descricao, senha)
 
         then:
         empresa.nome == nome
@@ -26,7 +26,6 @@ class EmpresaSpec extends Specification {
         empresa.estado == estado
         empresa.cep == cep
         empresa.descricao == descricao
-        empresa.competencias == competencias
         empresa.exibirDetalhes().contains("TechNova")
         empresa.exibirDetalhes().contains("CNPJ: 12.345.678/0001-90")
     }

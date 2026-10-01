@@ -1,8 +1,6 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Candidato
-import java.sql.Connection
-import java.sql.PreparedStatement
 import java.sql.ResultSet
 
 class CandidatoDao {
@@ -13,9 +11,8 @@ class CandidatoDao {
             VALUES (?, ?, ?, ?, ?, ?, ?, ?)
             RETURNING id
         '''
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
             stmt.setString(1, c.nome)
             stmt.setString(2, c.email)
             stmt.setString(3, c.cpf)
@@ -24,24 +21,19 @@ class CandidatoDao {
             stmt.setString(6, c.cep)
             stmt.setString(7, c.descricao)
             stmt.setString(8, c.senha)
-            ResultSet resultado = stmt.executeQuery()
+            def resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getInt('id')
-        } finally {
-            conexao.close()
         }
     }
 
     void vincularCompetenciaAoCandidato(Integer candidatoId, Integer competenciaId) {
         String sql = 'INSERT INTO candidato_competencia (candidato_id, competencia_id) VALUES (?, ?)'
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
+        ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, candidatoId)
             stmt.setInt(2, competenciaId)
             stmt.executeUpdate()
-        } finally {
-            conexao.close()
         }
     }
 
@@ -54,10 +46,9 @@ class CandidatoDao {
             GROUP BY c.id
             ORDER BY c.id
         '''
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
-            ResultSet resultado = stmt.executeQuery()
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            def resultado = stmt.executeQuery()
             List<Map> candidatos = []
             while (resultado.next()) {
                 candidatos << [
@@ -67,8 +58,6 @@ class CandidatoDao {
                 ]
             }
             return candidatos
-        } finally {
-            conexao.close()
         }
     }
 
@@ -82,37 +71,21 @@ class CandidatoDao {
             GROUP BY c.id
             ORDER BY c.id
         '''
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
-            ResultSet resultado = stmt.executeQuery()
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            def resultado = stmt.executeQuery()
             List<Candidato> candidatos = []
             while (resultado.next()) {
-                Candidato c = new Candidato(
-                        resultado.getString('nome'),
-                        resultado.getString('email'),
-                        resultado.getString('cpf'),
-                        resultado.getInt('idade'),
-                        resultado.getString('estado'),
-                        resultado.getString('cep'),
-                        resultado.getString('descricao'),
-                        resultado.getString('senha'),
-                        (resultado.getArray('competencias')?.array as List)?.toList() ?: []
-                )
-                c.id = resultado.getInt('id')
-                candidatos << c
+                candidatos << mapearCandidato(resultado)
             }
             return candidatos
-        } finally {
-            conexao.close()
         }
     }
 
     void atualizarCandidato(Candidato c) {
         String sql = 'UPDATE candidato SET nome = ?, email = ?, cpf = ?, idade = ?, estado = ?, cep = ?, descricao = ?, senha = ? WHERE id = ?'
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
+        ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
             stmt.setString(1, c.nome)
             stmt.setString(2, c.email)
             stmt.setString(3, c.cpf)
@@ -123,20 +96,31 @@ class CandidatoDao {
             stmt.setString(8, c.senha)
             stmt.setInt(9, c.id)
             stmt.executeUpdate()
-        } finally {
-            conexao.close()
         }
     }
 
     void removerCandidato(Integer id) {
         String sql = 'DELETE FROM candidato WHERE id = ?'
-        Connection conexao = ConexaoDB.obterConexao()
-        try {
-            PreparedStatement stmt = conexao.prepareStatement(sql)
+        ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, id)
             stmt.executeUpdate()
-        } finally {
-            conexao.close()
         }
+    }
+
+    private Candidato mapearCandidato(ResultSet resultado) {
+        Candidato c = new Candidato(
+                resultado.getString('nome'),
+                resultado.getString('email'),
+                resultado.getString('cpf'),
+                resultado.getInt('idade'),
+                resultado.getString('estado'),
+                resultado.getString('cep'),
+                resultado.getString('descricao'),
+                resultado.getString('senha'),
+                (resultado.getArray('competencias')?.array as List)?.toList()?.collect { it.toString() } ?: []
+        )
+        c.id = resultado.getInt('id')
+        return c
     }
 }

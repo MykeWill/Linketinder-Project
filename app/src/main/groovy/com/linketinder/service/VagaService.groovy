@@ -2,37 +2,65 @@ package com.linketinder.service
 
 import com.linketinder.dao.VagaDao
 import com.linketinder.dao.CompetenciaDao
+import com.linketinder.exception.ErroBancoException
+import com.linketinder.exception.MensagensErro
 import com.linketinder.model.Vaga
+import java.sql.SQLException
 
 class VagaService {
 
-    private VagaDao vagaDao = new VagaDao()
-    private CompetenciaDao competenciaDao = new CompetenciaDao()
+    private final VagaDao vagaDao
+    private final CompetenciaDao competenciaDao
 
-    Integer cadastrarVaga(Vaga v) {
-        Integer vagaId = vagaDao.inserirVaga(v)
+    VagaService(VagaDao vagaDao, CompetenciaDao competenciaDao) {
+        this.vagaDao = vagaDao
+        this.competenciaDao = competenciaDao
+    }
 
-        v.competencias.each { nomeCompetencia ->
-            Integer competenciaId = competenciaDao.buscarOuCriar(nomeCompetencia)
-            vagaDao.vincularCompetenciaAVaga(vagaId, competenciaId)
+    Integer cadastrarVagaService(Vaga v) {
+        try {
+            Integer vagaId = vagaDao.inserirVaga(v)
+
+            v.competencias.each { nomeCompetencia ->
+                Integer competenciaId = competenciaDao.buscarOuCriar(nomeCompetencia)
+                vagaDao.vincularCompetenciaAVaga(vagaId, competenciaId)
+            }
+
+            return vagaId
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
         }
-
-        return vagaId
     }
 
     List<Vaga> listarTodasVagasService() {
-        return vagaDao.listarTodasVagas()
+        try {
+            return vagaDao.listarTodasVagas()
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
+        }
     }
 
     List<Vaga> listarVagasPorEmpresaService(Integer empresaId) {
-        return vagaDao.listarVagasPorEmpresa(empresaId)
+        try {
+            return vagaDao.listarVagasPorEmpresa(empresaId)
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
+        }
     }
 
     void atualizarVagaService(Vaga v) {
-        vagaDao.atualizarVaga(v)
+        try {
+            vagaDao.atualizarVaga(v)
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
+        }
     }
 
     void removerVagaService(Integer id) {
-        vagaDao.removerVaga(id)
+        try {
+            vagaDao.removerVaga(id)
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
+        }
     }
 }
