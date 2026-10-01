@@ -211,3 +211,50 @@ Os services agora recebem seus DAOs pelo construtor, em vez de instanciá-los in
 ## Testes unitários
 
 Reescritos com Spock, usando `Mock(DAO)` para simular o banco. Testam fluxos de sucesso e de erro. Os testes antigos que usavam `Repository` (classe removida) foram deletados ou reescritos.
+
+---
+
+# Refatoração com SOLID
+
+Refatorações aplicadas no projeto Linketinder com foco nos princípios SOLID.
+
+## Inversão de dependência (D)
+
+Foram criadas interfaces para abstrair o acesso a dados:
+
+- `CandidatoRepository`
+- `EmpresaRepository`
+- `VagaRepository`
+- `CompetenciaRepository`
+
+Os DAOs (`CandidatoDao`, etc.) agora **implementam** essas interfaces. Os services passaram a depender das **interfaces** (abstrações) em vez das classes concretas. A injeção das implementações ocorre no `Main.groovy`.
+
+**Benefício:** o service não sabe se está falando com um DAO PostgreSQL, um mock ou uma futura implementação em memória. Ele só conhece o contrato.
+
+## Segregação de interfaces (I)
+
+Cada interface tem apenas os métodos da sua entidade. Não existe uma interface "gigante" com métodos de candidato, empresa, vaga e competência. Cada contrato é específico e coeso.
+
+## Substituição de Liskov (L)
+
+Qualquer implementação das interfaces pode substituir a outra sem quebrar o código. O `CandidatoDao` pode ser trocado por outra implementação (mock, memória, etc.) sem que o service precise saber.
+
+## Responsabilidade única (S)
+
+As classes já estavam bem separadas por camada:
+
+- **model**: representa os dados
+- **repository**: define os contratos de acesso a dados
+- **dao**: implementa os contratos usando JDBC
+- **service**: orquestra as regras de negócio
+- **menu**: interage com o usuário
+
+## Aberto/Fechado (O)
+
+Novas implementações de repository podem ser criadas sem modificar os services existentes. Por exemplo, um `CandidatoDaoMemoria` pode ser adicionado no futuro apenas implementando a interface, sem tocar nos services.
+
+## Testes
+
+Os testes unitários foram atualizados para mockar as **interfaces** (`CandidatoRepository`, etc.) em vez das classes concretas. Isso desacopla os testes da implementação JDBC.
+
+---
