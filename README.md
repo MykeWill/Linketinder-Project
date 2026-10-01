@@ -258,3 +258,33 @@ Novas implementações de repository podem ser criadas sem modificar os services
 Os testes unitários foram atualizados para mockar as **interfaces** (`CandidatoRepository`, etc.) em vez das classes concretas. Isso desacopla os testes da implementação JDBC.
 
 ---
+
+# Design Patterns
+
+Padrões de projeto aplicados na criação e gerenciamento de conexões com o banco de dados.
+
+## Factory
+
+Foi criada a interface `ConnectionFactory`, que define o contrato para criação de conexões com o banco. A implementação concreta `PostgresConnectionFactory` cuida da conexão com o PostgreSQL.
+
+**Vantagem:** se um dia for necessário suportar outro banco (MySQL, Oracle, etc), basta criar uma nova implementação da interface (`MySqlConnectionFactory`), sem alterar nenhuma linha dos DAOs. Isso atende ao princípio Aberto/Fechado.
+
+## Singleton
+
+A classe `PostgresConnectionFactory` implementa o padrão Singleton por meio de um construtor privado e do método estático `getInstance()`. Isso garante que exista apenas **uma instância** da fábrica na aplicação inteira.
+
+**Vantagem:** evita criar múltiplas instâncias desnecessárias, e centraliza a criação de conexões em um único ponto de controle.
+
+## Configuração externa
+
+As credenciais do banco (URL, usuário, senha) foram movidas para o arquivo `src/main/resources/database.properties`, lido pela classe `DatabaseConfig`.
+
+**Vantagem:** trocar de banco ou ambiente não exige recompilar o código — só alterar o arquivo de configuração.
+
+## Refatoração do ConexaoDB
+
+A classe `ConexaoDB` foi refatorada para usar a `ConnectionFactory` em vez de se acoplar diretamente ao PostgreSQL. O método `executar(Closure)` continua idêntico, então **nenhum DAO precisou ser alterado**.
+
+**Vantagem:** o acoplamento com o PostgreSQL foi movido para a implementação da fábrica. O resto do código não conhece o banco.
+
+---
