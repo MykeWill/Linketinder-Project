@@ -1,9 +1,11 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Competencia
+import com.linketinder.repository.CompetenciaRepository
+
 import java.sql.ResultSet
 
-class CompetenciaDao {
+class CompetenciaDao implements CompetenciaRepository {
 
     Integer buscarIdPorNome(String nome) {
         String sql = 'SELECT id FROM competencia WHERE nome = ?'

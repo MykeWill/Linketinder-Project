@@ -1,9 +1,10 @@
 package com.linketinder.dao
-
 import com.linketinder.model.Empresa
+import com.linketinder.repository.EmpresaRepository
+
 import java.sql.ResultSet
 
-class EmpresaDao {
+class EmpresaDao implements EmpresaRepository {
 
     Integer inserirEmpresa(Empresa e) {
         String sql = '''

@@ -1,16 +1,17 @@
 package com.linketinder.service
 
-import com.linketinder.dao.CompetenciaDao
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.model.Competencia
+import com.linketinder.repository.CompetenciaRepository
+
 import java.sql.SQLException
 
 class CompetenciaService {
 
-    private final CompetenciaDao competenciaDao
+    private final CompetenciaRepository competenciaDao
 
-    CompetenciaService(CompetenciaDao competenciaDao) {
+    CompetenciaService(CompetenciaRepository competenciaDao) {
         this.competenciaDao = competenciaDao
     }
 

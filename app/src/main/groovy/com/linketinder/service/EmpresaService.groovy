@@ -1,17 +1,18 @@
 package com.linketinder.service
 
-import com.linketinder.dao.EmpresaDao
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Empresa
+import com.linketinder.repository.EmpresaRepository
+
 import java.sql.SQLException
 
 class EmpresaService {
 
-    private final EmpresaDao empresaDao
+    private final EmpresaRepository empresaDao
 
-    EmpresaService(EmpresaDao empresaDao) {
+    EmpresaService(EmpresaRepository empresaDao) {
         this.empresaDao = empresaDao
     }
 

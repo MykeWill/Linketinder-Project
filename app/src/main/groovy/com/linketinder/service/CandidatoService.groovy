@@ -1,19 +1,20 @@
 package com.linketinder.service
 
-import com.linketinder.dao.CandidatoDao
-import com.linketinder.dao.CompetenciaDao
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
+import com.linketinder.repository.CandidatoRepository
+import com.linketinder.repository.CompetenciaRepository
+
 import java.sql.SQLException
 
 class CandidatoService {
 
-    private final CandidatoDao candidatoDao
-    private final CompetenciaDao competenciaDao
+    private final CandidatoRepository candidatoDao
+    private final CompetenciaRepository competenciaDao
 
-    CandidatoService(CandidatoDao candidatoDao, CompetenciaDao competenciaDao) {
+    CandidatoService(CandidatoRepository candidatoDao, CompetenciaRepository competenciaDao) {
         this.candidatoDao = candidatoDao
         this.competenciaDao = competenciaDao
     }
