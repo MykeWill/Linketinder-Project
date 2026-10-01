@@ -13,10 +13,11 @@ class CandidatoSpec extends Specification {
         def estado = "SP"
         def cep = "01000-000"
         def descricao = "Desenvolvedor full stack"
+        def senha = "senha123"
         def competencias = ["Java", "Spring", "React"]
 
         when:
-        def candidato = new Candidato(nome, email, cpf, idade, estado, cep, descricao, competencias)
+        def candidato = new Candidato(nome, email, cpf, idade, estado, cep, descricao, senha, competencias)
 
         then:
         candidato.nome == nome

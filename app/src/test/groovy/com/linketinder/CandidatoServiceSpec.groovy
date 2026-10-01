@@ -1,53 +1,80 @@
 package com.linketinder.service
 
+import com.linketinder.dao.CandidatoDao
+import com.linketinder.dao.CompetenciaDao
+import com.linketinder.exception.ErroBancoException
+import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
-import com.linketinder.repository.CandidatoRepository
 import spock.lang.Specification
 
 class CandidatoServiceSpec extends Specification {
 
-    def "deve listar candidatos delegando ao repositório"() {
+    def "deve listar candidatos delegando ao DAO"() {
         given:
-        def repositoryMock = Mock(CandidatoRepository)
-        def service = new CandidatoService(repositoryMock)
-        def listaEsperada = [new Candidato("Teste", "teste@email.com", "000", 30, "SP", "000", "", [])]
+        def candidatoDaoMock = Mock(CandidatoDao)
+        def competenciaDaoMock = Mock(CompetenciaDao)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def listaEsperada = [
+                new Candidato("Teste", "teste@email.com", "000.000.000-00", 30, "SP", "00000-000", "desc", "senha123", [])
+        ]
 
         when:
         def resultado = service.listarTodosCandidatosService()
 
         then:
-        1 * repositoryMock.listarTodosCandidatosRepository() >> listaEsperada
+        1 * candidatoDaoMock.listarTodosCandidatos() >> listaEsperada
         resultado == listaEsperada
     }
 
-    def "deve cadastrar um candidato chamando o repositório"() {
+    def "deve cadastrar candidato e vincular suas competências"() {
         given:
-        def repositoryMock = Mock(CandidatoRepository)
-        def service = new CandidatoService(repositoryMock)
-        def candidato = new Candidato("João", "joao@email.com", "111", 25, "RJ", "000", "", [])
+        def candidatoDaoMock = Mock(CandidatoDao)
+        def competenciaDaoMock = Mock(CompetenciaDao)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def candidato = new Candidato("João", "joao@email.com", "111.222.333-44", 25, "RJ", "20000-000", "desc", "senha123", ["Java", "SQL"])
 
         when:
-        service.cadastrarCandidatoService(candidato)
+        service.cadastrarCandidato(candidato)
 
         then:
-        1 * repositoryMock.adicionarCandidatoRepository(candidato)
+        1 * candidatoDaoMock.inserirCandidato(candidato) >> 42
+        1 * competenciaDaoMock.buscarOuCriar("Java") >> 1
+        1 * candidatoDaoMock.vincularCompetenciaAoCandidato(42, 1)
+        1 * competenciaDaoMock.buscarOuCriar("SQL") >> 2
+        1 * candidatoDaoMock.vincularCompetenciaAoCandidato(42, 2)
     }
 
-    def "não deve cadastrar candidato com CPF duplicado"() {
+    def "deve lançar RegistroDuplicadoException quando o e-mail já existe"() {
         given:
-        def repositoryMock = Mock(CandidatoRepository)
-        def service = new CandidatoService(repositoryMock)
-        def candidatoExistente = new Candidato("João", "joao@email.com", "123", 30, "SP", "000", "", [])
-        def novoCandidato = new Candidato("Maria", "maria@email.com", "123", 25, "RJ", "000", "", [])
+        def candidatoDaoMock = Mock(CandidatoDao)
+        def competenciaDaoMock = Mock(CompetenciaDao)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def candidato = new Candidato("Maria", "maria@email.com", "555.666.777-88", 25, "RJ", "20000-000", "desc", "senha123", [])
 
-        repositoryMock.listarTodosCandidatosRepository() >> [candidatoExistente]
+        def sqlException = new java.sql.SQLException('ERROR: duplicate key value violates unique constraint "candidato_email_key"')
 
         when:
-        service.cadastrarCandidatoService(novoCandidato)
+        service.cadastrarCandidato(candidato)
 
         then:
-        thrown(IllegalArgumentException)
+        1 * candidatoDaoMock.inserirCandidato(candidato) >> { throw sqlException }
+        thrown(RegistroDuplicadoException)
     }
 
+    def "deve lançar ErroBancoException em erros genéricos do banco"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoDao)
+        def competenciaDaoMock = Mock(CompetenciaDao)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def candidato = new Candidato("Ana", "ana@email.com", "999.888.777-66", 30, "SP", "01000-000", "desc", "senha123", [])
 
+        def sqlException = new java.sql.SQLException('connection refused')
+
+        when:
+        service.cadastrarCandidato(candidato)
+
+        then:
+        1 * candidatoDaoMock.inserirCandidato(candidato) >> { throw sqlException }
+        thrown(ErroBancoException)
+    }
 }
