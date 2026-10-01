@@ -288,3 +288,58 @@ A classe `ConexaoDB` foi refatorada para usar a `ConnectionFactory` em vez de se
 **Vantagem:** o acoplamento com o PostgreSQL foi movido para a implementação da fábrica. O resto do código não conhece o banco.
 
 ---
+
+# Refatoração com MVC
+
+O projeto foi reestruturado para seguir o padrão MVC (Model-View-Controller), separando claramente as responsabilidades de cada camada.
+
+## Estrutura das camadas
+
+- **Model**: entidades do domínio (`Candidato`, `Empresa`, `Vaga`, `Competencia`).
+- **View**: interface de interação com o usuário (`MenuPrincipal`, `CandidatoView`, `EmpresaView`).
+- **Controller**: porta de entrada para cada operação (`CandidatoController`, `EmpresaController`, `VagaController`, `CompetenciaController`).
+
+Além do MVC clássico, o projeto mantém as camadas de **Service** (regras de negócio) e **DAO** (acesso ao banco), reforçando a separação de responsabilidades.
+
+## O que mudou
+
+### Separação das Views
+
+O `MenuPrincipal` antes concentrava toda a lógica de interação com o usuário (exibir menu, coletar dados de candidato, coletar dados de empresa, tratar erros). Isso violava o princípio da responsabilidade única.
+
+A interação foi dividida em views específicas:
+
+- `MenuPrincipal` — apenas exibe o menu e roteia para a view correta.
+- `CandidatoView` — cuida da interação relacionada a candidatos (listar e cadastrar).
+- `EmpresaView` — cuida da interação relacionada a empresas (listar e cadastrar).
+
+### Criação da camada Controller
+
+Antes, as views chamavam os **services** diretamente. Agora existe uma camada intermediária de **controllers**:
+
+- As views chamam os controllers.
+- Os controllers chamam os services.
+- Os services chamam os DAOs.
+- Os DAOs acessam o banco.
+
+Isso cria uma cadeia de dependência clara e unidirecional, facilitando a evolução para frameworks (Spring, por exemplo) no futuro.
+
+### Fluxo de uma requisição
+
+Exemplo do cadastro de um candidato:
+
+1. Usuário interage com o `CandidatoView` (View).
+2. `CandidatoView` chama `CandidatoController.cadastrarCandidatoController()`.
+3. `CandidatoController` chama `CandidatoService.cadastrarCandidato()`.
+4. `CandidatoService` chama `CandidatoDao.inserirCandidato()`.
+5. `CandidatoDao` grava no banco e devolve o ID.
+6. A resposta sobe a cadeia de volta até a View.
+
+## Benefícios
+
+- **Separação clara de responsabilidades**: cada classe tem um papel bem definido.
+- **Testabilidade**: cada camada pode ser testada isoladamente.
+- **Baixo acoplamento**: as views não conhecem os services; os controllers não conhecem os DAOs diretamente.
+- **Preparado para frameworks**: essa estrutura é a base do que frameworks MVC (Spring MVC, por exemplo) esperam.
+
+---
