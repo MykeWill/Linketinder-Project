@@ -1,18 +1,19 @@
 package com.linketinder.service
 
-import com.linketinder.dao.VagaDao
-import com.linketinder.dao.CompetenciaDao
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.model.Vaga
+import com.linketinder.repository.CompetenciaRepository
+import com.linketinder.repository.VagaRepository
+
 import java.sql.SQLException
 
 class VagaService {
 
-    private final VagaDao vagaDao
-    private final CompetenciaDao competenciaDao
+    private final VagaRepository vagaDao
+    private final CompetenciaRepository competenciaDao
 
-    VagaService(VagaDao vagaDao, CompetenciaDao competenciaDao) {
+    VagaService(VagaRepository vagaDao, CompetenciaRepository competenciaDao) {
         this.vagaDao = vagaDao
         this.competenciaDao = competenciaDao
     }

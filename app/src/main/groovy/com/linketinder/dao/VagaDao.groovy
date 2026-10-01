@@ -1,9 +1,11 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Vaga
+import com.linketinder.repository.VagaRepository
+
 import java.sql.ResultSet
 
-class VagaDao {
+class VagaDao implements VagaRepository {
 
     Integer inserirVaga(Vaga v) {
         String sql = '''

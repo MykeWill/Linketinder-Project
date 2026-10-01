@@ -1,9 +1,11 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Candidato
+import com.linketinder.repository.CandidatoRepository
+
 import java.sql.ResultSet
 
-class CandidatoDao {
+class CandidatoDao implements  CandidatoRepository {
 
     Integer inserirCandidato(Candidato c) {
         String sql = '''

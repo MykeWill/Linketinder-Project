@@ -1,18 +1,18 @@
 package com.linketinder.service
 
-import com.linketinder.dao.CandidatoDao
-import com.linketinder.dao.CompetenciaDao
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
+import com.linketinder.repository.CandidatoRepository
+import com.linketinder.repository.CompetenciaRepository
 import spock.lang.Specification
 
 class CandidatoServiceSpec extends Specification {
 
-    def "deve listar candidatos delegando ao DAO"() {
+    def "deve listar candidatos delegando ao repositório"() {
         given:
-        def candidatoDaoMock = Mock(CandidatoDao)
-        def competenciaDaoMock = Mock(CompetenciaDao)
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
         def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
         def listaEsperada = [
                 new Candidato("Teste", "teste@email.com", "000.000.000-00", 30, "SP", "00000-000", "desc", "senha123", [])
@@ -28,8 +28,8 @@ class CandidatoServiceSpec extends Specification {
 
     def "deve cadastrar candidato e vincular suas competências"() {
         given:
-        def candidatoDaoMock = Mock(CandidatoDao)
-        def competenciaDaoMock = Mock(CompetenciaDao)
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
         def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
         def candidato = new Candidato("João", "joao@email.com", "111.222.333-44", 25, "RJ", "20000-000", "desc", "senha123", ["Java", "SQL"])
 
@@ -46,8 +46,8 @@ class CandidatoServiceSpec extends Specification {
 
     def "deve lançar RegistroDuplicadoException quando o e-mail já existe"() {
         given:
-        def candidatoDaoMock = Mock(CandidatoDao)
-        def competenciaDaoMock = Mock(CompetenciaDao)
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
         def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
         def candidato = new Candidato("Maria", "maria@email.com", "555.666.777-88", 25, "RJ", "20000-000", "desc", "senha123", [])
 
@@ -63,8 +63,8 @@ class CandidatoServiceSpec extends Specification {
 
     def "deve lançar ErroBancoException em erros genéricos do banco"() {
         given:
-        def candidatoDaoMock = Mock(CandidatoDao)
-        def competenciaDaoMock = Mock(CompetenciaDao)
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
         def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
         def candidato = new Candidato("Ana", "ana@email.com", "999.888.777-66", 30, "SP", "01000-000", "desc", "senha123", [])
 

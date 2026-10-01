@@ -1,16 +1,16 @@
 package com.linketinder.service
 
-import com.linketinder.dao.EmpresaDao
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Empresa
+import com.linketinder.repository.EmpresaRepository
 import spock.lang.Specification
 
 class EmpresaServiceSpec extends Specification {
 
-    def "deve listar empresas delegando ao DAO"() {
+    def "deve listar empresas delegando ao repositório"() {
         given:
-        def empresaDaoMock = Mock(EmpresaDao)
+        def empresaDaoMock = Mock(EmpresaRepository)
         def service = new EmpresaService(empresaDaoMock)
         def listaEsperada = [
                 new Empresa("Teste", "teste@email.com", "00.000.000/0000-00", "Brasil", "SP", "01000-000", "desc", "senha123")
@@ -24,9 +24,9 @@ class EmpresaServiceSpec extends Specification {
         resultado == listaEsperada
     }
 
-    def "deve cadastrar uma empresa chamando o DAO"() {
+    def "deve cadastrar uma empresa chamando o repositório"() {
         given:
-        def empresaDaoMock = Mock(EmpresaDao)
+        def empresaDaoMock = Mock(EmpresaRepository)
         def service = new EmpresaService(empresaDaoMock)
         def empresa = new Empresa("Tech", "tech@email.com", "11.111.111/0001-11", "Brasil", "SP", "01000-000", "desc", "senha123")
 
@@ -39,7 +39,7 @@ class EmpresaServiceSpec extends Specification {
 
     def "deve lançar RegistroDuplicadoException quando o CNPJ já existe"() {
         given:
-        def empresaDaoMock = Mock(EmpresaDao)
+        def empresaDaoMock = Mock(EmpresaRepository)
         def service = new EmpresaService(empresaDaoMock)
         def empresa = new Empresa("OutraTech", "outra@tech.com", "12.345.678/0001-90", "Brasil", "RJ", "20000-000", "desc", "senha123")
 
@@ -55,7 +55,7 @@ class EmpresaServiceSpec extends Specification {
 
     def "deve lançar RegistroDuplicadoException quando o e-mail já existe"() {
         given:
-        def empresaDaoMock = Mock(EmpresaDao)
+        def empresaDaoMock = Mock(EmpresaRepository)
         def service = new EmpresaService(empresaDaoMock)
         def empresa = new Empresa("Tech", "tech@email.com", "11.111.111/0001-11", "Brasil", "SP", "01000-000", "desc", "senha123")
 
@@ -71,7 +71,7 @@ class EmpresaServiceSpec extends Specification {
 
     def "deve lançar ErroBancoException em erros genéricos do banco"() {
         given:
-        def empresaDaoMock = Mock(EmpresaDao)
+        def empresaDaoMock = Mock(EmpresaRepository)
         def service = new EmpresaService(empresaDaoMock)
         def empresa = new Empresa("Tech", "tech@email.com", "11.111.111/0001-11", "Brasil", "SP", "01000-000", "desc", "senha123")
 
