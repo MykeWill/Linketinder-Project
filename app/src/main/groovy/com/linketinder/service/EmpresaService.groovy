@@ -9,7 +9,11 @@ import java.sql.SQLException
 
 class EmpresaService {
 
-    private EmpresaDao empresaDao = new EmpresaDao()
+    private final EmpresaDao empresaDao
+
+    EmpresaService(EmpresaDao empresaDao) {
+        this.empresaDao = empresaDao
+    }
 
     Integer cadastrarEmpresa(Empresa e) {
         try {

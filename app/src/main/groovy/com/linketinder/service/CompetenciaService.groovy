@@ -8,7 +8,11 @@ import java.sql.SQLException
 
 class CompetenciaService {
 
-    private CompetenciaDao competenciaDao = new CompetenciaDao()
+    private final CompetenciaDao competenciaDao
+
+    CompetenciaService(CompetenciaDao competenciaDao) {
+        this.competenciaDao = competenciaDao
+    }
 
     Integer buscarOuCriarCompetenciaService(String nome) {
         try {

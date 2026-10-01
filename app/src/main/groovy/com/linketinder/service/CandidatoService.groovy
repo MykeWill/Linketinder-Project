@@ -10,8 +10,13 @@ import java.sql.SQLException
 
 class CandidatoService {
 
-    private CandidatoDao candidatoDao = new CandidatoDao()
-    private CompetenciaDao competenciaDao = new CompetenciaDao()
+    private final CandidatoDao candidatoDao
+    private final CompetenciaDao competenciaDao
+
+    CandidatoService(CandidatoDao candidatoDao, CompetenciaDao competenciaDao) {
+        this.candidatoDao = candidatoDao
+        this.competenciaDao = competenciaDao
+    }
 
     Integer cadastrarCandidato(Candidato c) {
         try {
