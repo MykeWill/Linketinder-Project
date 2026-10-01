@@ -1,6 +1,7 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Candidato
+import java.sql.ResultSet
 
 class CandidatoDao {
 
@@ -75,19 +76,7 @@ class CandidatoDao {
             def resultado = stmt.executeQuery()
             List<Candidato> candidatos = []
             while (resultado.next()) {
-                Candidato c = new Candidato(
-                        resultado.getString('nome'),
-                        resultado.getString('email'),
-                        resultado.getString('cpf'),
-                        resultado.getInt('idade'),
-                        resultado.getString('estado'),
-                        resultado.getString('cep'),
-                        resultado.getString('descricao'),
-                        resultado.getString('senha'),
-                        (resultado.getArray('competencias')?.array as List)?.toList() ?: []
-                )
-                c.id = resultado.getInt('id')
-                candidatos << c
+                candidatos << mapearCandidato(resultado)
             }
             return candidatos
         }
@@ -117,5 +106,21 @@ class CandidatoDao {
             stmt.setInt(1, id)
             stmt.executeUpdate()
         }
+    }
+
+    private Candidato mapearCandidato(ResultSet resultado) {
+        Candidato c = new Candidato(
+                resultado.getString('nome'),
+                resultado.getString('email'),
+                resultado.getString('cpf'),
+                resultado.getInt('idade'),
+                resultado.getString('estado'),
+                resultado.getString('cep'),
+                resultado.getString('descricao'),
+                resultado.getString('senha'),
+                (resultado.getArray('competencias')?.array as List)?.toList()?.collect { it.toString() } ?: []
+        )
+        c.id = resultado.getInt('id')
+        return c
     }
 }

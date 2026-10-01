@@ -1,6 +1,7 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Empresa
+import java.sql.ResultSet
 
 class EmpresaDao {
 
@@ -33,18 +34,7 @@ class EmpresaDao {
             def resultado = stmt.executeQuery()
             List<Empresa> empresas = []
             while (resultado.next()) {
-                Empresa e = new Empresa(
-                        resultado.getString('nome'),
-                        resultado.getString('email'),
-                        resultado.getString('cnpj'),
-                        resultado.getString('pais'),
-                        resultado.getString('estado'),
-                        resultado.getString('cep'),
-                        resultado.getString('descricao'),
-                        resultado.getString('senha')
-                )
-                e.id = resultado.getInt('id')
-                empresas << e
+                empresas << mapearEmpresa(resultado)
             }
             return empresas
         }
@@ -101,5 +91,20 @@ class EmpresaDao {
             stmt.setInt(1, id)
             stmt.executeUpdate()
         }
+    }
+
+    private Empresa mapearEmpresa(ResultSet resultado) {
+        Empresa e = new Empresa(
+                resultado.getString('nome'),
+                resultado.getString('email'),
+                resultado.getString('cnpj'),
+                resultado.getString('pais'),
+                resultado.getString('estado'),
+                resultado.getString('cep'),
+                resultado.getString('descricao'),
+                resultado.getString('senha')
+        )
+        e.id = resultado.getInt('id')
+        return e
     }
 }

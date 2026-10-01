@@ -1,6 +1,7 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Vaga
+import java.sql.ResultSet
 
 class VagaDao {
 
@@ -47,15 +48,7 @@ class VagaDao {
             def resultado = stmt.executeQuery()
             List<Vaga> vagas = []
             while (resultado.next()) {
-                Vaga v = new Vaga(
-                        resultado.getInt('empresa_id'),
-                        resultado.getString('nome'),
-                        resultado.getString('descricao'),
-                        resultado.getString('local'),
-                        (resultado.getArray('competencias')?.array as List)?.toList() ?: []
-                )
-                v.id = resultado.getInt('id')
-                vagas << v
+                vagas << mapearVaga(resultado)
             }
             return vagas
         }
@@ -78,15 +71,7 @@ class VagaDao {
             def resultado = stmt.executeQuery()
             List<Vaga> vagas = []
             while (resultado.next()) {
-                Vaga v = new Vaga(
-                        resultado.getInt('empresa_id'),
-                        resultado.getString('nome'),
-                        resultado.getString('descricao'),
-                        resultado.getString('local'),
-                        (resultado.getArray('competencias')?.array as List)?.toList() ?: []
-                )
-                v.id = resultado.getInt('id')
-                vagas << v
+                vagas << mapearVaga(resultado)
             }
             return vagas
         }
@@ -112,5 +97,17 @@ class VagaDao {
             stmt.setInt(1, id)
             stmt.executeUpdate()
         }
+    }
+
+    private Vaga mapearVaga(ResultSet resultado) {
+        Vaga v = new Vaga(
+                resultado.getInt('empresa_id'),
+                resultado.getString('nome'),
+                resultado.getString('descricao'),
+                resultado.getString('local'),
+                (resultado.getArray('competencias')?.array as List)?.toList()?.collect { it.toString() } ?: []
+        )
+        v.id = resultado.getInt('id')
+        return v
     }
 }

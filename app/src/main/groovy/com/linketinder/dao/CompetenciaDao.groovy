@@ -1,6 +1,7 @@
 package com.linketinder.dao
 
 import com.linketinder.model.Competencia
+import java.sql.ResultSet
 
 class CompetenciaDao {
 
@@ -43,11 +44,15 @@ class CompetenciaDao {
             def resultado = stmt.executeQuery()
             List<Competencia> competencias = []
             while (resultado.next()) {
-                Competencia c = new Competencia(resultado.getString('nome'))
-                c.id = resultado.getInt('id')
-                competencias << c
+                competencias << mapearCompetencia(resultado)
             }
             return competencias
         }
+    }
+
+    private Competencia mapearCompetencia(ResultSet resultado) {
+        Competencia c = new Competencia(resultado.getString('nome'))
+        c.id = resultado.getInt('id')
+        return c
     }
 }
