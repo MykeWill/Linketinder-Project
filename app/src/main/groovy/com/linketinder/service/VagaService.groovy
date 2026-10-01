@@ -9,7 +9,7 @@ class VagaService {
     private VagaDao vagaDao = new VagaDao()
     private CompetenciaDao competenciaDao = new CompetenciaDao()
 
-    Integer cadastrarVaga(Vaga v) {
+    Integer cadastrarVagaService(Vaga v) {
         Integer vagaId = vagaDao.inserirVaga(v)
 
         v.competencias.each { nomeCompetencia ->

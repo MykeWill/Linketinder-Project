@@ -2,7 +2,11 @@ package com.linketinder.service
 
 import com.linketinder.dao.CandidatoDao
 import com.linketinder.dao.CompetenciaDao
+import com.linketinder.exception.ErroBancoException
+import com.linketinder.exception.MensagensErro
+import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
+import java.sql.SQLException
 
 class CandidatoService {
 
@@ -10,29 +14,62 @@ class CandidatoService {
     private CompetenciaDao competenciaDao = new CompetenciaDao()
 
     Integer cadastrarCandidato(Candidato c) {
-        Integer candidatoId = candidatoDao.inserirCandidato(c)
+        try {
+            Integer candidatoId = candidatoDao.inserirCandidato(c)
 
-        c.competencias.each { nomeCompetencia ->
-            Integer competenciaId = competenciaDao.buscarOuCriar(nomeCompetencia)
-            candidatoDao.vincularCompetenciaAoCandidato(candidatoId, competenciaId)
+            c.competencias.each { nomeCompetencia ->
+                Integer competenciaId = competenciaDao.buscarOuCriar(nomeCompetencia)
+                candidatoDao.vincularCompetenciaAoCandidato(candidatoId, competenciaId)
+            }
+
+            return candidatoId
+        } catch (SQLException e) {
+            throw traduzirErro(e)
         }
-
-        return candidatoId
     }
 
     List<Map> listarCandidatosAnonimosService() {
-        return candidatoDao.listarCandidatosAnonimos()
+        try {
+            return candidatoDao.listarCandidatosAnonimos()
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
     }
 
     List<Candidato> listarTodosCandidatosService() {
-        return candidatoDao.listarTodosCandidatos()
+        try {
+            return candidatoDao.listarTodosCandidatos()
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
     }
 
     void atualizarCandidatoService(Candidato c) {
-        candidatoDao.atualizarCandidato(c)
+        try {
+            candidatoDao.atualizarCandidato(c)
+        } catch (SQLException e) {
+            throw traduzirErro(e)
+        }
     }
 
     void removerCandidatoService(Integer id) {
-        candidatoDao.removerCandidato(id)
+        try {
+            candidatoDao.removerCandidato(id)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
+    private RuntimeException traduzirErro(SQLException e) {
+        String msg = e.message?.toLowerCase() ?: ''
+
+        if (msg.contains('candidato_email_key')) {
+            return new RegistroDuplicadoException(MensagensErro.EMAIL_DUPLICADO)
+        }
+        if (msg.contains('candidato_cpf_key')) {
+            return new RegistroDuplicadoException(MensagensErro.CPF_DUPLICADO)
+        }
+
+        return new ErroBancoException(MensagensErro.ERRO_BANCO, e)
     }
 }
