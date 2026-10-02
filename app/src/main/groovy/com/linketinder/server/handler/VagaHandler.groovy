@@ -21,6 +21,9 @@ class VagaHandler implements HttpHandler {
                 case "POST":
                     tratarPost(exchange)
                     break
+                case "GET":
+                    tratarGet(exchange)
+                    break
                 default:
                     responder(exchange, 405, [erro: "Método não permitido"])
             }
@@ -48,7 +51,24 @@ class VagaHandler implements HttpHandler {
         responder(exchange, 201, [id: id])
     }
 
-    private void responder(HttpExchange exchange, int status, Map corpo) {
+    private void tratarGet(HttpExchange exchange) {
+        def vagas = vagaController.listarTodasVagasController()
+
+        def resposta = vagas.collect { vaga ->
+            [
+                    id          : vaga.id,
+                    empresaId   : vaga.empresaId,
+                    nome        : vaga.nome,
+                    descricao   : vaga.descricao,
+                    local       : vaga.local,
+                    competencias: vaga.competencias
+            ]
+        }
+
+        responder(exchange, 200, resposta)
+    }
+
+    private void responder(HttpExchange exchange, int status, Object corpo) {
         String json = new groovy.json.JsonOutput().toJson(corpo)
         byte[] bytes = json.getBytes("UTF-8")
 
