@@ -343,3 +343,60 @@ Exemplo do cadastro de um candidato:
 - **Preparado para frameworks**: essa estrutura é a base do que frameworks MVC (Spring MVC, por exemplo) esperam.
 
 ---
+
+# API REST
+
+O backend foi estendido com endpoints REST sem uso de frameworks. A comunicação entre cliente e servidor usa JSON sobre HTTP.
+
+## Recursos utilizados
+
+- `com.sun.net.httpserver.HttpServer` — servidor HTTP embutido no JDK. Escolhido por não exigir framework nem dependência externa.
+- `com.sun.net.httpserver.HttpHandler` — interface para tratar requisições. Cada recurso tem seu handler.
+- `groovy.json.JsonSlurper` — converte JSON em objetos Groovy (parse).
+- `groovy.json.JsonOutput` — converte objetos Groovy em JSON (serialize).
+- `Thread` — o servidor roda em uma thread separada, permitindo que o menu console continue funcionando em paralelo.
+
+## Servidor HTTP
+
+A classe `ServidorHttp` sobe o `HttpServer` na porta **8080** e registra três rotas, cada uma com seu handler correspondente:
+
+- `/candidatos` → `CandidatoHandler`
+- `/empresas` → `EmpresaHandler`
+- `/vagas` → `VagaHandler`
+
+Cada handler implementa `HttpHandler` e recebe o controller do seu recurso por injeção de dependência. O handler não contém regra de negócio: apenas interpreta a requisição HTTP, converte JSON em objeto de domínio e delega ao controller.
+
+O servidor roda em uma thread separada da thread principal, permitindo que o menu console continue funcionando simultaneamente.
+
+## Endpoints disponíveis
+
+| Método | Rota         | Descrição                  |
+|--------|--------------|----------------------------|
+| POST   | /candidatos  | Cadastra um candidato      |
+| GET    | /candidatos  | Lista todos os candidatos  |
+| POST   | /empresas    | Cadastra uma empresa       |
+| GET    | /empresas    | Lista todas as empresas    |
+| POST   | /vagas       | Cadastra uma vaga          |
+| GET    | /vagas       | Lista todas as vagas       |
+
+## Fluxo de uma requisição
+
+```
+Cliente (Postman/curl)
+  ↓ HTTP
+ServidorHttp (recebe)
+  ↓ roteia
+CandidatoHandler (parseia JSON, monta objeto)
+  ↓ chama
+CandidatoController (já existia do MVC)
+  ↓ chama
+CandidatoService (já existia)
+  ↓ chama
+CandidatoDao (já existia)
+  ↓ JDBC
+PostgreSQL
+```
+
+Os controllers, services e DAOs foram reaproveitados da refatoração MVC. A única camada nova é a dos handlers, que adaptam HTTP para as chamadas já existentes.
+
+---
