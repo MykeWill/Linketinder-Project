@@ -20,7 +20,7 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 
 ## Back-end — Groovy e testes Spock
 
-### 3. Criar o modelo e o contrato de persistência do recrutador
+### 3. ✅ Criar o modelo e o contrato de persistência do recrutador
 - **O que será feito:** Definir o modelo `Recrutador` e as operações de persistência necessárias ao cadastro, consulta e remoção, vinculadas a `empresa_id`.
 - **Camada:** back-end.
 - **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/model/Recrutador.groovy`, `app/src/main/groovy/com/linketinder/repository/RecrutadorRepository.groovy`.
