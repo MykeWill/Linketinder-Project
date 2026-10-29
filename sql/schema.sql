@@ -24,6 +24,19 @@ CREATE TABLE empresa
     senha     VARCHAR(255)        NOT NULL
 );
 
+CREATE TABLE recrutador
+(
+    id                SERIAL PRIMARY KEY,
+    empresa_id        INTEGER      NOT NULL REFERENCES empresa (id) ON DELETE CASCADE,
+    nome              VARCHAR(100) NOT NULL,
+    area_recrutamento TEXT         NOT NULL,
+    descricao         TEXT,
+    email             VARCHAR(150) UNIQUE NOT NULL,
+    cpf               VARCHAR(14) UNIQUE  NOT NULL,
+    data_nascimento   DATE         NOT NULL,
+    senha_hash        VARCHAR(255) NOT NULL
+);
+
 CREATE TABLE competencia
 (
     id   SERIAL PRIMARY KEY,
@@ -34,6 +47,7 @@ CREATE TABLE vaga
 (
     id         SERIAL PRIMARY KEY,
     empresa_id INTEGER      NOT NULL REFERENCES empresa (id) ON DELETE CASCADE,
+    recrutador_id INTEGER REFERENCES recrutador (id) ON DELETE SET NULL,
     nome       VARCHAR(150) NOT NULL,
     descricao  TEXT,
     local      VARCHAR(200) NOT NULL
@@ -65,6 +79,7 @@ CREATE TABLE curtida_empresa_candidato
 (
     empresa_id   INTEGER NOT NULL REFERENCES empresa (id) ON DELETE CASCADE,
     candidato_id INTEGER NOT NULL REFERENCES candidato (id) ON DELETE CASCADE,
+    recrutador_id INTEGER REFERENCES recrutador (id) ON DELETE SET NULL,
     data_hora    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     PRIMARY KEY (empresa_id, candidato_id)
 );
