@@ -4,14 +4,14 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 
 ## Banco de dados
 
-### 1. Criar tabela de recrutadores e relacionamentos
+### 1. ✅ Criar tabela de recrutadores e relacionamentos
 - **O que será feito:** Criar a tabela `recrutador` com vínculo obrigatório à empresa, e adicionar `recrutador_id` nullable a `vaga` e `curtida_empresa_candidato`, com as regras de exclusão definidas na spec.
 - **Camada:** banco.
 - **Arquivos criados/alterados:** `sql/schema.sql`.
 - **Como validar:** Aplicar `sql/schema.sql` em um banco PostgreSQL de teste vazio, usando credenciais configuradas fora do repositório; conferir FKs, unicidades e nulabilidade; inserir e remover recrutador de teste e confirmar `ON DELETE CASCADE` na empresa e `ON DELETE SET NULL` nas vagas e curtidas.
 - **Anonimato:** DDL não cria saídas de dados; CPF, data de nascimento e senha/hash não devem ser incluídos em consultas de leitura pública.
 
-### 2. Atualizar consultas de candidatos, vagas e matches
+### 2. ✅ Atualizar consultas de candidatos, vagas e matches
 - **O que será feito:** Atualizar as consultas SQL para filtrar candidatos já curtidos pela empresa, expor para cada perspectiva somente os campos autorizados na spec e incluir o recrutador responsável e os contatos apenas na consulta de match.
 - **Camada:** banco.
 - **Arquivos criados/alterados:** `sql/queries.sql`.
