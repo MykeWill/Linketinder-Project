@@ -21,7 +21,7 @@ Se faltar informação que altere o comportamento, o escopo ou a abordagem, faç
 
 ### 1. Contexto do projeto
 
-1. Leia o `AGENTS.md` na raiz do projeto, se existir. Trate o Princípio do Anonimato documentado no projeto como restrição dura: antes do match, empresa e candidato só podem enxergar competências, formações e experiências, nunca dados identificáveis.
+1. Leia o `AGENTS.md` na raiz do projeto, se existir. Trate o Princípio do Anonimato documentado no projeto como restrição dura. Antes do match, empresas podem ver do candidato apenas competências e descrição profissional; candidatos podem ver da vaga apenas nome, descrição e competências exigidas. Não exiba dados identificáveis ou pessoais (nome de pessoa/empresa/recrutador, e-mail, CPF, idade, data de nascimento, estado, CEP, telefone ou endereço), nem dados da empresa ou do recrutador para o candidato.
 2. Inspecione os arquivos relevantes para entender a arquitetura, convenções, comportamento atual, comandos de teste e restrições.
 3. Identifique dúvidas, riscos e comportamentos existentes que possam ser afetados.
 4. Não altere código nesta etapa.
@@ -60,7 +60,7 @@ Se faltar informação que altere o comportamento, o escopo ou a abordagem, faç
 
 1. Rode primeiro a validação direcionada à tarefa atual.
 2. Verifique os critérios de aceite correspondentes, não apenas se o build compila.
-3. **Checklist obrigatório:** para toda tarefa que leia ou exiba dados, confirme: “nenhum dado identificável aparece antes do match”. O Princípio do Anonimato é uma restrição dura e não pode ser enfraquecido.
+3. **Checklist obrigatório:** para toda tarefa que leia ou exiba dados, confirme que antes do match a empresa só vê competências e descrição profissional do candidato, e o candidato só vê nome, descrição e competências exigidas da vaga; nenhum dado identificável ou pessoal, nem dados da empresa ou do recrutador, aparece para o lado não autorizado. O Princípio do Anonimato é uma restrição dura e não pode ser enfraquecido.
 4. Antes de concluir o conjunto de tarefas, execute a suíte ou validação completa prevista no plano.
 5. Analise alterações e estado do repositório para confirmar que não há mudanças fora do escopo.
 6. Relate o que foi implementado, os testes executados, seus resultados e os commits criados. Informe claramente qualquer validação não executada ou bloqueio.

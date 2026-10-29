@@ -94,9 +94,14 @@ No frontend, `CandidatoInterface` contém `id`, `nome`, `email`, `cpf`, `idade`,
 
 ## Princípio do Anonimato — restrição obrigatória
 
-Antes do match, candidato e empresa só podem enxergar competências, formações e experiências. Nunca exibir dados identificáveis ou pessoais: nome, e-mail, CPF, idade, estado, CEP, descrição, telefone ou endereço. Antes de alterar qualquer leitura ou exibição, revisar esse princípio em SQL, DAOs, controllers, handlers HTTP, telas, logs e testes. Não enfraquecer a restrição para facilitar telas, testes ou logs.
+Antes do match, os dados profissionais anônimos permitidos são:
 
-A regra acima é obrigatória para alterações futuras. No estado atual, há consultas e saídas que não a cumprem: `sql/queries.sql` inclui descrição e local na seção “antes do match”; os métodos DAO de listagem anônima retornam descrição e/ou dados da vaga; os handlers HTTP GET retornam registros completos; e o perfil de empresa do frontend usa a descrição do candidato. Esses comportamentos existentes não autorizam expor tais dados antes do match. O frontend também referencia `candidato.formacao`, embora esse campo não exista nos tipos/modelos encontrados.
+- Na visualização do candidato por empresa: competências e descrição profissional do candidato (`PessoaBase.descricao`).
+- Na visualização da vaga pelo candidato: nome, descrição e competências exigidas da vaga.
+
+Não exibir antes do match dados identificáveis ou pessoais do candidato, da empresa ou do recrutador: nome (exceto o nome da vaga), e-mail, CPF, idade, data de nascimento, estado, CEP, telefone ou endereço. O candidato também não pode ver dados da empresa ou do recrutador antes do match. A permissão para mostrar os dados da vaga não inclui dados da empresa nem outros campos da vaga, como local.
+
+Antes de alterar qualquer leitura ou exibição, revisar esse princípio em SQL, DAOs, controllers, handlers HTTP, telas, logs e testes. As consultas, DAOs, handlers e telas existentes não autorizam expor campos fora das permissões acima, mesmo quando retornem registros completos. Não enfraquecer a restrição para facilitar telas, testes ou logs.
 
 ## Banco de dados
 
