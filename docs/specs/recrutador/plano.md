@@ -62,7 +62,7 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Rodar `./gradlew test --console=plain`; testar os endpoints HTTP em execução local para cadastro, listagem, curtida, remoção, match e status de erro de validação/duplicidade.
 - **Anonimato:** Validar os formatos JSON pré e pós-match contra a tabela da spec. CPF, data de nascimento, senha e hash não podem aparecer em nenhuma resposta; logs não devem registrar esses valores.
 
-### 9. Cobrir regras de negócio e anonimato com Spock
+### 9. ✅ Cobrir regras de negócio e anonimato com Spock
 - **O que será feito:** Criar testes Spock para vínculo recrutador-empresa, cadastro/validações, bcrypt, escopo de vagas, curtida, bloqueio de curtida duplicada, match, remoção e campos visíveis/proibidos nas respostas.
 - **Camada:** back-end.
 - **Arquivos criados/alterados:** `app/src/test/groovy/com/linketinder/RecrutadorServiceSpec.groovy`, `app/src/test/groovy/com/linketinder/VagaServiceSpec.groovy`, `app/src/test/groovy/com/linketinder/RecrutadorHandlerSpec.groovy`.

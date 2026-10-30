@@ -40,6 +40,10 @@ class RecrutadorServiceSpec extends Specification {
         1 * repository.listarMatchesDoRecrutador(23) >> [match]
         resultado == [match]
         resultado.first().candidatoCompetencias == ['Groovy', 'SQL']
+        !resultado.first().properties.keySet().any {
+            it in ['cpf', 'dataNascimento', 'candidatoCpf', 'candidatoDataNascimento',
+                   'recrutadorCpf', 'recrutadorDataNascimento']
+        }
     }
 
     def "retorna lista vazia quando o recrutador não tem matches"() {
@@ -53,6 +57,18 @@ class RecrutadorServiceSpec extends Specification {
         then:
         1 * repository.listarMatchesDoRecrutador(23) >> []
         resultado.empty
+    }
+
+    def "remove recrutador pelo repository"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+
+        when:
+        service.removerRecrutador(23)
+
+        then:
+        1 * repository.removerRecrutador(23)
     }
 
     def "lista candidatos disponíveis sem carregar dados pessoais"() {

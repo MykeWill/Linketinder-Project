@@ -41,6 +41,7 @@ class RecrutadorHandlerSpec extends Specification {
 
         then:
         json[0].keySet().toSet() == ['id', 'descricao', 'competencias'].toSet()
+        !json[0].containsKey('nome')
         json[0].id == 7
         json[0].descricao == 'Descrição profissional'
         json[0].competencias == ['Groovy']

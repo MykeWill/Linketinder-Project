@@ -20,6 +20,7 @@ class VagaServiceSpec extends Specification {
         then:
         1 * vagaRepository.inserirVaga({ it.recrutadorId == 23 }) >> 51
         id == 51
+        vaga.recrutadorId == 23
     }
 
     def "cadastra vaga sem recrutador"() {
