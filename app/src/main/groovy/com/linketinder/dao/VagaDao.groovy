@@ -4,21 +4,23 @@ import com.linketinder.model.Vaga
 import com.linketinder.repository.VagaRepository
 
 import java.sql.ResultSet
+import java.sql.Types
 
 class VagaDao implements VagaRepository {
 
     Integer inserirVaga(Vaga v) {
         String sql = '''
-            INSERT INTO vaga (empresa_id, nome, descricao, local)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO vaga (empresa_id, recrutador_id, nome, descricao, local)
+            VALUES (?, ?, ?, ?, ?)
             RETURNING id
         '''
         return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, v.empresaId)
-            stmt.setString(2, v.nome)
-            stmt.setString(3, v.descricao)
-            stmt.setString(4, v.local)
+            stmt.setObject(2, v.recrutadorId, Types.INTEGER)
+            stmt.setString(3, v.nome)
+            stmt.setString(4, v.descricao)
+            stmt.setString(5, v.local)
             def resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getInt('id')
@@ -37,7 +39,7 @@ class VagaDao implements VagaRepository {
 
     List<Vaga> listarTodasVagas() {
         String sql = '''
-            SELECT v.id, v.empresa_id, v.nome, v.descricao, v.local,
+            SELECT v.id, v.empresa_id, v.recrutador_id, v.nome, v.descricao, v.local,
                    array_agg(comp.nome) AS competencias
             FROM vaga v
             LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
@@ -58,7 +60,7 @@ class VagaDao implements VagaRepository {
 
     List<Vaga> listarVagasPorEmpresa(Integer empresaId) {
         String sql = '''
-            SELECT v.id, v.empresa_id, v.nome, v.descricao, v.local,
+            SELECT v.id, v.empresa_id, v.recrutador_id, v.nome, v.descricao, v.local,
                    array_agg(comp.nome) AS competencias
             FROM vaga v
             LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
@@ -70,6 +72,30 @@ class VagaDao implements VagaRepository {
         return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, empresaId)
+            def resultado = stmt.executeQuery()
+            List<Vaga> vagas = []
+            while (resultado.next()) {
+                vagas << mapearVaga(resultado)
+            }
+            return vagas
+        }
+    }
+
+    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId, Integer recrutadorId) {
+        String sql = '''
+            SELECT v.id, v.empresa_id, v.recrutador_id, v.nome, v.descricao, v.local,
+                   array_agg(comp.nome) AS competencias
+            FROM vaga v
+            LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
+            LEFT JOIN competencia comp ON vc.competencia_id = comp.id
+            WHERE v.empresa_id = ? OR v.recrutador_id = ?
+            GROUP BY v.id
+            ORDER BY v.id
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, empresaId)
+            stmt.setInt(2, recrutadorId)
             def resultado = stmt.executeQuery()
             List<Vaga> vagas = []
             while (resultado.next()) {
@@ -107,7 +133,8 @@ class VagaDao implements VagaRepository {
                 resultado.getString('nome'),
                 resultado.getString('descricao'),
                 resultado.getString('local'),
-                (resultado.getArray('competencias')?.array as List)?.toList()?.collect { it.toString() } ?: []
+                (resultado.getArray('competencias')?.array as List)?.toList()?.collect { it.toString() } ?: [],
+                resultado.getObject('recrutador_id') as Integer
         )
         v.id = resultado.getInt('id')
         return v

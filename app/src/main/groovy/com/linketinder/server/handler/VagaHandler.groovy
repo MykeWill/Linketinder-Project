@@ -43,7 +43,8 @@ class VagaHandler implements HttpHandler {
                 json.nome,
                 json.descricao,
                 json.local,
-                json.competencias ?: []
+                json.competencias ?: [],
+                json.recrutadorId == null ? null : json.recrutadorId as Integer
         )
 
         Integer id = vagaController.cadastrarVagaController(vaga)

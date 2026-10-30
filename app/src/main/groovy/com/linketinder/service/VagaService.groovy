@@ -19,6 +19,11 @@ class VagaService {
     }
 
     Integer cadastrarVagaService(Vaga v) {
+        return cadastrarVagaService(v, v.recrutadorId)
+    }
+
+    Integer cadastrarVagaService(Vaga v, Integer recrutadorId) {
+        v.recrutadorId = recrutadorId
         try {
             Integer vagaId = vagaDao.inserirVaga(v)
 
@@ -44,6 +49,14 @@ class VagaService {
     List<Vaga> listarVagasPorEmpresaService(Integer empresaId) {
         try {
             return vagaDao.listarVagasPorEmpresa(empresaId)
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
+        }
+    }
+
+    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId, Integer recrutadorId) {
+        try {
+            return vagaDao.listarVagasVisiveisParaRecrutador(empresaId, recrutadorId)
         } catch (SQLException ex) {
             throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
         }

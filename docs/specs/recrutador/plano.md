@@ -34,10 +34,10 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Executar os testes Spock específicos do serviço; verificar e-mail inválido/duplicado, CPF inválido/duplicado, menor de 18 anos, hash bcrypt verificável e ausência de senha em texto puro no valor persistido. Rodar `./gradlew test --console=plain`.
 - **Anonimato:** CPF e data de nascimento são usados apenas para cadastro/validação e nunca aparecem em respostas ou logs; senha e hash não são retornados nem registrados em logs.
 
-### 5. Registrar o criador da vaga e limitar sua consulta
+### 5. ✅ Registrar o criador da vaga e limitar sua consulta
 - **O que será feito:** Adicionar `recrutadorId` ao modelo `Vaga` e propagar o campo na criação, leitura e consultas de vagas; permitir que o recrutador consulte as vagas da empresa e as vagas que criou, sem edição.
 - **Camada:** back-end.
-- **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/model/Vaga.groovy`, `app/src/main/groovy/com/linketinder/repository/VagaRepository.groovy`, `app/src/main/groovy/com/linketinder/dao/VagaDao.groovy`, `app/src/main/groovy/com/linketinder/service/VagaService.groovy`, `app/src/test/groovy/com/linketinder/VagaServiceSpec.groovy`.
+- **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/model/Vaga.groovy`, `app/src/main/groovy/com/linketinder/repository/VagaRepository.groovy`, `app/src/main/groovy/com/linketinder/dao/VagaDao.groovy`, `app/src/main/groovy/com/linketinder/service/VagaService.groovy`, `app/src/main/groovy/com/linketinder/server/handler/VagaHandler.groovy`, `app/src/test/groovy/com/linketinder/VagaServiceSpec.groovy`.
 - **Como validar:** Executar testes Spock de vaga e persistência; confirmar que vaga criada pelo recrutador guarda seu id, que vaga criada pela empresa mantém `NULL`, e que remoção do recrutador preserva a vaga com `recrutador_id = NULL`.
 - **Anonimato:** A consulta de vaga visível ao candidato retorna apenas nome, descrição e competências exigidas; não inclui informações da empresa nem do recrutador.
 

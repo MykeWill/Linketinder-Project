@@ -13,6 +13,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - Tabela recrutador com vínculo à empresa e unicidade de e-mail e CPF; campos recrutador_id em vaga e curtida_empresa_candidato.
 - Modelo `Recrutador` e contrato `RecrutadorRepository` para cadastro, busca, listagem e remoção.
 - DAO e serviço do recrutador com validações de e-mail, CPF e idade mínima, verificação de duplicidade e hash bcrypt da senha; testes Spock incluindo aceitação de e-mail válido.
+- Vagas associadas opcionalmente ao recrutador criador, com consulta do escopo de vagas da empresa e do recrutador.
 
 ### Modificado
 - Consultas SQL atualizadas para aplicar filtro de candidatos já curtidos e restringir campos visíveis antes/depois do match.
