@@ -6,6 +6,7 @@ import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.exception.RegistroNaoEncontradoException
 import com.linketinder.model.Candidato
+import com.linketinder.model.Match
 import com.linketinder.model.Recrutador
 import com.linketinder.repository.RecrutadorRepository
 import org.mindrot.jbcrypt.BCrypt
@@ -65,6 +66,14 @@ class RecrutadorService {
             if (e.sqlState == '23505') {
                 throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)
             }
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
+    List<Match> listarMatchesDoRecrutador(Integer recrutadorId) {
+        try {
+            return recrutadorRepository.listarMatchesDoRecrutador(recrutadorId)
+        } catch (SQLException e) {
             throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
         }
     }

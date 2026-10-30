@@ -3,6 +3,7 @@ package com.linketinder
 import com.linketinder.exception.DadosInvalidosException
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
+import com.linketinder.model.Match
 import com.linketinder.model.Recrutador
 import com.linketinder.repository.RecrutadorRepository
 import com.linketinder.service.RecrutadorService
@@ -12,6 +13,47 @@ import spock.lang.Specification
 import java.time.LocalDate
 
 class RecrutadorServiceSpec extends Specification {
+
+    def "lista matches da empresa do recrutador com os campos pós-match permitidos"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def match = new Match(
+                'Empresa Fictícia',
+                'Descrição da empresa',
+                'empresa@exemplo.com',
+                'Recrutador Fictício',
+                'Tecnologia',
+                'recrutador@exemplo.com',
+                'Candidato Fictício',
+                30,
+                'candidato@exemplo.com',
+                ['Groovy', 'SQL'],
+                'Descrição profissional',
+                'SP'
+        )
+
+        when:
+        List<Match> resultado = service.listarMatchesDoRecrutador(23)
+
+        then:
+        1 * repository.listarMatchesDoRecrutador(23) >> [match]
+        resultado == [match]
+        resultado.first().candidatoCompetencias == ['Groovy', 'SQL']
+    }
+
+    def "retorna lista vazia quando o recrutador não tem matches"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+
+        when:
+        List<Match> resultado = service.listarMatchesDoRecrutador(23)
+
+        then:
+        1 * repository.listarMatchesDoRecrutador(23) >> []
+        resultado.empty
+    }
 
     def "lista candidatos disponíveis sem carregar dados pessoais"() {
         given:

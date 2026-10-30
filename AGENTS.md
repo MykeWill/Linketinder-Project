@@ -66,7 +66,7 @@ O `package.json` do frontend não define script de testes. O backend depende da 
 - `Empresa` herda de `PessoaBase` e contém `id`, `cnpj`, `pais` e `senha`.
 - `Competencia` contém `id` e `nome`.
 - `Vaga` contém `id`, `empresaId`, `nome`, `descricao`, `local` e `competencias`.
-- Uma entidade/modelo próprio de match não existe no estado atual.
+- `Match` representa os dados pós-match permitidos da empresa, do recrutador executor e do candidato.
 - Formação: não implementada no estado atual.
 - Experiência: não implementada no estado atual.
 

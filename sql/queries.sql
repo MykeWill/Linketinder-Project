@@ -62,19 +62,37 @@ FROM vaga v
 GROUP BY v.id
 ORDER BY v.id;
 
--- matches e contatos liberados (pós-match)
+-- matches e contatos liberados para o recrutador (pós-match)
+-- $1: recrutador_id consultante
+WITH matches AS (
+    SELECT DISTINCT v.empresa_id, ccv.candidato_id, cec.recrutador_id
+    FROM curtida_candidato_vaga ccv
+             JOIN vaga v ON v.id = ccv.vaga_id
+             JOIN curtida_empresa_candidato cec
+                  ON cec.empresa_id = v.empresa_id AND cec.candidato_id = ccv.candidato_id
+)
 SELECT e.nome AS empresa_nome,
        e.descricao AS empresa_descricao,
        e.email AS empresa_email,
-       r.nome AS recrutador_nome,
-       r.area_recrutamento,
-       r.email AS recrutador_email,
-       c.email AS candidato_email
-FROM curtida_candidato_vaga ccv
-         JOIN vaga v ON ccv.vaga_id = v.id
-         JOIN empresa e ON v.empresa_id = e.id
-         JOIN curtida_empresa_candidato cec
-              ON cec.empresa_id = e.id AND cec.candidato_id = ccv.candidato_id
-         JOIN candidato c ON c.id = ccv.candidato_id
-         LEFT JOIN recrutador r ON r.id = cec.recrutador_id
-ORDER BY e.nome, c.email;
+       executor.nome AS recrutador_nome,
+       executor.area_recrutamento AS recrutador_area_recrutamento,
+       executor.email AS recrutador_email,
+       c.nome AS candidato_nome,
+       c.idade AS candidato_idade,
+       c.email AS candidato_email,
+       ARRAY(
+           SELECT comp.nome
+           FROM candidato_competencia cc
+                    JOIN competencia comp ON comp.id = cc.competencia_id
+           WHERE cc.candidato_id = c.id
+           ORDER BY comp.nome
+       ) AS candidato_competencias,
+       c.descricao AS candidato_descricao,
+       c.estado AS candidato_estado
+FROM matches m
+         JOIN empresa e ON e.id = m.empresa_id
+         JOIN candidato c ON c.id = m.candidato_id
+         JOIN recrutador consultante
+              ON consultante.id = $1 AND consultante.empresa_id = e.id
+         LEFT JOIN recrutador executor ON executor.id = m.recrutador_id
+ORDER BY e.nome, c.nome;

@@ -48,7 +48,7 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Executar testes Spock com mocks/repositórios para confirmar que a curtida usa empresa e recrutador corretos, que repetição pela mesma empresa é rejeitada e que uma empresa diferente pode curtir o mesmo candidato.
 - **Anonimato:** A lista pré-match inclui apenas competências e descrição profissional do candidato; não retorna nome, e-mail, CPF, idade, estado ou CEP. O id necessário à operação não deve ser apresentado como campo do perfil.
 
-### 7. Implementar leitura do match e contatos pós-match
+### 7. ✅ Implementar leitura do match e contatos pós-match
 - **O que será feito:** Derivar matches candidato ↔ empresa das curtidas existentes e disponibilizar os dados de match, incluindo o recrutador que executou a curtida e os contatos liberados.
 - **Camada:** back-end.
 - **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/repository/RecrutadorRepository.groovy`, `app/src/main/groovy/com/linketinder/dao/RecrutadorDao.groovy`, `app/src/main/groovy/com/linketinder/service/RecrutadorService.groovy`.
