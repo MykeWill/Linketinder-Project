@@ -78,6 +78,14 @@ class RecrutadorService {
         }
     }
 
+    void removerRecrutador(Integer id) {
+        try {
+            recrutadorRepository.removerRecrutador(id)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
     private void validarDados(Recrutador recrutador, String senhaPura) {
         if (recrutador == null || recrutador.email == null ||
                 !EMAIL_VALIDO.matcher(recrutador.email).matches() ||

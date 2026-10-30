@@ -55,7 +55,7 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Executar testes Spock para ausência/presença de match; confirmar que o match permanece da empresa após remover o recrutador e que só é reconhecido com as duas curtidas correspondentes.
 - **Anonimato:** Pós-match, o recrutador recebe apenas nome, idade, e-mail, competências, descrição profissional e estado do candidato. O candidato recebe os campos pós-match permitidos da empresa e do recrutador executor. Nenhuma resposta inclui CPF, data de nascimento, senha ou hash.
 
-### 8. Expor operações HTTP com respostas restritas
+### 8. ✅ Expor operações HTTP com respostas restritas
 - **O que será feito:** Criar controller e handler HTTP para cadastro/remoção de recrutadores, consulta de vagas e candidatos, curtida e leitura de matches; registrar o handler no servidor e converter resultados para respostas com campos explicitamente permitidos.
 - **Camada:** back-end.
 - **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/controller/RecrutadorController.groovy`, `app/src/main/groovy/com/linketinder/server/handler/RecrutadorHandler.groovy`, `app/src/main/groovy/com/linketinder/server/ServidorHttp.groovy`, `app/src/main/groovy/com/linketinder/Main.groovy`.
