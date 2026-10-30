@@ -12,6 +12,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - `skills/feature-com-spec/SKILL.md` adaptada ao Linketinder: specs em `docs/specs/<nome-da-feature>/`, checklist com Princípio do Anonimato e atualização deste changelog a cada tarefa concluída.
 - Tabela recrutador com vínculo à empresa e unicidade de e-mail e CPF; campos recrutador_id em vaga e curtida_empresa_candidato.
 - Modelo `Recrutador` e contrato `RecrutadorRepository` para cadastro, busca, listagem e remoção.
+- DAO e serviço do recrutador com validações de e-mail, CPF e idade mínima, verificação de duplicidade e hash bcrypt da senha; testes Spock incluindo aceitação de e-mail válido.
 
 ### Modificado
 - Consultas SQL atualizadas para aplicar filtro de candidatos já curtidos e restringir campos visíveis antes/depois do match.

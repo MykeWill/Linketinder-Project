@@ -27,7 +27,7 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Rodar `./gradlew compileGroovy --console=plain` e verificar os tipos e campos do modelo e contrato.
 - **Anonimato:** O modelo de entrada poderá conter CPF, data de nascimento e senha para cadastro; nenhum objeto de resposta deve expor CPF, data de nascimento ou senha/hash.
 
-### 4. Implementar persistência e validações do recrutador
+### 4. ✅ Implementar persistência e validações do recrutador
 - **O que será feito:** Persistir recrutadores com e-mail e CPF únicos; validar formato do e-mail, dígitos verificadores do CPF e idade mínima de 18 anos; gerar e persistir senha com bcrypt. Adicionar a dependência de bcrypt ao Gradle, se necessária.
 - **Camada:** back-end.
 - **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/dao/RecrutadorDao.groovy`, `app/src/main/groovy/com/linketinder/service/RecrutadorService.groovy`, `app/src/main/groovy/com/linketinder/exception/DadosInvalidosException.groovy`, `app/src/main/groovy/com/linketinder/exception/MensagensErro.groovy`, `app/src/test/groovy/com/linketinder/RecrutadorServiceSpec.groovy`, `app/build.gradle`, `gradle/libs.versions.toml`.
