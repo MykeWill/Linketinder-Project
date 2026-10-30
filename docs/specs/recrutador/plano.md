@@ -41,10 +41,10 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Executar testes Spock de vaga e persistência; confirmar que vaga criada pelo recrutador guarda seu id, que vaga criada pela empresa mantém `NULL`, e que remoção do recrutador preserva a vaga com `recrutador_id = NULL`.
 - **Anonimato:** A consulta de vaga visível ao candidato retorna apenas nome, descrição e competências exigidas; não inclui informações da empresa nem do recrutador.
 
-### 6. Implementar listagem anônima e curtida da empresa pelo recrutador
+### 6. ✅ Implementar listagem anônima e curtida da empresa pelo recrutador
 - **O que será feito:** Adicionar ao repositório/DAO/serviço as operações de listagem de candidatos disponíveis e de curtida; associar a curtida à empresa e ao recrutador executor, rejeitando repetição para o mesmo par empresa-candidato.
 - **Camada:** back-end.
-- **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/repository/RecrutadorRepository.groovy`, `app/src/main/groovy/com/linketinder/dao/RecrutadorDao.groovy`, `app/src/main/groovy/com/linketinder/service/RecrutadorService.groovy`, `app/src/main/groovy/com/linketinder/exception/RegistroDuplicadoException.groovy`, `app/src/test/groovy/com/linketinder/RecrutadorServiceSpec.groovy`.
+- **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/repository/RecrutadorRepository.groovy`, `app/src/main/groovy/com/linketinder/dao/RecrutadorDao.groovy`, `app/src/main/groovy/com/linketinder/service/RecrutadorService.groovy`, `app/src/main/groovy/com/linketinder/exception/MensagensErro.groovy`, `app/src/test/groovy/com/linketinder/RecrutadorServiceSpec.groovy`.
 - **Como validar:** Executar testes Spock com mocks/repositórios para confirmar que a curtida usa empresa e recrutador corretos, que repetição pela mesma empresa é rejeitada e que uma empresa diferente pode curtir o mesmo candidato.
 - **Anonimato:** A lista pré-match inclui apenas competências e descrição profissional do candidato; não retorna nome, e-mail, CPF, idade, estado ou CEP. O id necessário à operação não deve ser apresentado como campo do perfil.
 

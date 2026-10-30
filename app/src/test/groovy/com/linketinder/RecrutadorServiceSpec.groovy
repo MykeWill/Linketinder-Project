@@ -2,6 +2,7 @@ package com.linketinder
 
 import com.linketinder.exception.DadosInvalidosException
 import com.linketinder.exception.RegistroDuplicadoException
+import com.linketinder.model.Candidato
 import com.linketinder.model.Recrutador
 import com.linketinder.repository.RecrutadorRepository
 import com.linketinder.service.RecrutadorService
@@ -11,6 +12,56 @@ import spock.lang.Specification
 import java.time.LocalDate
 
 class RecrutadorServiceSpec extends Specification {
+
+    def "lista candidatos disponíveis sem carregar dados pessoais"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def candidatoAnonimo = new Candidato(
+                null, null, null, 0, null, null, 'Experiência profissional', null, ['Groovy']
+        )
+        candidatoAnonimo.id = 8
+
+        when:
+        def resultado = service.listarCandidatosDisponiveis(23)
+
+        then:
+        1 * repository.listarCandidatosDisponiveis(23) >> [candidatoAnonimo]
+        resultado == [candidatoAnonimo]
+    }
+
+    def "curte candidato em nome da empresa do recrutador"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        service.curtirCandidato(23, 8)
+
+        then:
+        1 * repository.buscarRecrutadorPorId(23) >> recrutador
+        1 * repository.empresaJaCurtiuCandidato(1, 8) >> false
+        1 * repository.curtirCandidato(1, 8, 23)
+    }
+
+    def "não repete curtida já feita pela empresa"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        service.curtirCandidato(23, 8)
+
+        then:
+        1 * repository.buscarRecrutadorPorId(23) >> recrutador
+        1 * repository.empresaJaCurtiuCandidato(1, 8) >> true
+        0 * repository.curtirCandidato(_, _, _)
+        thrown(RegistroDuplicadoException)
+    }
 
     def "rejeita e-mail inválido"() {
         given:

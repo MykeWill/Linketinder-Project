@@ -4,6 +4,8 @@ import com.linketinder.exception.DadosInvalidosException
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
+import com.linketinder.exception.RegistroNaoEncontradoException
+import com.linketinder.model.Candidato
 import com.linketinder.model.Recrutador
 import com.linketinder.repository.RecrutadorRepository
 import org.mindrot.jbcrypt.BCrypt
@@ -38,6 +40,32 @@ class RecrutadorService {
             return recrutadorRepository.inserirRecrutador(recrutador)
         } catch (SQLException e) {
             throw traduzirErro(e)
+        }
+    }
+
+    List<Candidato> listarCandidatosDisponiveis(Integer recrutadorId) {
+        try {
+            return recrutadorRepository.listarCandidatosDisponiveis(recrutadorId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
+    void curtirCandidato(Integer recrutadorId, Integer candidatoId) {
+        try {
+            Recrutador recrutador = recrutadorRepository.buscarRecrutadorPorId(recrutadorId)
+            if (recrutador == null) {
+                throw new RegistroNaoEncontradoException(MensagensErro.RECRUTADOR_NAO_ENCONTRADO)
+            }
+            if (recrutadorRepository.empresaJaCurtiuCandidato(recrutador.empresaId, candidatoId)) {
+                throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)
+            }
+            recrutadorRepository.curtirCandidato(recrutador.empresaId, candidatoId, recrutadorId)
+        } catch (SQLException e) {
+            if (e.sqlState == '23505') {
+                throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)
+            }
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
         }
     }
 

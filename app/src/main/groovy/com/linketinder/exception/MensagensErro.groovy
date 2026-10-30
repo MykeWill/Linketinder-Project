@@ -10,6 +10,8 @@ class MensagensErro {
     static final String CNPJ_DUPLICADO = 'Este CNPJ já está cadastrado.'
     static final String CANDIDATO_NAO_ENCONTRADO = 'Candidato não encontrado.'
     static final String EMPRESA_NAO_ENCONTRADA = 'Empresa não encontrada.'
+    static final String RECRUTADOR_NAO_ENCONTRADO = 'Recrutador não encontrado.'
     static final String VAGA_NAO_ENCONTRADA = 'Vaga não encontrada.'
+    static final String CURTIDA_DUPLICADA = 'A empresa já curtiu este candidato.'
     static final String ERRO_BANCO = 'Erro ao acessar o banco de dados. Tente novamente.'
 }

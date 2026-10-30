@@ -1,5 +1,6 @@
 package com.linketinder.dao
 
+import com.linketinder.model.Candidato
 import com.linketinder.model.Recrutador
 import com.linketinder.repository.RecrutadorRepository
 
@@ -83,6 +84,76 @@ class RecrutadorDao implements RecrutadorRepository {
             def resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getBoolean(1)
+        }
+    }
+
+    List<Candidato> listarCandidatosDisponiveis(Integer recrutadorId) {
+        String sql = '''
+            SELECT c.id, c.descricao, array_agg(comp.nome) AS competencias
+            FROM candidato c
+            JOIN candidato_competencia cc ON c.id = cc.candidato_id
+            JOIN competencia comp ON cc.competencia_id = comp.id
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM recrutador r
+                JOIN curtida_empresa_candidato cec ON cec.empresa_id = r.empresa_id
+                WHERE r.id = ? AND cec.candidato_id = c.id
+            )
+            GROUP BY c.id
+            ORDER BY c.id
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, recrutadorId)
+            def resultado = stmt.executeQuery()
+            List<Candidato> candidatos = []
+            while (resultado.next()) {
+                Candidato candidato = new Candidato(
+                        null,
+                        null,
+                        null,
+                        0,
+                        null,
+                        null,
+                        resultado.getString('descricao'),
+                        null,
+                        (resultado.getArray('competencias')?.array as List)?.toList()?.collect { it.toString() } ?: []
+                )
+                candidato.id = resultado.getInt('id')
+                candidatos << candidato
+            }
+            return candidatos
+        }
+    }
+
+    boolean empresaJaCurtiuCandidato(Integer empresaId, Integer candidatoId) {
+        String sql = '''
+            SELECT EXISTS (
+                SELECT 1 FROM curtida_empresa_candidato
+                WHERE empresa_id = ? AND candidato_id = ?
+            )
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, empresaId)
+            stmt.setInt(2, candidatoId)
+            def resultado = stmt.executeQuery()
+            resultado.next()
+            return resultado.getBoolean(1)
+        }
+    }
+
+    void curtirCandidato(Integer empresaId, Integer candidatoId, Integer recrutadorId) {
+        String sql = '''
+            INSERT INTO curtida_empresa_candidato (empresa_id, candidato_id, recrutador_id)
+            VALUES (?, ?, ?)
+        '''
+        ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, empresaId)
+            stmt.setInt(2, candidatoId)
+            stmt.setInt(3, recrutadorId)
+            stmt.executeUpdate()
         }
     }
 
