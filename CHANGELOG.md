@@ -18,6 +18,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - Modelo `Match` e leitura de matches da empresa do recrutador, liberando contatos e os dados pós-match especificados sem CPF ou data de nascimento.
 - Handler HTTP e controller para cadastro/remoção, listagem anônima de candidatos, curtidas e matches de recrutadores.
 - Testes Spock adicionais para remoção, anonimato de matches e associação de vagas ao recrutador criador.
+- Tipos TypeScript para recrutador, candidatos anônimos e matches, além de cliente HTTP para cadastro, listagem de candidatos, curtidas e matches.
 
 ### Modificado
 - Consultas SQL atualizadas para aplicar filtro de candidatos já curtidos e restringir campos visíveis antes/depois do match.

@@ -71,7 +71,7 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 
 ## Front-end — TypeScript
 
-### 10. Criar tipos e cliente HTTP para recrutadores
+### 10. ✅ Criar tipos e cliente HTTP para recrutadores
 - **O que será feito:** Definir tipos de entrada e saída sem misturar dados cadastrais sigilosos nas respostas; criar chamadas HTTP para os endpoints do recrutador, vagas, candidatos, curtidas e matches.
 - **Camada:** front-end.
 - **Arquivos criados/alterados:** `frontend/src/types/models.ts`, `frontend/src/repository/recrutadorRepository.ts`, `frontend/src/service/recrutadorService.ts`, `frontend/src/service/api.ts`.
