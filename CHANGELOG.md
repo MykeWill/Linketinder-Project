@@ -8,6 +8,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Perfil do candidato integrado à API para exibir vagas anônimas e contatos de matches pós-match permitidos pela spec.
 - Área do recrutador no frontend para consultar vagas, criar vagas pela API, curtir candidatos anônimos e visualizar matches pós-match.
 - Listagem HTTP de recrutadores por empresa com resposta restrita aos campos permitidos e gestão de listagem, cadastro e remoção no perfil da empresa.
 - `AGENTS.md` com visão geral, stack, estrutura, domínio do Linketinder, regras de negócio centrais e o Princípio do Anonimato como restrição explícita.
@@ -23,6 +24,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - Tipos TypeScript para recrutador, candidatos anônimos e matches, além de cliente HTTP para cadastro, listagem de candidatos, curtidas e matches.
 
 ### Modificado
+- Endpoints públicos de listagem de vagas restritos a nome, descrição e competências; adicionada listagem dos matches de um candidato com campos pós-match permitidos.
 - Consultas SQL atualizadas para aplicar filtro de candidatos já curtidos e restringir campos visíveis antes/depois do match.
 - Endpoint HTTP de vagas ampliado para consultar o escopo do recrutador.
 

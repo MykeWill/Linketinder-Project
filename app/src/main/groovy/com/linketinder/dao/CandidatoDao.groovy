@@ -63,6 +63,50 @@ class CandidatoDao implements  CandidatoRepository {
         }
     }
 
+    List<Map> listarMatchesDoCandidato(Integer candidatoId) {
+        String sql = '''
+            WITH matches AS (
+                SELECT DISTINCT v.empresa_id, ccv.candidato_id, cec.recrutador_id
+                FROM curtida_candidato_vaga ccv
+                JOIN vaga v ON v.id = ccv.vaga_id
+                JOIN curtida_empresa_candidato cec
+                    ON cec.empresa_id = v.empresa_id AND cec.candidato_id = ccv.candidato_id
+                WHERE ccv.candidato_id = ?
+            )
+            SELECT e.nome AS empresa_nome,
+                   e.descricao AS empresa_descricao,
+                   e.email AS empresa_email,
+                   executor.id AS recrutador_id,
+                   executor.nome AS recrutador_nome,
+                   executor.area_recrutamento AS recrutador_area_recrutamento,
+                   executor.email AS recrutador_email
+            FROM matches m
+            JOIN empresa e ON e.id = m.empresa_id
+            LEFT JOIN recrutador executor ON executor.id = m.recrutador_id
+            ORDER BY e.nome
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            def resultado = stmt.executeQuery()
+            List<Map> matches = []
+            while (resultado.next()) {
+                int recrutadorId = resultado.getInt('recrutador_id')
+                boolean recrutadorIdNulo = resultado.wasNull()
+                matches << [
+                        empresaNome             : resultado.getString('empresa_nome'),
+                        empresaDescricao        : resultado.getString('empresa_descricao'),
+                        empresaEmail            : resultado.getString('empresa_email'),
+                        recrutadorId            : recrutadorIdNulo ? null : recrutadorId,
+                        recrutadorNome          : resultado.getString('recrutador_nome'),
+                        recrutadorAreaRecrutamento: resultado.getString('recrutador_area_recrutamento'),
+                        recrutadorEmail         : resultado.getString('recrutador_email')
+                ]
+            }
+            return matches
+        }
+    }
+
     List<Candidato> listarTodosCandidatos() {
         String sql = '''
             SELECT c.id, c.nome, c.email, c.cpf, c.idade, c.estado, c.cep, c.descricao, c.senha,

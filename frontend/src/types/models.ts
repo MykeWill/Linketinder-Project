@@ -33,6 +33,22 @@ export interface VagaInterface {
   recrutadorId?: number
 }
 
+export interface VagaAnonimaInterface {
+  nome: string
+  descricao: string
+  competencias: string[]
+}
+
+export interface MatchCandidatoInterface {
+  empresaNome: string
+  empresaDescricao: string
+  empresaEmail: string
+  recrutadorId: number | null
+  recrutadorNome: string | null
+  recrutadorAreaRecrutamento: string | null
+  recrutadorEmail: string | null
+}
+
 export interface RecrutadorInterface {
   id: number | string
   nome: string

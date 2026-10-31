@@ -42,6 +42,14 @@ class CandidatoService {
         }
     }
 
+    List<Map> listarMatchesDoCandidatoService(Integer candidatoId) {
+        try {
+            return candidatoDao.listarMatchesDoCandidato(candidatoId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
     List<Candidato> listarTodosCandidatosService() {
         try {
             return candidatoDao.listarTodosCandidatos()

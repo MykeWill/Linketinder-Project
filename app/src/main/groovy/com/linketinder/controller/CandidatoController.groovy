@@ -23,6 +23,10 @@ class CandidatoController {
         return candidatoService.listarCandidatosAnonimosService()
     }
 
+    List<Map> listarMatchesDoCandidatoController(Integer candidatoId) {
+        return candidatoService.listarMatchesDoCandidatoService(candidatoId)
+    }
+
     void atualizarCandidatoController(Candidato candidato) {
         candidatoService.atualizarCandidatoService(candidato)
     }

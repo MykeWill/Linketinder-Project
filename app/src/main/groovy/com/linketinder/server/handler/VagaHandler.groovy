@@ -20,6 +20,10 @@ class VagaHandler implements HttpHandler {
     @Override
     void handle(HttpExchange exchange) {
         try {
+            if (exchange.requestURI.path == '/vagas/anonimas' && exchange.requestMethod != 'GET') {
+                responder(exchange, 405, [erro: "Método não permitido"])
+                return
+            }
             switch (exchange.requestMethod) {
                 case "POST":
                     tratarPost(exchange)
@@ -56,6 +60,13 @@ class VagaHandler implements HttpHandler {
     }
 
     private void tratarGet(HttpExchange exchange) {
+        String path = exchange.requestURI.path
+        if (path == '/vagas/anonimas') {
+            responder(exchange, 200, vagaController.listarTodasVagasController()
+                    .collect { Vaga vaga -> mapearVagaAnonima(vaga) })
+            return
+        }
+
         List<String> parametros = exchange.requestURI.rawQuery
                 ? exchange.requestURI.rawQuery.split('&').collect { parametro ->
                     String[] partes = parametro.split('=', 2)
@@ -72,6 +83,9 @@ class VagaHandler implements HttpHandler {
         }
 
         def resposta = vagas.collect { vaga ->
+            if (!parametros.contains('empresaId') && !parametros.contains('recrutadorId')) {
+                return mapearVagaAnonima(vaga)
+            }
             [
                     id          : vaga.id,
                     empresaId   : vaga.empresaId,
@@ -83,6 +97,14 @@ class VagaHandler implements HttpHandler {
         }
 
         responder(exchange, 200, resposta)
+    }
+
+    private static Map mapearVagaAnonima(Vaga vaga) {
+        [
+                nome        : vaga.nome,
+                descricao   : vaga.descricao,
+                competencias: vaga.competencias
+        ]
     }
 
     private static String parametroUnico(HttpExchange exchange, String nome) {

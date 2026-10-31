@@ -26,6 +26,21 @@ class CandidatoServiceSpec extends Specification {
         resultado == listaEsperada
     }
 
+    def "deve listar matches do candidato delegando ao repositório"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def matchesEsperados = [[empresaNome: 'Empresa Fictícia', empresaEmail: 'contato@exemplo.com']]
+
+        when:
+        def resultado = service.listarMatchesDoCandidatoService(7)
+
+        then:
+        1 * candidatoDaoMock.listarMatchesDoCandidato(7) >> matchesEsperados
+        resultado == matchesEsperados
+    }
+
     def "deve cadastrar candidato e vincular suas competências"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)
