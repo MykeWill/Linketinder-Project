@@ -85,10 +85,10 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Rodar `./gradlew test --console=plain` e `cd frontend && npm run build`; conferir cadastro, validações retornadas pela API, listagem e remoção.
 - **Anonimato:** O perfil interno da empresa pode mostrar a descrição do recrutador conforme a spec; nunca renderizar CPF, data de nascimento, senha ou hash, e nunca expor a descrição do recrutador ao candidato.
 
-### 12. Adicionar área do recrutador para vagas, candidatos e matches
+### 12. ✅ Adicionar área do recrutador para vagas, candidatos e matches
 - **O que será feito:** Criar a tela do recrutador para consultar vagas da empresa, criar vaga, visualizar candidatos disponíveis, curtir candidato e consultar matches pós-match.
 - **Camada:** front-end.
-- **Arquivos criados/alterados:** `frontend/src/pages/perfilRecrutador.ts`, `frontend/src/pages/perfilEmpresa.ts`, `frontend/src/router.ts`, `frontend/src/main.ts`.
+- **Arquivos criados/alterados:** `frontend/src/pages/perfilRecrutador.ts`, `frontend/src/pages/cadastro.ts`, `frontend/src/service/vagaService.ts`, `frontend/src/main.ts`, `app/src/main/groovy/com/linketinder/controller/VagaController.groovy`, `app/src/main/groovy/com/linketinder/server/handler/VagaHandler.groovy`.
 - **Como validar:** Rodar `cd frontend && npm run build`; com backend e frontend locais, verificar consulta/criação de vaga, desaparecimento do candidato após curtida por outro recrutador da mesma empresa e visualização dos dados pós-match.
 - **Anonimato:** Antes do match, mostrar do candidato apenas competências e descrição profissional; ocultar dados identificáveis. Pós-match, mostrar somente os campos autorizados, sem CPF/data de nascimento do candidato ou dados sigilosos do recrutador.
 

@@ -2,6 +2,7 @@ import { Chart } from 'chart.js/auto'
 import * as candidatoService from '../service/candidatoService'
 import * as recrutadorService from '../service/recrutadorService'
 import * as vagaService from '../service/vagaService'
+import type { RecrutadorInterface } from '../types/models'
 
 const EMPRESA_LOGADA_ID = 1
 
@@ -10,7 +11,7 @@ export async function renderizarPerfilEmpresa() {
   const candidatos = candidatoService.listarTodosCandidatosService()
   const competenciaContagem = candidatoService.contarCandidatosPorCompetenciaService()
   const vagasDaEmpresa = vagaService.listarVagasPorEmpresaService(EMPRESA_LOGADA_ID)
-  let recrutadores = []
+  let recrutadores: RecrutadorInterface[] = []
   let erroListagemRecrutadores = ''
 
   try {
@@ -20,9 +21,9 @@ export async function renderizarPerfilEmpresa() {
   }
 
   const linhasTabelaCandidatos = candidatos.map(candidato => `
-        <tr title="${candidato.descricao}">
-            <td>${candidato.formacao}</td>
-            <td>${candidato.competencias.join(', ')}</td>
+        <tr title="${escaparHtml(candidato.descricao)}">
+            <td>${escaparHtml(candidato.descricao)}</td>
+            <td>${candidato.competencias.map(escaparHtml).join(', ')}</td>
         </tr>
     `).join('')
 
@@ -95,7 +96,7 @@ export async function renderizarPerfilEmpresa() {
         <table>
             <thead>
                 <tr>
-                    <th>Formação</th>
+                    <th>Descrição profissional</th>
                     <th>Competências</th>
                 </tr>
             </thead>

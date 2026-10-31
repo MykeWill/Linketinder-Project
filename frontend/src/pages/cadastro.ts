@@ -5,6 +5,7 @@ export function renderizarCadastro() {
         <p>Como você quer se cadastrar?</p>
         <a href="#/cadastro-candidato">Sou candidato</a>
         <a href="#/cadastro-empresa">Sou empresa</a>
+        <a href="#/perfil-recrutador">Sou recrutador</a>
         <p><a href="#/login">Já tenho cadastro</a></p>
     `
 }
