@@ -21,6 +21,10 @@ class RecrutadorController {
         recrutadorService.removerRecrutador(id)
     }
 
+    List<Recrutador> listarRecrutadoresPorEmpresaController(Integer empresaId) {
+        return recrutadorService.listarRecrutadoresPorEmpresa(empresaId)
+    }
+
     List<Candidato> listarCandidatosDisponiveisController(Integer recrutadorId) {
         return recrutadorService.listarCandidatosDisponiveis(recrutadorId)
     }

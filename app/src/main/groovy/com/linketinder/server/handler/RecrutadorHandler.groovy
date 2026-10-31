@@ -16,6 +16,8 @@ import groovy.json.JsonSlurper
 
 import java.time.DateTimeException
 import java.time.LocalDate
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 class RecrutadorHandler implements HttpHandler {
 
@@ -51,6 +53,10 @@ class RecrutadorHandler implements HttpHandler {
         String method = exchange.requestMethod
 
         if (path == '/recrutadores') {
+            if (method == 'GET') {
+                tratarListagemPorEmpresa(exchange, empresaIdDaQuery(exchange))
+                return
+            }
             if (method != 'POST') {
                 responder(exchange, 405, [erro: 'Método não permitido'])
                 return
@@ -101,6 +107,20 @@ class RecrutadorHandler implements HttpHandler {
         }
 
         responder(exchange, 404, [erro: 'Rota não encontrada'])
+    }
+
+    private void tratarListagemPorEmpresa(HttpExchange exchange, Integer empresaId) {
+        List<Recrutador> recrutadores =
+                recrutadorController.listarRecrutadoresPorEmpresaController(empresaId)
+        responder(exchange, 200, recrutadores.collect { Recrutador recrutador ->
+            [
+                    id                 : recrutador.id,
+                    nome               : recrutador.nome,
+                    areaRecrutamento   : recrutador.areaRecrutamento,
+                    descricao          : recrutador.descricao,
+                    email              : recrutador.email
+            ]
+        })
     }
 
     private void tratarPost(HttpExchange exchange) {
@@ -186,6 +206,21 @@ class RecrutadorHandler implements HttpHandler {
 
     private static Integer idDaRota(String valor) {
         return inteiroPositivo(new BigDecimal(valor), 'id')
+    }
+
+    private static Integer empresaIdDaQuery(HttpExchange exchange) {
+        String query = exchange.requestURI.rawQuery
+        List<String> valores = query ? query.split('&').findAll { parametro ->
+            URLDecoder.decode(parametro.split('=', 2)[0], StandardCharsets.UTF_8) == 'empresaId'
+        }.collect { parametro ->
+            String[] partes = parametro.split('=', 2)
+            URLDecoder.decode(partes.length == 2 ? partes[1] : '', StandardCharsets.UTF_8)
+        } : []
+
+        if (valores.size() != 1) {
+            throw new IllegalArgumentException('empresaId inválido.')
+        }
+        return inteiroPositivo(new BigDecimal(valores[0]), 'empresaId')
     }
 
     private static void responder(HttpExchange exchange, int status, Object corpo) {

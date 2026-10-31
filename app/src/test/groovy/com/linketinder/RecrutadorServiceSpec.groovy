@@ -14,6 +14,21 @@ import java.time.LocalDate
 
 class RecrutadorServiceSpec extends Specification {
 
+    def "lista recrutadores da empresa pelo repository"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        List<Recrutador> resultado = service.listarRecrutadoresPorEmpresa(1)
+
+        then:
+        1 * repository.listarRecrutadoresPorEmpresa(1) >> [recrutador]
+        resultado == [recrutador]
+    }
+
     def "lista matches da empresa do recrutador com os campos pós-match permitidos"() {
         given:
         def repository = Mock(RecrutadorRepository)

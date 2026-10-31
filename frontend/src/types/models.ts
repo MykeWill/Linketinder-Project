@@ -35,12 +35,10 @@ export interface VagaInterface {
 
 export interface RecrutadorInterface {
   id: number | string
-  empresaId: number | string
   nome: string
   areaRecrutamento: string
   descricao: string
   email: string
-  dataNascimento: string
 }
 
 export interface CadastroRecrutadorInterface {

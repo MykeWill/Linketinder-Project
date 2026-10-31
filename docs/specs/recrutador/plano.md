@@ -78,11 +78,11 @@ Cada tarefa deve ser implementada, validada e commitada separadamente, na ordem 
 - **Como validar:** Rodar `cd frontend && npm run build`; conferir chamadas em ambiente local contra a API e tratamento de respostas de erro sem persistir credenciais em `localStorage`.
 - **Anonimato:** Tipos de resposta e chamadas de listagem pré-match refletem somente os campos permitidos; CPF/data de nascimento/senha existem apenas no envio de cadastro e nunca são renderizados ou registrados.
 
-### 11. Adicionar gestão de recrutadores no perfil da empresa
+### 11. ✅ Adicionar gestão de recrutadores no perfil da empresa
 - **O que será feito:** Permitir à empresa consultar, cadastrar e remover recrutadores pelo frontend, enviando os dados cadastrais necessários à API.
-- **Camada:** front-end.
-- **Arquivos criados/alterados:** `frontend/src/pages/perfilEmpresa.ts`, `frontend/src/pages/cadastroRecrutador.ts`, `frontend/src/router.ts`, `frontend/src/main.ts`.
-- **Como validar:** Rodar `cd frontend && npm run build`; iniciar backend e frontend localmente e verificar cadastro, validações retornadas pela API, listagem e remoção.
+- **Camada:** back-end e front-end.
+- **Arquivos criados/alterados:** `app/src/main/groovy/com/linketinder/service/RecrutadorService.groovy`, `app/src/main/groovy/com/linketinder/controller/RecrutadorController.groovy`, `app/src/main/groovy/com/linketinder/server/handler/RecrutadorHandler.groovy`, `frontend/src/pages/perfilEmpresa.ts`, `frontend/src/service/recrutadorService.ts`, `frontend/src/types/models.ts`.
+- **Como validar:** Rodar `./gradlew test --console=plain` e `cd frontend && npm run build`; conferir cadastro, validações retornadas pela API, listagem e remoção.
 - **Anonimato:** O perfil interno da empresa pode mostrar a descrição do recrutador conforme a spec; nunca renderizar CPF, data de nascimento, senha ou hash, e nunca expor a descrição do recrutador ao candidato.
 
 ### 12. Adicionar área do recrutador para vagas, candidatos e matches

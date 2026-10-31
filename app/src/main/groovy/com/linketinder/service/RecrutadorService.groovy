@@ -44,6 +44,14 @@ class RecrutadorService {
         }
     }
 
+    List<Recrutador> listarRecrutadoresPorEmpresa(Integer empresaId) {
+        try {
+            return recrutadorRepository.listarRecrutadoresPorEmpresa(empresaId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
     List<Candidato> listarCandidatosDisponiveis(Integer recrutadorId) {
         try {
             return recrutadorRepository.listarCandidatosDisponiveis(recrutadorId)

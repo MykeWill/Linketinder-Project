@@ -3,6 +3,7 @@ package com.linketinder.server.handler
 import com.linketinder.controller.RecrutadorController
 import com.linketinder.model.Candidato
 import com.linketinder.model.Match
+import com.linketinder.model.Recrutador
 import com.linketinder.service.RecrutadorService
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpExchange
@@ -12,8 +13,40 @@ import spock.lang.Specification
 import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.net.URI
+import java.time.LocalDate
 
 class RecrutadorHandlerSpec extends Specification {
+
+    def "recrutadores da empresa retornam somente campos permitidos"() {
+        given:
+        def service = Mock(RecrutadorService)
+        def controller = new RecrutadorController(service)
+        def handler = new RecrutadorHandler(controller)
+        def recrutador = new Recrutador(
+                1, 'Recrutador Fictício', 'Tecnologia', 'Descrição interna',
+                'recrutador@exemplo.com', '529.982.247-25',
+                LocalDate.parse('1990-01-01'), 'hash-ficticio'
+        )
+        recrutador.id = 12
+        def resposta = criarExchange('GET', '/recrutadores?empresaId=1')
+        1 * service.listarRecrutadoresPorEmpresa(1) >> [recrutador]
+
+        when:
+        handler.handle(resposta.exchange)
+        String corpo = resposta.body.toString('UTF-8')
+        def json = new JsonSlurper().parseText(corpo)
+
+        then:
+        json[0].keySet().toSet() == ['id', 'nome', 'areaRecrutamento', 'descricao', 'email'].toSet()
+        json[0].id == 12
+        json[0].nome == 'Recrutador Fictício'
+        json[0].areaRecrutamento == 'Tecnologia'
+        json[0].descricao == 'Descrição interna'
+        json[0].email == 'recrutador@exemplo.com'
+        !corpo.contains('529.982.247-25')
+        !corpo.contains('1990-01-01')
+        !corpo.contains('hash-ficticio')
+    }
 
     def "candidatos disponíveis retornam somente campos anônimos permitidos"() {
         given:

@@ -8,6 +8,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Listagem HTTP de recrutadores por empresa com resposta restrita aos campos permitidos e gestão de listagem, cadastro e remoção no perfil da empresa.
 - `AGENTS.md` com visão geral, stack, estrutura, domínio do Linketinder, regras de negócio centrais e o Princípio do Anonimato como restrição explícita.
 - `skills/feature-com-spec/SKILL.md` adaptada ao Linketinder: specs em `docs/specs/<nome-da-feature>/`, checklist com Princípio do Anonimato e atualização deste changelog a cada tarefa concluída.
 - Tabela recrutador com vínculo à empresa e unicidade de e-mail e CPF; campos recrutador_id em vaga e curtida_empresa_candidato.
