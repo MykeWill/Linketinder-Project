@@ -26,6 +26,51 @@ class CandidatoServiceSpec extends Specification {
         resultado == listaEsperada
     }
 
+    def "deve listar matches do candidato delegando ao repositório"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def matchesEsperados = [[empresaNome: 'Empresa Fictícia', empresaEmail: 'contato@exemplo.com']]
+
+        when:
+        def resultado = service.listarMatchesDoCandidatoService(7)
+
+        then:
+        1 * candidatoDaoMock.listarMatchesDoCandidato(7) >> matchesEsperados
+        resultado == matchesEsperados
+    }
+
+    def "deve curtir vaga e retornar true quando a empresa ja curtiu o candidato"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+
+        when:
+        def resultado = service.curtirVaga(7, 42)
+
+        then:
+        1 * candidatoDaoMock.curtirVaga(7, 42)
+        1 * candidatoDaoMock.existeCurtidaDaEmpresaParaVaga(7, 42) >> true
+        resultado
+    }
+
+    def "deve retornar false quando a empresa ainda nao curtiu o candidato"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+
+        when:
+        def resultado = service.curtirVaga(7, 42)
+
+        then:
+        1 * candidatoDaoMock.curtirVaga(7, 42)
+        1 * candidatoDaoMock.existeCurtidaDaEmpresaParaVaga(7, 42) >> false
+        !resultado
+    }
+
     def "deve cadastrar candidato e vincular suas competências"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)

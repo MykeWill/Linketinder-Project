@@ -63,6 +63,90 @@ class CandidatoDao implements  CandidatoRepository {
         }
     }
 
+    List<Map> listarMatchesDoCandidato(Integer candidatoId) {
+        String sql = '''
+            SELECT v.id AS vaga_id,
+                   v.nome AS vaga_nome,
+                   v.descricao AS vaga_descricao,
+                   e.nome AS empresa_nome,
+                   e.descricao AS empresa_descricao,
+                   e.email AS empresa_email,
+                   executor.id AS recrutador_id,
+                   executor.nome AS recrutador_nome,
+                   executor.area_recrutamento AS recrutador_area_recrutamento,
+                   executor.email AS recrutador_email
+            FROM curtida_candidato_vaga ccv
+            JOIN vaga v ON v.id = ccv.vaga_id
+            JOIN curtida_empresa_candidato cec
+                ON cec.empresa_id = v.empresa_id
+               AND cec.candidato_id = ccv.candidato_id
+            JOIN empresa e ON e.id = v.empresa_id
+            LEFT JOIN recrutador executor ON executor.id = cec.recrutador_id
+            WHERE ccv.candidato_id = ?
+            ORDER BY e.nome, v.id
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            def resultado = stmt.executeQuery()
+            List<Map> matches = []
+            while (resultado.next()) {
+                int recrutadorId = resultado.getInt('recrutador_id')
+                boolean recrutadorIdNulo = resultado.wasNull()
+                matches << [
+                        vagaId                  : resultado.getInt('vaga_id'),
+                        vagaNome                : resultado.getString('vaga_nome'),
+                        vagaDescricao           : resultado.getString('vaga_descricao'),
+                        empresaNome             : resultado.getString('empresa_nome'),
+                        empresaDescricao        : resultado.getString('empresa_descricao'),
+                        empresaEmail            : resultado.getString('empresa_email'),
+                        recrutadorId            : recrutadorIdNulo ? null : recrutadorId,
+                        recrutadorNome          : resultado.getString('recrutador_nome'),
+                        recrutadorAreaRecrutamento: resultado.getString('recrutador_area_recrutamento'),
+                        recrutadorEmail         : resultado.getString('recrutador_email')
+                ]
+            }
+            return matches
+        }
+    }
+
+    void curtirVaga(Integer candidatoId, Integer vagaId) {
+        String sql = '''
+            INSERT INTO curtida_candidato_vaga (candidato_id, vaga_id)
+            VALUES (?, ?)
+            ON CONFLICT (candidato_id, vaga_id) DO NOTHING
+        '''
+        ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            stmt.setInt(2, vagaId)
+            stmt.executeUpdate()
+        }
+    }
+
+    boolean existeCurtidaDaEmpresaParaVaga(Integer candidatoId, Integer vagaId) {
+        String sql = '''
+            SELECT EXISTS (
+                SELECT 1
+                FROM curtida_candidato_vaga ccv
+                JOIN vaga v ON v.id = ccv.vaga_id
+                JOIN curtida_empresa_candidato cec
+                    ON cec.empresa_id = v.empresa_id
+                   AND cec.candidato_id = ccv.candidato_id
+                WHERE ccv.candidato_id = ?
+                  AND ccv.vaga_id = ?
+            )
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            stmt.setInt(2, vagaId)
+            def resultado = stmt.executeQuery()
+            resultado.next()
+            return resultado.getBoolean(1)
+        }
+    }
+
     List<Candidato> listarTodosCandidatos() {
         String sql = '''
             SELECT c.id, c.nome, c.email, c.cpf, c.idade, c.estado, c.cep, c.descricao, c.senha,

@@ -28,6 +28,7 @@ dependencies {
 
     // Driver JDBC do PostgreSQL
     implementation 'org.postgresql:postgresql:42.7.4'
+    implementation 'org.mindrot:jbcrypt:0.4'
 
     testImplementation 'org.spockframework:spock-core:2.3-groovy-4.0'
 

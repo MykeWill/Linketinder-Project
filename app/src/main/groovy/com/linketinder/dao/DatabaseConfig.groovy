@@ -2,19 +2,11 @@ package com.linketinder.dao
 
 class DatabaseConfig {
 
-    private static final Properties PROPRIEDADES = carregarPropriedades()
+    private static final String URL = System.getenv('DB_URL') ?: 'jdbc:postgresql://localhost:5432/linketinder'
+    private static final String USUARIO = System.getenv('DB_USER') ?: 'postgres'
+    private static final String SENHA = System.getenv('DB_PASSWORD') ?: ''
 
-    private static Properties carregarPropriedades() {
-        def props = new Properties()
-        def stream = DatabaseConfig.classLoader.getResourceAsStream('database.properties')
-        if (stream == null) {
-            throw new IllegalStateException('Arquivo database.properties não encontrado.')
-        }
-        props.load(stream)
-        return props
-    }
-
-    static String getUrl() { PROPRIEDADES.getProperty('db.url') }
-    static String getUsuario() { PROPRIEDADES.getProperty('db.usuario') }
-    static String getSenha() { PROPRIEDADES.getProperty('db.senha') }
+    static String getUrl() { URL }
+    static String getUsuario() { USUARIO }
+    static String getSenha() { SENHA }
 }

@@ -17,15 +17,29 @@ class CandidatoHandler implements HttpHandler {
     @Override
     void handle(HttpExchange exchange) {
         try {
-            switch (exchange.requestMethod) {
-                case "POST":
-                    tratarPost(exchange)
-                    break
-                case "GET":
-                    tratarGet(exchange)
-                    break
-                default:
-                    responder(exchange, 405, [erro: "Método não permitido"])
+            String path = exchange.requestURI.path
+            String method = exchange.requestMethod
+
+            if (path == '/candidatos' && method == 'POST') {
+                tratarPost(exchange)
+            } else if (path == '/candidatos' && method == 'GET') {
+                tratarGet(exchange)
+            } else {
+                def curtida = path =~ /^\/candidatos\/(\d+)\/curtir-vaga$/
+                def matches = path =~ /^\/candidatos\/(\d+)\/matches$/
+                if (curtida.matches()) {
+                    if (method != 'POST') {
+                        responder(exchange, 405, [erro: 'Método não permitido'])
+                    } else {
+                        tratarCurtidaVaga(exchange, inteiroPositivo(curtida[0][1]))
+                    }
+                } else if (!matches.matches()) {
+                    responder(exchange, 404, [erro: 'Rota não encontrada'])
+                } else if (method != 'GET') {
+                    responder(exchange, 405, [erro: 'Método não permitido'])
+                } else {
+                    tratarMatches(exchange, inteiroPositivo(matches[0][1]))
+                }
             }
         } catch (Exception e) {
             responder(exchange, 400, [erro: e.message])
@@ -56,23 +70,49 @@ class CandidatoHandler implements HttpHandler {
     }
 
     private void tratarGet(HttpExchange exchange) {
-        def candidatos = candidatoController.listarTodosCandidatosController()
-
+        List<Map> candidatos = candidatoController.listarCandidatosAnonimosController()
         def resposta = candidatos.collect { candidato ->
             [
                     id          : candidato.id,
-                    nome        : candidato.nome,
-                    email       : candidato.email,
-                    cpf         : candidato.cpf,
-                    idade       : candidato.idade,
-                    estado      : candidato.estado,
-                    cep         : candidato.cep,
                     descricao   : candidato.descricao,
                     competencias: candidato.competencias
             ]
         }
 
         responder(exchange, 200, resposta)
+    }
+
+    private void tratarMatches(HttpExchange exchange, Integer candidatoId) {
+        List<Map> matches = candidatoController.listarMatchesDoCandidatoController(candidatoId)
+        responder(exchange, 200, matches.collect { Map match ->
+            [
+                    vagaId                    : match.vagaId,
+                    vagaNome                  : match.vagaNome,
+                    vagaDescricao             : match.vagaDescricao,
+                    empresaNome                : match.empresaNome,
+                    empresaDescricao           : match.empresaDescricao,
+                    empresaEmail               : match.empresaEmail,
+                    recrutadorId               : match.recrutadorId,
+                    recrutadorNome             : match.recrutadorNome,
+                    recrutadorAreaRecrutamento : match.recrutadorAreaRecrutamento,
+                    recrutadorEmail            : match.recrutadorEmail
+            ]
+        })
+    }
+
+    private void tratarCurtidaVaga(HttpExchange exchange, Integer candidatoId) {
+        def json = new JsonSlurper().parseText(exchange.requestBody.text)
+        Integer vagaId = inteiroPositivo(json.vagaId?.toString())
+        boolean match = candidatoController.curtirVagaController(candidatoId, vagaId)
+        responder(exchange, 200, [match: match])
+    }
+
+    private static Integer inteiroPositivo(String valor) {
+        int id = new BigDecimal(valor).intValueExact()
+        if (id <= 0) {
+            throw new IllegalArgumentException('ID inválido.')
+        }
+        return id
     }
 
     private void responder(HttpExchange exchange, int status, Object corpo) {

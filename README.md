@@ -57,9 +57,14 @@ A classe `Pessoa` define os métodos obrigatórios comuns a candidatos (pessoa f
 
 2. Execute a aplicação:
    ```bash
+   cp .env.example .env
+   # Edite .env e informe a senha do PostgreSQL.
+   set -a
+   . ./.env
+   set +a
    ./gradlew run --console=plain
    ```
-   > O parâmetro `--console=plain` garante que o menu interativo funcione corretamente lendo a entrada do teclado.
+   > O `.env` deve ser carregado no ambiente do shell antes de iniciar a aplicação, pois o Java lê as variáveis de ambiente do sistema e não carrega arquivos `.env` automaticamente. O parâmetro `--console=plain` garante que o menu interativo funcione corretamente lendo a entrada do teclado.
 
 3. No menu exibido, digite o número da opção desejada e pressione Enter:
    ```
@@ -277,9 +282,9 @@ A classe `PostgresConnectionFactory` implementa o padrão Singleton por meio de 
 
 ## Configuração externa
 
-As credenciais do banco (URL, usuário, senha) foram movidas para o arquivo `src/main/resources/database.properties`, lido pela classe `DatabaseConfig`.
+As configurações de conexão com o PostgreSQL são lidas das variáveis de ambiente `DB_URL`, `DB_USER` e `DB_PASSWORD`. Crie um arquivo `.env` baseado no `.env.example` e carregue-o no ambiente antes de iniciar a aplicação. O arquivo `.env` e `app/src/main/resources/database.properties` são ignorados pelo Git. Na ausência dessas variáveis, a aplicação usa os defaults locais de desenvolvimento: URL `jdbc:postgresql://localhost:5432/linketinder`, usuário `postgres` e senha vazia.
 
-**Vantagem:** trocar de banco ou ambiente não exige recompilar o código — só alterar o arquivo de configuração.
+**Vantagem:** trocar de banco ou ambiente não exige recompilar o código — basta alterar as variáveis de ambiente.
 
 ## Refatoração do ConexaoDB
 

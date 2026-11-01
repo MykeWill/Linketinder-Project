@@ -6,11 +6,13 @@ import { renderizarPerfilCandidato } from './pages/perfilCandidato'
 import { renderizarPerfilEmpresa } from './pages/perfilEmpresa'
 import { renderizarCadastroCandidato } from './pages/cadastroCandidato'
 import { renderizarCadastroEmpresa } from './pages/cadastroEmpresa'
+import { renderizarPerfilRecrutador } from './pages/perfilRecrutador'
 
 registrarRota('/', renderizarCadastro)
 registrarRota('/login', renderizarLogin)
 registrarRota('/perfil-candidato', renderizarPerfilCandidato)
 registrarRota('/perfil-empresa', renderizarPerfilEmpresa)
+registrarRota('/perfil-recrutador', renderizarPerfilRecrutador)
 registrarRota('/cadastro-candidato', renderizarCadastroCandidato)
 registrarRota('/cadastro-empresa', renderizarCadastroEmpresa)
 

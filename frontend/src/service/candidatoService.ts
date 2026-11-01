@@ -1,5 +1,6 @@
-import type { CandidatoInterface } from '../types/models'
+import type { CandidatoInterface, MatchCandidatoInterface } from '../types/models'
 import * as candidatoRepository from '../repository/candidatoRepository'
+import { request } from './api'
 import {
     validarNome, validarEmail, validarCPF, validarIdade,
     validarEstado, validarCEP, validarDescricao, validarSenha
@@ -7,6 +8,17 @@ import {
 
 export function listarTodosCandidatosService(): CandidatoInterface[] {
     return candidatoRepository.listarTodosCandidatosRepository()
+}
+
+export function listarMatchesCandidatoService(candidatoId: number): Promise<MatchCandidatoInterface[]> {
+    return request<MatchCandidatoInterface[]>(`/candidatos/${candidatoId}/matches`)
+}
+
+export function curtirVaga(candidatoId: number, vagaId: number): Promise<{ match: boolean }> {
+    return request<{ match: boolean }>(`/candidatos/${candidatoId}/curtir-vaga`, {
+        method: 'POST',
+        body: JSON.stringify({ vagaId })
+    })
 }
 
 export function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 'id'>): CandidatoInterface {

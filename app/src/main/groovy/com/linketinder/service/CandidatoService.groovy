@@ -42,6 +42,23 @@ class CandidatoService {
         }
     }
 
+    List<Map> listarMatchesDoCandidatoService(Integer candidatoId) {
+        try {
+            return candidatoDao.listarMatchesDoCandidato(candidatoId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
+    boolean curtirVaga(Integer candidatoId, Integer vagaId) {
+        try {
+            candidatoDao.curtirVaga(candidatoId, vagaId)
+            return candidatoDao.existeCurtidaDaEmpresaParaVaga(candidatoId, vagaId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
     List<Candidato> listarTodosCandidatosService() {
         try {
             return candidatoDao.listarTodosCandidatos()

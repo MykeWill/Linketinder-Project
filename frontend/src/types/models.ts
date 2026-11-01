@@ -1,5 +1,5 @@
 export interface CandidatoInterface {
-  id: string
+  id: number | string
   nome: string
   email: string
   cpf: string
@@ -12,7 +12,7 @@ export interface CandidatoInterface {
 }
 
 export interface EmpresaInterface {
-  id: string
+  id: number | string
   nome: string
   email: string
   cnpj: string
@@ -24,9 +24,71 @@ export interface EmpresaInterface {
 }
 
 export interface VagaInterface {
-  id: string
-  empresaId: string
-  titulo: string
+  id: number | string
+  empresaId: number | string
+  nome: string
+  titulo?: string
   descricao: string
   competencias: string[]
+  recrutadorId?: number
+}
+
+export interface VagaAnonimaInterface {
+  id: number
+  nome: string
+  descricao: string
+  competencias: string[]
+}
+
+export interface MatchCandidatoInterface {
+  vagaId: number
+  vagaNome: string
+  vagaDescricao: string | null
+  empresaNome: string
+  empresaDescricao: string
+  empresaEmail: string
+  recrutadorId: number | null
+  recrutadorNome: string | null
+  recrutadorAreaRecrutamento: string | null
+  recrutadorEmail: string | null
+}
+
+export interface RecrutadorInterface {
+  id: number | string
+  nome: string
+  areaRecrutamento: string
+  descricao: string
+  email: string
+}
+
+export interface CadastroRecrutadorInterface {
+  empresaId: number
+  nome: string
+  areaRecrutamento: string
+  descricao: string
+  email: string
+  cpf: string
+  dataNascimento: string
+  senha: string
+}
+
+export interface CandidatoDisponivelInterface {
+  id: number
+  descricao: string
+  competencias: string[]
+}
+
+export interface MatchInterface {
+  empresaNome: string
+  empresaDescricao: string
+  empresaEmail: string
+  recrutadorNome: string | null
+  recrutadorAreaRecrutamento: string | null
+  recrutadorEmail: string | null
+  candidatoNome: string
+  candidatoIdade: number
+  candidatoEmail: string
+  candidatoCompetencias: string[]
+  candidatoDescricao: string
+  candidatoEstado: string
 }
