@@ -101,6 +101,7 @@ class VagaHandler implements HttpHandler {
 
     private static Map mapearVagaAnonima(Vaga vaga) {
         [
+                id          : vaga.id,
                 nome        : vaga.nome,
                 descricao   : vaga.descricao,
                 competencias: vaga.competencias

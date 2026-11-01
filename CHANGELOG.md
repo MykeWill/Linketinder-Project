@@ -8,6 +8,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Curtidas de vagas pelo candidato com confirmação de match, apresentação de matches atualizada e botão de ação no perfil do candidato.
 - Perfil do candidato integrado à API para exibir vagas anônimas e contatos de matches pós-match permitidos pela spec.
 - Área do recrutador no frontend para consultar vagas, criar vagas pela API, curtir candidatos anônimos e visualizar matches pós-match.
 - Listagem HTTP de recrutadores por empresa com resposta restrita aos campos permitidos e gestão de listagem, cadastro e remoção no perfil da empresa.
@@ -24,10 +25,16 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - Tipos TypeScript para recrutador, candidatos anônimos e matches, além de cliente HTTP para cadastro, listagem de candidatos, curtidas e matches.
 
 ### Modificado
+- Vagas anônimas incluem apenas um ID técnico não exibido na tela, necessário para registrar a curtida, além dos campos públicos permitidos.
 - Endpoints públicos de listagem de vagas restritos a nome, descrição e competências; adicionada listagem dos matches de um candidato com campos pós-match permitidos.
 - Consultas SQL atualizadas para aplicar filtro de candidatos já curtidos e restringir campos visíveis antes/depois do match.
 - Endpoint HTTP de vagas ampliado para consultar o escopo do recrutador.
 
 ### Corrigido
+- Match passa a ser contabilizado por vaga, permitindo múltiplos matches com a mesma empresa.
+- Corrigida a listagem de matches nos perfis de candidato e recrutador para refletir os matches recém-criados.
+- Força reload da página pós-match para garantir exibição dos dados.
+- Adiciona verificação defensiva para dados nulos e estrutura JSON inválida na tela do candidato.
+- Refatora a tabela de matches do candidato para criar elementos DOM e preencher conteúdo sem template strings.
 
 ### Removido

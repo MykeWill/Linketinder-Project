@@ -25,8 +25,15 @@ class CandidatoHandler implements HttpHandler {
             } else if (path == '/candidatos' && method == 'GET') {
                 tratarGet(exchange)
             } else {
+                def curtida = path =~ /^\/candidatos\/(\d+)\/curtir-vaga$/
                 def matches = path =~ /^\/candidatos\/(\d+)\/matches$/
-                if (!matches.matches()) {
+                if (curtida.matches()) {
+                    if (method != 'POST') {
+                        responder(exchange, 405, [erro: 'Método não permitido'])
+                    } else {
+                        tratarCurtidaVaga(exchange, inteiroPositivo(curtida[0][1]))
+                    }
+                } else if (!matches.matches()) {
                     responder(exchange, 404, [erro: 'Rota não encontrada'])
                 } else if (method != 'GET') {
                     responder(exchange, 405, [erro: 'Método não permitido'])
@@ -79,6 +86,9 @@ class CandidatoHandler implements HttpHandler {
         List<Map> matches = candidatoController.listarMatchesDoCandidatoController(candidatoId)
         responder(exchange, 200, matches.collect { Map match ->
             [
+                    vagaId                    : match.vagaId,
+                    vagaNome                  : match.vagaNome,
+                    vagaDescricao             : match.vagaDescricao,
                     empresaNome                : match.empresaNome,
                     empresaDescricao           : match.empresaDescricao,
                     empresaEmail               : match.empresaEmail,
@@ -90,10 +100,17 @@ class CandidatoHandler implements HttpHandler {
         })
     }
 
+    private void tratarCurtidaVaga(HttpExchange exchange, Integer candidatoId) {
+        def json = new JsonSlurper().parseText(exchange.requestBody.text)
+        Integer vagaId = inteiroPositivo(json.vagaId?.toString())
+        boolean match = candidatoController.curtirVagaController(candidatoId, vagaId)
+        responder(exchange, 200, [match: match])
+    }
+
     private static Integer inteiroPositivo(String valor) {
         int id = new BigDecimal(valor).intValueExact()
         if (id <= 0) {
-            throw new IllegalArgumentException('ID do candidato inválido.')
+            throw new IllegalArgumentException('ID inválido.')
         }
         return id
     }

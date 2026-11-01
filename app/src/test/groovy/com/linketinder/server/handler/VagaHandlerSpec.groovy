@@ -13,7 +13,7 @@ import java.net.URI
 
 class VagaHandlerSpec extends Specification {
 
-    def "vagas anonimas retornam somente nome descricao e competencias"() {
+    def "vagas anonimas retornam campos permitidos e id tecnico sem dados da empresa"() {
         given:
         def controller = Mock(VagaController)
         def handler = new VagaHandler(controller)
@@ -28,13 +28,13 @@ class VagaHandlerSpec extends Specification {
         def json = new JsonSlurper().parseText(corpo)
 
         then:
-        json[0].keySet().toSet() == ['nome', 'descricao', 'competencias'].toSet()
+        json[0].keySet().toSet() == ['id', 'nome', 'descricao', 'competencias'].toSet()
+        json[0].id == 21
         json[0].nome == 'Desenvolvedor Groovy'
         json[0].descricao == 'Descrição fictícia'
         json[0].competencias == ['Groovy']
         !corpo.contains('empresaId')
         !corpo.contains('Local privado')
-        !corpo.contains('"id"')
     }
 
     def "listagem publica de vagas tambem permanece anonima"() {
@@ -52,10 +52,10 @@ class VagaHandlerSpec extends Specification {
         def json = new JsonSlurper().parseText(corpo)
 
         then:
-        json[0].keySet().toSet() == ['nome', 'descricao', 'competencias'].toSet()
+        json[0].keySet().toSet() == ['id', 'nome', 'descricao', 'competencias'].toSet()
+        json[0].id == 21
         !corpo.contains('empresaId')
         !corpo.contains('Local privado')
-        !corpo.contains('"id"')
     }
 
     private Map criarExchange(String metodo, String caminho) {

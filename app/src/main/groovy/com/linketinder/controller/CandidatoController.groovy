@@ -27,6 +27,10 @@ class CandidatoController {
         return candidatoService.listarMatchesDoCandidatoService(candidatoId)
     }
 
+    boolean curtirVagaController(Integer candidatoId, Integer vagaId) {
+        return candidatoService.curtirVaga(candidatoId, vagaId)
+    }
+
     void atualizarCandidatoController(Candidato candidato) {
         candidatoService.atualizarCandidatoService(candidato)
     }

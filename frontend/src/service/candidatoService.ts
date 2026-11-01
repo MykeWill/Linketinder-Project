@@ -14,6 +14,13 @@ export function listarMatchesCandidatoService(candidatoId: number): Promise<Matc
     return request<MatchCandidatoInterface[]>(`/candidatos/${candidatoId}/matches`)
 }
 
+export function curtirVaga(candidatoId: number, vagaId: number): Promise<{ match: boolean }> {
+    return request<{ match: boolean }>(`/candidatos/${candidatoId}/curtir-vaga`, {
+        method: 'POST',
+        body: JSON.stringify({ vagaId })
+    })
+}
+
 export function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 'id'>): CandidatoInterface {
     const erros = [
         validarNome(dados.nome),

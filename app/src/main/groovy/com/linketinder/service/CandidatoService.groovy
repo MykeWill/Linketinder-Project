@@ -50,6 +50,15 @@ class CandidatoService {
         }
     }
 
+    boolean curtirVaga(Integer candidatoId, Integer vagaId) {
+        try {
+            candidatoDao.curtirVaga(candidatoId, vagaId)
+            return candidatoDao.existeCurtidaDaEmpresaParaVaga(candidatoId, vagaId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
     List<Candidato> listarTodosCandidatosService() {
         try {
             return candidatoDao.listarTodosCandidatos()

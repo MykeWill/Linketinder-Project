@@ -4,3 +4,5 @@ build/
 .idea/
 *.iml
 out/
+.env
+app/src/main/resources/database.properties

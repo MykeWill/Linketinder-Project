@@ -8,12 +8,13 @@ export async function renderizarPerfilCandidato(): Promise<void> {
   const app = document.getElementById('app')!
   app.innerHTML = `
     <h1>Perfil do Candidato</h1>
+    <p style="color: red; font-weight: bold;">[VERSAO NOVA 2.0]</p>
     <section>
       <h2>Vagas disponíveis</h2>
       <p id="erro-vagas" class="mensagem-erro" role="alert"></p>
       <table>
         <thead>
-          <tr><th>Nome</th><th>Descrição</th><th>Competências</th></tr>
+          <tr><th>Nome</th><th>Descrição</th><th>Competências</th><th>Ações</th></tr>
         </thead>
         <tbody id="lista-vagas"></tbody>
       </table>
@@ -23,7 +24,7 @@ export async function renderizarPerfilCandidato(): Promise<void> {
       <p id="erro-matches" class="mensagem-erro" role="alert"></p>
       <table>
         <thead>
-          <tr><th>Empresa</th><th>Contato da empresa</th><th>Recrutador</th></tr>
+          <tr><th>Vaga</th><th>Empresa / contato</th><th>Recrutador</th></tr>
         </thead>
         <tbody id="lista-matches"></tbody>
       </table>
@@ -59,30 +60,76 @@ function renderizarVagas(vagas: VagaAnonimaInterface[] | null): void {
       <td>${escaparHtml(vaga.nome)}</td>
       <td>${escaparHtml(vaga.descricao)}</td>
       <td>${vaga.competencias.map(escaparHtml).join(', ')}</td>
+      <td><button class="btn-curtir-vaga" data-id="${escaparHtml(String(vaga.id))}">Curtir</button></td>
     </tr>
   `).join('')
+
+  document.querySelectorAll<HTMLButtonElement>('.btn-curtir-vaga').forEach(botao => {
+    botao.addEventListener('click', async () => {
+      botao.disabled = true
+      document.getElementById('erro-vagas')!.textContent = ''
+      try {
+        const { match } = await candidatoService.curtirVaga(
+          CANDIDATO_LOGADO_ID,
+          Number(botao.dataset.id)
+        )
+        if (match) {
+          alert('Deu Match!')
+          const matchesAtualizados = await candidatoService.listarMatchesCandidatoService(CANDIDATO_LOGADO_ID)
+          console.log("DADOS DO FETCH DO MATCH:", matchesAtualizados)
+          renderizarMatches(matchesAtualizados)
+        } else {
+          botao.textContent = 'Curtido'
+        }
+      } catch (erro) {
+        document.getElementById('erro-vagas')!.textContent =
+          erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+        botao.disabled = false
+      }
+    })
+  })
 }
 
 function renderizarMatches(matches: MatchCandidatoInterface[] | null): void {
-  if (matches === null) return
-  document.getElementById('lista-matches')!.innerHTML = matches.map(match => `
-    <tr>
-      <td>
-        ${escaparHtml(match.empresaNome)}<br>
-        ${escaparHtml(match.empresaDescricao)}
-      </td>
-      <td>${escaparHtml(match.empresaEmail)}</td>
-      <td>
-        ${escaparHtml(match.recrutadorNome ?? 'Recrutador não disponível')}<br>
-        ${match.recrutadorId === null ? '' : `ID: ${escaparHtml(String(match.recrutadorId))}<br>`}
-        ${escaparHtml(match.recrutadorAreaRecrutamento ?? '')}<br>
-        ${escaparHtml(match.recrutadorEmail ?? '')}
-      </td>
-    </tr>
-  `).join('')
+  console.log("DADOS RECEBIDOS PARA RENDERIZAR MATCHES:", matches)
+  const tbody = document.getElementById('lista-matches')
+  if (!tbody) {
+    console.error('Elemento #lista-matches não encontrado.')
+    return
+  }
+
+  if (!matches || !Array.isArray(matches)) {
+    tbody.innerHTML = '<tr><td colspan="3">Nenhum match ainda.</td></tr>'
+    return
+  }
+
+  tbody.innerHTML = ''
+  matches.forEach(match => {
+    const tr = document.createElement('tr')
+
+    const tdVaga = document.createElement('td')
+    tdVaga.textContent = `${match.vagaNome || 'Vaga'} - ${match.vagaDescricao || ''}`
+
+    const tdEmpresa = document.createElement('td')
+    tdEmpresa.textContent = `${match.empresaNome || 'Empresa'} - ${match.empresaDescricao || ''} - ${match.empresaEmail || 'Sem e-mail'}`
+
+    const tdRecrutador = document.createElement('td')
+    tdRecrutador.textContent = [
+      match.recrutadorNome || 'Recrutador não informado',
+      match.recrutadorId === null ? '' : `ID: ${match.recrutadorId}`,
+      match.recrutadorAreaRecrutamento || '',
+      match.recrutadorEmail || ''
+    ].filter(Boolean).join(' - ')
+
+    tr.appendChild(tdVaga)
+    tr.appendChild(tdEmpresa)
+    tr.appendChild(tdRecrutador)
+    tbody.appendChild(tr)
+  })
 }
 
-function escaparHtml(valor: string): string {
+function escaparHtml(valor: string | null | undefined): string {
+  if (valor === null || valor === undefined) return ''
   return valor.replace(/[&<>"']/g, caractere => ({
     '&': '&amp;',
     '<': '&lt;',

@@ -34,12 +34,16 @@ export interface VagaInterface {
 }
 
 export interface VagaAnonimaInterface {
+  id: number
   nome: string
   descricao: string
   competencias: string[]
 }
 
 export interface MatchCandidatoInterface {
+  vagaId: number
+  vagaNome: string
+  vagaDescricao: string | null
   empresaNome: string
   empresaDescricao: string
   empresaEmail: string

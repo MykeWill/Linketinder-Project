@@ -57,6 +57,9 @@ class CandidatoHandlerSpec extends Specification {
         def handler = new CandidatoHandler(controller)
         def resposta = criarExchange('GET', '/candidatos/7/matches')
         1 * candidatoRepository.listarMatchesDoCandidato(7) >> [[
+                vagaId: 42,
+                vagaNome: 'Desenvolvedor Groovy',
+                vagaDescricao: 'Vaga fictícia',
                 empresaNome: 'Empresa Fictícia',
                 empresaDescricao: 'Descrição comercial',
                 empresaEmail: 'contato@exemplo.com',
@@ -76,9 +79,13 @@ class CandidatoHandlerSpec extends Specification {
 
         then:
         json[0].keySet().toSet() == [
+                'vagaId', 'vagaNome', 'vagaDescricao',
                 'empresaNome', 'empresaDescricao', 'empresaEmail', 'recrutadorId',
                 'recrutadorNome', 'recrutadorAreaRecrutamento', 'recrutadorEmail'
         ].toSet()
+        json[0].vagaId == 42
+        json[0].vagaNome == 'Desenvolvedor Groovy'
+        json[0].vagaDescricao == 'Vaga fictícia'
         json[0].empresaNome == 'Empresa Fictícia'
         json[0].empresaDescricao == 'Descrição comercial'
         json[0].empresaEmail == 'contato@exemplo.com'
@@ -89,12 +96,31 @@ class CandidatoHandlerSpec extends Specification {
         !corpo.contains('Descrição interna')
     }
 
-    private Map criarExchange(String metodo, String caminho) {
+    def "endpoint curtir vaga retorna o resultado do match"() {
+        given:
+        def candidatoRepository = Mock(CandidatoRepository)
+        def competenciaRepository = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoRepository, competenciaRepository)
+        def controller = new CandidatoController(service)
+        def handler = new CandidatoHandler(controller)
+        def resposta = criarExchange('POST', '/candidatos/7/curtir-vaga', '{"vagaId":42}')
+        1 * candidatoRepository.curtirVaga(7, 42)
+        1 * candidatoRepository.existeCurtidaDaEmpresaParaVaga(7, 42) >> true
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        json == [match: true]
+    }
+
+    private Map criarExchange(String metodo, String caminho, String corpo = '') {
         def exchange = Mock(HttpExchange)
         def output = new ByteArrayOutputStream()
         exchange.requestMethod >> metodo
         exchange.requestURI >> URI.create(caminho)
-        exchange.requestBody >> new ByteArrayInputStream(new byte[0])
+        exchange.requestBody >> new ByteArrayInputStream(corpo.getBytes('UTF-8'))
         exchange.responseHeaders >> new Headers()
         exchange.responseBody >> output
         [exchange: exchange, body: output]

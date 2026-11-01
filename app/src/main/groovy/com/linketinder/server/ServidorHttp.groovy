@@ -8,6 +8,7 @@ import com.linketinder.server.handler.CandidatoHandler
 import com.linketinder.server.handler.EmpresaHandler
 import com.linketinder.server.handler.RecrutadorHandler
 import com.linketinder.server.handler.VagaHandler
+import com.sun.net.httpserver.HttpHandler
 import com.sun.net.httpserver.HttpServer
 
 class ServidorHttp {
@@ -30,12 +31,16 @@ class ServidorHttp {
     void iniciar() {
         def servidor = HttpServer.create(new InetSocketAddress(PORTA), 0)
 
-        servidor.createContext("/candidatos", new CandidatoHandler(candidatoController))
-        servidor.createContext("/empresas", new EmpresaHandler(empresaController))
-        servidor.createContext("/vagas", new VagaHandler(vagaController))
-        servidor.createContext("/recrutadores", new RecrutadorHandler(recrutadorController))
+        registrarContexto(servidor, "/candidatos", new CandidatoHandler(candidatoController))
+        registrarContexto(servidor, "/empresas", new EmpresaHandler(empresaController))
+        registrarContexto(servidor, "/vagas", new VagaHandler(vagaController))
+        registrarContexto(servidor, "/recrutadores", new RecrutadorHandler(recrutadorController))
 
         servidor.start()
         println "Servidor HTTP rodando na porta ${PORTA}"
+    }
+
+    private static void registrarContexto(HttpServer servidor, String caminho, HttpHandler handler) {
+        servidor.createContext(caminho, handler).filters.add(new CorsFilter())
     }
 }
