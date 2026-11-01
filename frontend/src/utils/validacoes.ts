@@ -11,8 +11,8 @@ export function validarEmail(email: string): string | null {
 }
 
 export function validarCPF(cpf: string): string | null {
-    const regex = /^\d{3}\.?\d{3}\.?\d{3}-?\d{2}$/
-    if (!regex.test(cpf.trim())) return 'CPF inválido. Use o formato 000.000.000-00.'
+    const digitos = cpf.replace(/\D/g, '')
+    if (!/^\d{11}$/.test(digitos)) return 'CPF inválido. Informe 11 números.'
     return null
 }
 

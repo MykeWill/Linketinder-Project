@@ -147,6 +147,24 @@ class CandidatoDao implements  CandidatoRepository {
         }
     }
 
+    Candidato buscarPorEmail(String email) {
+        String sql = '''
+            SELECT c.id, c.nome, c.email, c.cpf, c.idade, c.estado, c.cep, c.descricao, c.senha,
+                   array_agg(comp.nome) FILTER (WHERE comp.nome IS NOT NULL) AS competencias
+            FROM candidato c
+            LEFT JOIN candidato_competencia cc ON c.id = cc.candidato_id
+            LEFT JOIN competencia comp ON cc.competencia_id = comp.id
+            WHERE c.email = ?
+            GROUP BY c.id
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setString(1, email)
+            def resultado = stmt.executeQuery()
+            return resultado.next() ? mapearCandidato(resultado) : null
+        }
+    }
+
     List<Candidato> listarTodosCandidatos() {
         String sql = '''
             SELECT c.id, c.nome, c.email, c.cpf, c.idade, c.estado, c.cep, c.descricao, c.senha,

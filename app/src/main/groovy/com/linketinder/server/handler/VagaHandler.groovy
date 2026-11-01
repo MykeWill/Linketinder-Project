@@ -62,7 +62,8 @@ class VagaHandler implements HttpHandler {
     private void tratarGet(HttpExchange exchange) {
         String path = exchange.requestURI.path
         if (path == '/vagas/anonimas') {
-            responder(exchange, 200, vagaController.listarTodasVagasController()
+            Integer candidatoId = inteiroPositivo(parametroUnico(exchange, 'candidatoId'), 'candidatoId')
+            responder(exchange, 200, vagaController.listarVagasNaoCurtidasPorCandidatoController(candidatoId)
                     .collect { Vaga vaga -> mapearVagaAnonima(vaga) })
             return
         }
@@ -109,7 +110,9 @@ class VagaHandler implements HttpHandler {
     }
 
     private static String parametroUnico(HttpExchange exchange, String nome) {
-        List<String> valores = exchange.requestURI.rawQuery
+        String query = exchange.requestURI.rawQuery
+        List<String> valores = query
+                ? query
                 .split('&')
                 .findAll { parametro ->
                     String[] partes = parametro.split('=', 2)
@@ -119,6 +122,7 @@ class VagaHandler implements HttpHandler {
                     String[] partes = parametro.split('=', 2)
                     URLDecoder.decode(partes.length == 2 ? partes[1] : '', StandardCharsets.UTF_8)
                 }
+                : []
 
         if (valores.size() != 1) {
             throw new IllegalArgumentException("${nome} inválido.")

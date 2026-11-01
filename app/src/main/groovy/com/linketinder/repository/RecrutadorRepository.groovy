@@ -8,6 +8,7 @@ import java.sql.SQLException
 
 interface RecrutadorRepository {
     Integer inserirRecrutador(Recrutador recrutador) throws SQLException
+    Recrutador buscarPorEmail(String email) throws SQLException
     Recrutador buscarRecrutadorPorId(Integer id) throws SQLException
     List<Recrutador> listarRecrutadoresPorEmpresa(Integer empresaId) throws SQLException
     boolean existeEmail(String email) throws SQLException

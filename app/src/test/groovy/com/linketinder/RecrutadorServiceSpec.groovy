@@ -161,8 +161,24 @@ class RecrutadorServiceSpec extends Specification {
 
         then:
         1 * repository.existeEmail('recrutador@exemplo.com') >> false
-        1 * repository.existeCpf(recrutador.cpf) >> false
+        1 * repository.existeCpf('52998224725') >> false
         1 * repository.inserirRecrutador(_ as Recrutador) >> 42
+        id == 42
+    }
+
+    def "aceita CPF sem pontuacao e persiste somente digitos"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador('recrutador@exemplo.com', '52998224725')
+
+        when:
+        Integer id = service.cadastrarRecrutador(recrutador, 'senha-ficticia')
+
+        then:
+        1 * repository.existeEmail('recrutador@exemplo.com') >> false
+        1 * repository.existeCpf('52998224725') >> false
+        1 * repository.inserirRecrutador({ it.cpf == '52998224725' }) >> 42
         id == 42
     }
 
@@ -206,7 +222,7 @@ class RecrutadorServiceSpec extends Specification {
 
         then:
         1 * repository.existeEmail(recrutador.email) >> false
-        1 * repository.existeCpf(recrutador.cpf) >> true
+        1 * repository.existeCpf('52998224725') >> true
         0 * repository._
         thrown(RegistroDuplicadoException)
     }
@@ -238,7 +254,7 @@ class RecrutadorServiceSpec extends Specification {
 
         then:
         1 * repository.existeEmail(recrutador.email) >> false
-        1 * repository.existeCpf(recrutador.cpf) >> false
+        1 * repository.existeCpf('52998224725') >> false
         1 * repository.inserirRecrutador({
             it.senhaHash != senhaPura && BCrypt.checkpw(senhaPura, it.senhaHash)
         }) >> 42

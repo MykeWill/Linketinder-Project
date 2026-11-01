@@ -15,8 +15,8 @@ export function listarTodasVagasService(): VagaInterface[] {
     return vagaRepository.listarTodasVagasRepository()
 }
 
-export function listarVagasAnonimas(): Promise<VagaAnonimaInterface[]> {
-    return request<VagaAnonimaInterface[]>('/vagas/anonimas')
+export function listarVagasAnonimas(candidatoId: number): Promise<VagaAnonimaInterface[]> {
+    return request<VagaAnonimaInterface[]>(`/vagas/anonimas?candidatoId=${candidatoId}`)
 }
 
 export function listarVagasPorEmpresaService(empresaId: number | string): VagaInterface[] {
@@ -37,6 +37,7 @@ export async function cadastrarVagaPorRecrutadorService(dados: {
     recrutadorId: number
     nome: string
     descricao: string
+    local: string
     competencias: string[]
 }): Promise<number> {
     if (!dados.nome.trim() || !dados.descricao.trim() || dados.competencias.length === 0) {
@@ -45,7 +46,14 @@ export async function cadastrarVagaPorRecrutadorService(dados: {
 
     const resposta = await request<{ id: number }>('/vagas', {
         method: 'POST',
-        body: JSON.stringify({ ...dados, local: '' })
+        body: JSON.stringify({
+            empresaId: dados.empresaId,
+            recrutadorId: dados.recrutadorId,
+            nome: dados.nome,
+            descricao: dados.descricao,
+            local: dados.local,
+            competencias: dados.competencias
+        })
     })
     return resposta.id
 }

@@ -2,23 +2,37 @@ import { Chart } from 'chart.js/auto'
 import * as candidatoService from '../service/candidatoService'
 import * as recrutadorService from '../service/recrutadorService'
 import * as vagaService from '../service/vagaService'
-import type { RecrutadorInterface } from '../types/models'
-
-const EMPRESA_LOGADA_ID = 1
+import { obterSessao } from '../service/sessaoService'
+import type { CandidatoDisponivelInterface, RecrutadorInterface } from '../types/models'
 
 export async function renderizarPerfilEmpresa() {
+  const sessao = obterSessao()
+  if (!sessao || sessao.tipo !== 'EMPRESA') {
+    window.location.hash = '#/login'
+    return
+  }
+
+  const empresaId = sessao.id
   const app = document.getElementById('app')!
-  const candidatos = candidatoService.listarTodosCandidatosService()
-  const competenciaContagem = candidatoService.contarCandidatosPorCompetenciaService()
-  const vagasDaEmpresa = vagaService.listarVagasPorEmpresaService(EMPRESA_LOGADA_ID)
+  const vagasDaEmpresa = vagaService.listarVagasPorEmpresaService(empresaId)
+  let candidatos: CandidatoDisponivelInterface[] = []
+  let erroListagemCandidatos = ''
   let recrutadores: RecrutadorInterface[] = []
   let erroListagemRecrutadores = ''
 
   try {
-    recrutadores = await recrutadorService.listarPorEmpresa(EMPRESA_LOGADA_ID)
+    candidatos = await candidatoService.listarTodosCandidatosService()
   } catch (erro) {
-    erroListagemRecrutadores = (erro as Error).message
+    erroListagemCandidatos = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
   }
+
+  try {
+    recrutadores = await recrutadorService.listarPorEmpresa(empresaId)
+  } catch (erro) {
+    erroListagemRecrutadores =
+      erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+  }
+  const competenciaContagem = candidatoService.contarCandidatosPorCompetenciaService(candidatos)
 
   const linhasTabelaCandidatos = candidatos.map(candidato => `
         <tr title="${escaparHtml(candidato.descricao)}">
@@ -46,6 +60,7 @@ export async function renderizarPerfilEmpresa() {
 
   app.innerHTML = `
         <h1>Perfil da Empresa</h1>
+        <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
         <h2>Minhas vagas</h2>
         <table>
             <thead>
@@ -110,7 +125,9 @@ export async function renderizarPerfilEmpresa() {
     `
 
   const mensagemErro = document.getElementById('mensagem-erro')!
-  mensagemErro.textContent = erroListagemRecrutadores
+  mensagemErro.textContent = [erroListagemCandidatos, erroListagemRecrutadores]
+    .filter(Boolean)
+    .join(' ')
 
   const canvas = document.getElementById('grafico-competencias') as HTMLCanvasElement
   new Chart(canvas, {
@@ -140,7 +157,7 @@ export async function renderizarPerfilEmpresa() {
         .map(c => c.trim())
         .filter(c => c.length > 0)
     try {
-      vagaService.cadastrarVagaService({ empresaId: EMPRESA_LOGADA_ID, titulo, descricao, competencias })
+      vagaService.cadastrarVagaService({ empresaId, titulo, descricao, competencias })
       renderizarPerfilEmpresa()
     } catch (erro) {
       mensagemErro.textContent = (erro as Error).message
@@ -158,13 +175,15 @@ export async function renderizarPerfilEmpresa() {
     evento.preventDefault()
     try {
       await recrutadorService.cadastrarRecrutador({
-        empresaId: EMPRESA_LOGADA_ID,
+        empresaId,
         nome: (document.getElementById('recrutador-nome') as HTMLInputElement).value,
         areaRecrutamento: (document.getElementById('recrutador-area') as HTMLInputElement).value,
         descricao: (document.getElementById('recrutador-descricao') as HTMLTextAreaElement).value,
         email: (document.getElementById('recrutador-email') as HTMLInputElement).value,
-        cpf: (document.getElementById('recrutador-cpf') as HTMLInputElement).value,
-        dataNascimento: (document.getElementById('recrutador-data-nascimento') as HTMLInputElement).value,
+        cpf: (document.getElementById('recrutador-cpf') as HTMLInputElement).value.replace(/\D/g, ''),
+        dataNascimento: normalizarDataISO(
+          (document.getElementById('recrutador-data-nascimento') as HTMLInputElement).value
+        ),
         senha: (document.getElementById('recrutador-senha') as HTMLInputElement).value
       })
       await renderizarPerfilEmpresa()
@@ -192,6 +211,14 @@ export async function renderizarPerfilEmpresa() {
       }
     })
   })
+}
+
+function normalizarDataISO(data: string): string {
+  const dataBrasileira = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(data)
+  if (dataBrasileira) {
+    return `${dataBrasileira[3]}-${dataBrasileira[2]}-${dataBrasileira[1]}`
+  }
+  return data
 }
 
 function escaparHtml(valor: string): string {

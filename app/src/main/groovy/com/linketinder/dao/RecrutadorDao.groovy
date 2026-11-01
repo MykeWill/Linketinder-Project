@@ -33,6 +33,20 @@ class RecrutadorDao implements RecrutadorRepository {
         }
     }
 
+    Recrutador buscarPorEmail(String email) {
+        String sql = '''
+            SELECT id, empresa_id, nome, area_recrutamento, descricao, email, cpf, data_nascimento, senha_hash
+            FROM recrutador
+            WHERE email = ?
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setString(1, email)
+            def resultado = stmt.executeQuery()
+            return resultado.next() ? mapearRecrutador(resultado) : null
+        }
+    }
+
     Recrutador buscarRecrutadorPorId(Integer id) {
         String sql = '''
             SELECT id, empresa_id, nome, area_recrutamento, descricao, email, cpf, data_nascimento, senha_hash

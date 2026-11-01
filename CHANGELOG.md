@@ -8,6 +8,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Autenticação de candidatos, empresas e recrutadores via API, com sessão local e perfis vinculados ao usuário autenticado.
 - Curtidas de vagas pelo candidato com confirmação de match, apresentação de matches atualizada e botão de ação no perfil do candidato.
 - Perfil do candidato integrado à API para exibir vagas anônimas e contatos de matches pós-match permitidos pela spec.
 - Área do recrutador no frontend para consultar vagas, criar vagas pela API, curtir candidatos anônimos e visualizar matches pós-match.
@@ -31,6 +32,10 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - Endpoint HTTP de vagas ampliado para consultar o escopo do recrutador.
 
 ### Corrigido
+- Normalização de CPF para dígitos nos cadastros de candidato e recrutador e de CNPJ no cadastro de empresa.
+- CPF aceita entrada com ou sem pontuação no formulário; data de nascimento de recrutador é enviada em ISO.
+- Payloads de cadastro de candidatos e empresas enviados à API no formato esperado pelos handlers.
+- Vagas já curtidas são omitidas da listagem do candidato.
 - Match passa a ser contabilizado por vaga, permitindo múltiplos matches com a mesma empresa.
 - Corrigida a listagem de matches nos perfis de candidato e recrutador para refletir os matches recém-criados.
 - Força reload da página pós-match para garantir exibição dos dados.

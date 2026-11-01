@@ -19,8 +19,8 @@ class VagaHandlerSpec extends Specification {
         def handler = new VagaHandler(controller)
         def vaga = new Vaga(3, 'Desenvolvedor Groovy', 'Descrição fictícia', 'Local privado', ['Groovy'])
         vaga.id = 21
-        def resposta = criarExchange('GET', '/vagas/anonimas')
-        1 * controller.listarTodasVagasController() >> [vaga]
+        def resposta = criarExchange('GET', '/vagas/anonimas?candidatoId=1')
+        1 * controller.listarVagasNaoCurtidasPorCandidatoController(1) >> [vaga]
 
         when:
         handler.handle(resposta.exchange)
@@ -35,6 +35,21 @@ class VagaHandlerSpec extends Specification {
         json[0].competencias == ['Groovy']
         !corpo.contains('empresaId')
         !corpo.contains('Local privado')
+    }
+
+    def "vagas anonimas exigem um candidatoId positivo"() {
+        given:
+        def controller = Mock(VagaController)
+        def handler = new VagaHandler(controller)
+        def resposta = criarExchange('GET', '/vagas/anonimas')
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        json.erro == 'candidatoId inválido.'
+        0 * controller._
     }
 
     def "listagem publica de vagas tambem permanece anonima"() {

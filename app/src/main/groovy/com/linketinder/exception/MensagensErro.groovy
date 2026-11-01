@@ -14,4 +14,5 @@ class MensagensErro {
     static final String VAGA_NAO_ENCONTRADA = 'Vaga não encontrada.'
     static final String CURTIDA_DUPLICADA = 'A empresa já curtiu este candidato.'
     static final String ERRO_BANCO = 'Erro ao acessar o banco de dados. Tente novamente.'
+    static final String CREDENCIAIS_INVALIDAS = 'E-mail, senha ou tipo de usuário inválidos.'
 }

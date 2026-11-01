@@ -19,6 +19,10 @@ class VagaController {
         return vagaService.listarTodasVagasService()
     }
 
+    List<Vaga> listarVagasNaoCurtidasPorCandidatoController(Integer candidatoId) {
+        return vagaService.listarVagasNaoCurtidasPorCandidato(candidatoId)
+    }
+
     List<Vaga> listarVagasPorEmpresaController(Integer empresaId) {
         return vagaService.listarVagasPorEmpresaService(empresaId)
     }

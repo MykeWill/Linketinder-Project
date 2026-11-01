@@ -27,6 +27,9 @@ class RecrutadorService {
     }
 
     Integer cadastrarRecrutador(Recrutador recrutador, String senhaPura) {
+        if (recrutador != null) {
+            recrutador.cpf = recrutador.cpf?.replaceAll('\\D', '')
+        }
         validarDados(recrutador, senhaPura)
 
         try {
@@ -110,11 +113,11 @@ class RecrutadorService {
     }
 
     private boolean cpfValido(String cpf) {
-        if (cpf == null || !(cpf ==~ /(?:\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})/)) {
+        if (cpf == null || !(cpf ==~ /\d{11}/)) {
             return false
         }
 
-        String digitos = cpf.replaceAll('\\D', '')
+        String digitos = cpf
         if (digitos.toSet().size() == 1) {
             return false
         }

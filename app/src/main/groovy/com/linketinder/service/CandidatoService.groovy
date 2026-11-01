@@ -1,6 +1,7 @@
 package com.linketinder.service
 
 import com.linketinder.exception.ErroBancoException
+import com.linketinder.exception.DadosInvalidosException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
@@ -20,6 +21,12 @@ class CandidatoService {
     }
 
     Integer cadastrarCandidato(Candidato c) {
+        String cpf = c?.cpf?.replaceAll('\\D', '')
+        if (!(cpf ==~ /\d{11}/)) {
+            throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+        }
+        c.cpf = cpf
+
         try {
             Integer candidatoId = candidatoDao.inserirCandidato(c)
 

@@ -1,4 +1,8 @@
-import type { CandidatoInterface, MatchCandidatoInterface } from '../types/models'
+import type {
+    CandidatoDisponivelInterface,
+    CandidatoInterface,
+    MatchCandidatoInterface
+} from '../types/models'
 import * as candidatoRepository from '../repository/candidatoRepository'
 import { request } from './api'
 import {
@@ -6,8 +10,8 @@ import {
     validarEstado, validarCEP, validarDescricao, validarSenha
 } from '../utils/validacoes'
 
-export function listarTodosCandidatosService(): CandidatoInterface[] {
-    return candidatoRepository.listarTodosCandidatosRepository()
+export function listarTodosCandidatosService(): Promise<CandidatoDisponivelInterface[]> {
+    return request<CandidatoDisponivelInterface[]>('/candidatos')
 }
 
 export function listarMatchesCandidatoService(candidatoId: number): Promise<MatchCandidatoInterface[]> {
@@ -21,11 +25,12 @@ export function curtirVaga(candidatoId: number, vagaId: number): Promise<{ match
     })
 }
 
-export function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 'id'>): CandidatoInterface {
+export async function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 'id'>): Promise<number> {
+    const cpf = dados.cpf.replace(/\D/g, '')
     const erros = [
         validarNome(dados.nome),
         validarEmail(dados.email),
-        validarCPF(dados.cpf),
+        validarCPF(cpf),
         validarIdade(dados.idade),
         validarEstado(dados.estado),
         validarCEP(dados.cep),
@@ -37,21 +42,20 @@ export function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 'id'>)
         throw new Error(erros[0] as string)
     }
 
-    const novoCandidatoService: CandidatoInterface = {
-        id: crypto.randomUUID(),
-        ...dados
-    }
-
-    candidatoRepository.adicionarCandidatoRepository(novoCandidatoService)
-    return novoCandidatoService
+    const resposta = await request<{ id: number }>('/candidatos', {
+        method: 'POST',
+        body: JSON.stringify({ ...dados, cpf })
+    })
+    return resposta.id
 }
 
 export function removerCandidatoService(id: string): void {
     candidatoRepository.removerCandidatoRepository(id)
 }
 
-export function contarCandidatosPorCompetenciaService(): Record<string, number> {
-    const candidatos = candidatoRepository.listarTodosCandidatosRepository()
+export function contarCandidatosPorCompetenciaService(
+    candidatos: CandidatoDisponivelInterface[]
+): Record<string, number> {
     const contagem: Record<string, number> = {}
 
     candidatos.forEach(candidato => {

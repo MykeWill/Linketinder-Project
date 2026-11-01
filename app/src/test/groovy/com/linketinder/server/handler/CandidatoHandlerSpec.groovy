@@ -1,6 +1,7 @@
 package com.linketinder.server.handler
 
 import com.linketinder.controller.CandidatoController
+import com.linketinder.model.Candidato
 import com.linketinder.repository.CandidatoRepository
 import com.linketinder.repository.CompetenciaRepository
 import com.linketinder.service.CandidatoService
@@ -14,6 +15,53 @@ import java.io.ByteArrayOutputStream
 import java.net.URI
 
 class CandidatoHandlerSpec extends Specification {
+
+    def "cadastro converte idade para inteiro e encaminha competencias como lista"() {
+        given:
+        def candidatoRepository = Mock(CandidatoRepository)
+        def competenciaRepository = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoRepository, competenciaRepository)
+        def controller = new CandidatoController(service)
+        def handler = new CandidatoHandler(controller)
+        def resposta = criarExchange('POST', '/candidatos', '''
+            {
+                "nome": "Teste Fictício",
+                "email": "teste.candidato@example.test",
+                "cpf": "123.456.789-10",
+                "idade": 30,
+                "estado": "SP",
+                "cep": "01000-000",
+                "descricao": "Perfil fictício para teste",
+                "senha": "senha-ficticia",
+                "competencias": ["Java", "SQL"]
+            }
+        ''')
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        1 * candidatoRepository.inserirCandidato({
+            Candidato candidato ->
+                candidato.nome == 'Teste Fictício' &&
+                        candidato.email == 'teste.candidato@example.test' &&
+                        candidato.cpf == '12345678910' &&
+                        candidato.idade.class == Integer &&
+                        candidato.idade == 30 &&
+                        candidato.estado == 'SP' &&
+                        candidato.cep == '01000-000' &&
+                        candidato.descricao == 'Perfil fictício para teste' &&
+                        candidato.senha == 'senha-ficticia' &&
+                        candidato.competencias == ['Java', 'SQL']
+        }) >> 56
+        1 * competenciaRepository.buscarOuCriar('Java') >> 10
+        1 * candidatoRepository.vincularCompetenciaAoCandidato(56, 10)
+        1 * competenciaRepository.buscarOuCriar('SQL') >> 11
+        1 * candidatoRepository.vincularCompetenciaAoCandidato(56, 11)
+        1 * resposta.exchange.sendResponseHeaders(201, _)
+        json == [id: 56]
+    }
 
     def "listagem de candidatos nao expoe dados pessoais"() {
         given:

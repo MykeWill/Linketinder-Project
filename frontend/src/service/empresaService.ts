@@ -1,5 +1,6 @@
 import type { EmpresaInterface } from '../types/models'
 import * as empresaRepository from '../repository/empresaRepository'
+import { request } from './api'
 import {
     validarNome, validarEmail, validarCNPJ,
     validarEstado, validarCEP, validarDescricao, validarSenha
@@ -9,11 +10,12 @@ export function listarTodasEmpresasService(): EmpresaInterface[] {
     return empresaRepository.listarTodasEmpresasRepository()
 }
 
-export function cadastrarEmpresaService(dados: Omit<EmpresaInterface, 'id'>): EmpresaInterface {
+export async function cadastrarEmpresaService(dados: Omit<EmpresaInterface, 'id'>): Promise<number> {
+    const cnpj = dados.cnpj.replace(/\D/g, '')
     const erros = [
         validarNome(dados.nome),
         validarEmail(dados.email),
-        validarCNPJ(dados.cnpj),
+        validarCNPJ(cnpj),
         validarEstado(dados.estado),
         validarCEP(dados.cep),
         validarDescricao(dados.descricao),
@@ -24,13 +26,11 @@ export function cadastrarEmpresaService(dados: Omit<EmpresaInterface, 'id'>): Em
         throw new Error(erros[0] as string)
     }
 
-    const novaEmpresaService: EmpresaInterface = {
-        id: crypto.randomUUID(),
-        ...dados
-    }
-
-    empresaRepository.adicionarEmpresaRepository(novaEmpresaService)
-    return novaEmpresaService
+    const resposta = await request<{ id: number }>('/empresas', {
+        method: 'POST',
+        body: JSON.stringify({ ...dados, cnpj })
+    })
+    return resposta.id
 }
 
 export function removerEmpresaService(id: string): void {

@@ -92,3 +92,12 @@ export interface MatchInterface {
   candidatoDescricao: string
   candidatoEstado: string
 }
+
+export type TipoUsuario = 'CANDIDATO' | 'EMPRESA' | 'RECRUTADOR'
+
+export interface SessaoInterface {
+  id: number
+  nome: string
+  tipo: TipoUsuario
+  empresaId?: number
+}

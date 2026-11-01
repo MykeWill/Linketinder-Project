@@ -1,13 +1,20 @@
 import * as candidatoService from '../service/candidatoService'
 import * as vagaService from '../service/vagaService'
+import { obterSessao } from '../service/sessaoService'
 import type { MatchCandidatoInterface, VagaAnonimaInterface } from '../types/models'
 
-const CANDIDATO_LOGADO_ID = 1
-
 export async function renderizarPerfilCandidato(): Promise<void> {
+  const sessao = obterSessao()
+  if (!sessao || sessao.tipo !== 'CANDIDATO') {
+    window.location.hash = '#/login'
+    return
+  }
+
+  const candidatoId = sessao.id
   const app = document.getElementById('app')!
   app.innerHTML = `
     <h1>Perfil do Candidato</h1>
+    <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
     <p style="color: red; font-weight: bold;">[VERSAO NOVA 2.0]</p>
     <section>
       <h2>Vagas disponíveis</h2>
@@ -33,13 +40,13 @@ export async function renderizarPerfilCandidato(): Promise<void> {
   `
 
   const [vagas, matches] = await Promise.all([
-    carregar(() => vagaService.listarVagasAnonimas(), 'erro-vagas'),
+    carregar(() => vagaService.listarVagasAnonimas(candidatoId), 'erro-vagas'),
     carregar(
-      () => candidatoService.listarMatchesCandidatoService(CANDIDATO_LOGADO_ID),
+      () => candidatoService.listarMatchesCandidatoService(candidatoId),
       'erro-matches'
     )
   ])
-  renderizarVagas(vagas)
+  renderizarVagas(vagas, candidatoId)
   renderizarMatches(matches)
 }
 
@@ -53,7 +60,7 @@ async function carregar<T>(carregador: () => Promise<T>, idErro: string): Promis
   }
 }
 
-function renderizarVagas(vagas: VagaAnonimaInterface[] | null): void {
+function renderizarVagas(vagas: VagaAnonimaInterface[] | null, candidatoId: number): void {
   if (vagas === null) return
   document.getElementById('lista-vagas')!.innerHTML = vagas.map(vaga => `
     <tr>
@@ -70,12 +77,12 @@ function renderizarVagas(vagas: VagaAnonimaInterface[] | null): void {
       document.getElementById('erro-vagas')!.textContent = ''
       try {
         const { match } = await candidatoService.curtirVaga(
-          CANDIDATO_LOGADO_ID,
+          candidatoId,
           Number(botao.dataset.id)
         )
         if (match) {
           alert('Deu Match!')
-          const matchesAtualizados = await candidatoService.listarMatchesCandidatoService(CANDIDATO_LOGADO_ID)
+          const matchesAtualizados = await candidatoService.listarMatchesCandidatoService(candidatoId)
           console.log("DADOS DO FETCH DO MATCH:", matchesAtualizados)
           renderizarMatches(matchesAtualizados)
         } else {

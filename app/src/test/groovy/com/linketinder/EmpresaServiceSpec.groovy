@@ -37,6 +37,22 @@ class EmpresaServiceSpec extends Specification {
         1 * empresaDaoMock.inserirEmpresa(empresa) >> 1
     }
 
+    def "normaliza CNPJ para somente digitos antes de cadastrar"() {
+        given:
+        def empresaDaoMock = Mock(EmpresaRepository)
+        def service = new EmpresaService(empresaDaoMock)
+        def empresa = new Empresa("Tech", "tech@email.com", "11.111.111/0001-11",
+                "Brasil", "SP", "01000-000", "Descrição fictícia", "senha123")
+
+        when:
+        service.cadastrarEmpresa(empresa)
+
+        then:
+        1 * empresaDaoMock.inserirEmpresa({
+            it.cnpj == '11111111000111'
+        }) >> 1
+    }
+
     def "deve lançar RegistroDuplicadoException quando o CNPJ já existe"() {
         given:
         def empresaDaoMock = Mock(EmpresaRepository)

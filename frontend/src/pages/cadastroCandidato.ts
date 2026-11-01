@@ -23,12 +23,12 @@ export function renderizarCadastroCandidato() {
 
   const formulario = document.getElementById('form-cadastro-candidato') as HTMLFormElement
 
-  formulario.addEventListener('submit', (evento) => {
+  formulario.addEventListener('submit', async (evento) => {
     evento.preventDefault()
 
     const nome = (document.getElementById('nome') as HTMLInputElement).value
     const email = (document.getElementById('email') as HTMLInputElement).value
-    const cpf = (document.getElementById('cpf') as HTMLInputElement).value
+    const cpf = (document.getElementById('cpf') as HTMLInputElement).value.replace(/\D/g, '')
     const idade = Number((document.getElementById('idade') as HTMLInputElement).value)
     const estado = (document.getElementById('estado') as HTMLInputElement).value
     const cep = (document.getElementById('cep') as HTMLInputElement).value
@@ -40,12 +40,13 @@ export function renderizarCadastroCandidato() {
         .filter(c => c.length > 0)
 
     try {
-      candidatoService.cadastrarCandidatoService({
+      await candidatoService.cadastrarCandidatoService({
         nome, email, cpf, idade, estado, cep, descricao, senha, competencias
       })
       window.location.hash = '#/perfil-candidato'
     } catch (erro) {
-      document.getElementById('mensagem-erro')!.textContent = (erro as Error).message
+      document.getElementById('mensagem-erro')!.textContent =
+        erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
     }
   })
 }

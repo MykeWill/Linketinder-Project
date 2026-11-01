@@ -1,4 +1,5 @@
 import * as recrutadorService from '../service/recrutadorService'
+import { obterSessao } from '../service/sessaoService'
 import * as vagaService from '../service/vagaService'
 import type {
   CandidatoDisponivelInterface,
@@ -6,13 +7,19 @@ import type {
   VagaInterface
 } from '../types/models'
 
-const RECRUTADOR_LOGADO_ID = 1
-const EMPRESA_LOGADA_ID = 1
-
 export async function renderizarPerfilRecrutador(): Promise<void> {
+  const sessao = obterSessao()
+  if (!sessao || sessao.tipo !== 'RECRUTADOR' || sessao.empresaId === undefined) {
+    window.location.hash = '#/login'
+    return
+  }
+
+  const recrutadorId = sessao.id
+  const empresaId = sessao.empresaId
   const app = document.getElementById('app')!
   app.innerHTML = `
     <h1>Área do Recrutador</h1>
+    <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
     <p id="mensagem-erro" class="mensagem-erro" role="alert"></p>
     <section>
       <h2>Resumo</h2>
@@ -64,17 +71,17 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
   const erroGeral = document.getElementById('mensagem-erro')!
   const vagasResultado = await carregar(
     () => vagaService.listarVagasVisiveisParaRecrutadorService(
-      EMPRESA_LOGADA_ID,
-      RECRUTADOR_LOGADO_ID
+      empresaId,
+      recrutadorId
     ),
     'erro-vagas'
   )
   const candidatosResultado = await carregar(
-    () => recrutadorService.listarCandidatos(RECRUTADOR_LOGADO_ID),
+    () => recrutadorService.listarCandidatos(recrutadorId),
     'erro-candidatos'
   )
   const matchesResultado = await carregar(
-    () => recrutadorService.listarMatches(RECRUTADOR_LOGADO_ID),
+    () => recrutadorService.listarMatches(recrutadorId),
     'erro-matches'
   )
 
@@ -98,10 +105,11 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
 
     try {
       await vagaService.cadastrarVagaPorRecrutadorService({
-        empresaId: EMPRESA_LOGADA_ID,
-        recrutadorId: RECRUTADOR_LOGADO_ID,
+        empresaId,
+        recrutadorId,
         nome: (document.getElementById('vaga-titulo') as HTMLInputElement).value,
         descricao: (document.getElementById('vaga-descricao') as HTMLTextAreaElement).value,
+        local: '',
         competencias
       })
       await renderizarPerfilRecrutador()
@@ -115,7 +123,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
       const candidatoId = Number(botao.dataset.id)
       botao.disabled = true
       try {
-        await recrutadorService.curtirCandidato(RECRUTADOR_LOGADO_ID, candidatoId)
+        await recrutadorService.curtirCandidato(recrutadorId, candidatoId)
         await renderizarPerfilRecrutador()
       } catch (erro) {
         erroGeral.textContent = mensagemDoErro(erro)

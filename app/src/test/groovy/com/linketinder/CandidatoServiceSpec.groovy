@@ -89,6 +89,37 @@ class CandidatoServiceSpec extends Specification {
         1 * candidatoDaoMock.vincularCompetenciaAoCandidato(42, 2)
     }
 
+    def "normaliza CPF para somente digitos antes de cadastrar"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def service = new CandidatoService(candidatoDaoMock, Mock(CompetenciaRepository))
+        def candidato = new Candidato("Teste", "teste@email.com", "529.982.247-25",
+                30, "SP", "01000-000", "Descrição fictícia", "senha123", [])
+
+        when:
+        service.cadastrarCandidato(candidato)
+
+        then:
+        1 * candidatoDaoMock.inserirCandidato({
+            it.cpf == '52998224725'
+        }) >> 42
+    }
+
+    def "rejeita CPF que nao tenha onze digitos"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def service = new CandidatoService(candidatoDaoMock, Mock(CompetenciaRepository))
+        def candidato = new Candidato("Teste", "teste@email.com", "123-45",
+                30, "SP", "01000-000", "Descrição fictícia", "senha123", [])
+
+        when:
+        service.cadastrarCandidato(candidato)
+
+        then:
+        thrown(com.linketinder.exception.DadosInvalidosException)
+        0 * candidatoDaoMock._
+    }
+
     def "deve lançar RegistroDuplicadoException quando o e-mail já existe"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)

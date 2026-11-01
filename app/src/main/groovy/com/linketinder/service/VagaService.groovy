@@ -46,6 +46,14 @@ class VagaService {
         }
     }
 
+    List<Vaga> listarVagasNaoCurtidasPorCandidato(Integer candidatoId) {
+        try {
+            return vagaDao.listarVagasNaoCurtidasPorCandidato(candidatoId)
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
+        }
+    }
+
     List<Vaga> listarVagasPorEmpresaService(Integer empresaId) {
         try {
             return vagaDao.listarVagasPorEmpresa(empresaId)

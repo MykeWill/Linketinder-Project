@@ -52,4 +52,19 @@ class VagaServiceSpec extends Specification {
         1 * vagaRepository.listarVagasVisiveisParaRecrutador(7, 23) >> esperadas
         resultado == esperadas
     }
+
+    def "lista vagas ainda nao curtidas pelo candidato"() {
+        given:
+        def vagaRepository = Mock(VagaRepository)
+        def competenciaRepository = Mock(CompetenciaRepository)
+        def service = new VagaService(vagaRepository, competenciaRepository)
+        def esperadas = [new Vaga(7, 'Desenvolvedor', 'Descrição', 'Remoto', [], 23)]
+
+        when:
+        def resultado = service.listarVagasNaoCurtidasPorCandidato(1)
+
+        then:
+        1 * vagaRepository.listarVagasNaoCurtidasPorCandidato(1) >> esperadas
+        resultado == esperadas
+    }
 }
