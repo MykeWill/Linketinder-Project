@@ -15,6 +15,7 @@ interface RecrutadorRepository {
     boolean existeCpf(String cpf) throws SQLException
     List<Candidato> listarCandidatosDisponiveis(Integer recrutadorId) throws SQLException
     boolean empresaJaCurtiuCandidato(Integer empresaId, Integer candidatoId) throws SQLException
+    boolean candidatoCurtiuVagaDaEmpresa(Integer candidatoId, Integer empresaId) throws SQLException
     void curtirCandidato(Integer empresaId, Integer candidatoId, Integer recrutadorId) throws SQLException
     List<Match> listarMatchesDoRecrutador(Integer recrutadorId) throws SQLException
     void removerRecrutador(Integer id) throws SQLException

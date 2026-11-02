@@ -26,8 +26,11 @@ export function listarCandidatos(recrutadorId: number): Promise<CandidatoDisponi
     return request<CandidatoDisponivelInterface[]>(`/recrutadores/${recrutadorId}/candidatos`)
 }
 
-export async function curtirCandidato(recrutadorId: number, candidatoId: number): Promise<void> {
-    await request<{ sucesso: boolean }>(`/recrutadores/${recrutadorId}/curtidas`, {
+export function curtirCandidato(
+    recrutadorId: number,
+    candidatoId: number
+): Promise<{ match: boolean }> {
+    return request<{ match: boolean }>(`/recrutadores/${recrutadorId}/curtidas`, {
         method: 'POST',
         body: JSON.stringify({ candidatoId })
     })

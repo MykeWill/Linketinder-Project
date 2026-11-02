@@ -158,6 +158,26 @@ class RecrutadorDao implements RecrutadorRepository {
         }
     }
 
+    boolean candidatoCurtiuVagaDaEmpresa(Integer candidatoId, Integer empresaId) {
+        String sql = '''
+            SELECT EXISTS (
+                SELECT 1
+                FROM curtida_candidato_vaga ccv
+                JOIN vaga v ON v.id = ccv.vaga_id
+                WHERE ccv.candidato_id = ?
+                  AND v.empresa_id = ?
+            )
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            stmt.setInt(2, empresaId)
+            def resultado = stmt.executeQuery()
+            resultado.next()
+            return resultado.getBoolean(1)
+        }
+    }
+
     void curtirCandidato(Integer empresaId, Integer candidatoId, Integer recrutadorId) {
         String sql = '''
             INSERT INTO curtida_empresa_candidato (empresa_id, candidato_id, recrutador_id)

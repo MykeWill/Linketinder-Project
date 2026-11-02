@@ -80,10 +80,10 @@ VALUES (1, 1),
        (4, 5),
        (5, 1);
 
-INSERT INTO curtida_empresa_candidato (empresa_id, candidato_id)
-VALUES (1, 1),
-       (1, 5),
-       (2, 2),
-       (3, 3),
-       (4, 4),
-       (5, 5);
+INSERT INTO curtida_empresa_candidato (empresa_id, vaga_id, candidato_id)
+VALUES (1, 1, 1),
+       (1, 1, 5),
+       (2, 3, 2),
+       (3, 4, 3),
+       (4, 5, 4),
+       (5, 6, 5);

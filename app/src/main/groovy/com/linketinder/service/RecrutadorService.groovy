@@ -63,7 +63,7 @@ class RecrutadorService {
         }
     }
 
-    void curtirCandidato(Integer recrutadorId, Integer candidatoId) {
+    boolean curtirCandidato(Integer recrutadorId, Integer candidatoId) {
         try {
             Recrutador recrutador = recrutadorRepository.buscarRecrutadorPorId(recrutadorId)
             if (recrutador == null) {
@@ -73,6 +73,7 @@ class RecrutadorService {
                 throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)
             }
             recrutadorRepository.curtirCandidato(recrutador.empresaId, candidatoId, recrutadorId)
+            return recrutadorRepository.candidatoCurtiuVagaDaEmpresa(candidatoId, recrutador.empresaId)
         } catch (SQLException e) {
             if (e.sqlState == '23505') {
                 throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)

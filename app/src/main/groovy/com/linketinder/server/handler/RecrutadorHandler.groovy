@@ -158,11 +158,11 @@ class RecrutadorHandler implements HttpHandler {
 
     private void tratarCurtida(HttpExchange exchange, Integer recrutadorId) {
         Map json = parsearObjeto(exchange)
-        recrutadorController.curtirCandidatoController(
+        boolean match = recrutadorController.curtirCandidatoController(
                 recrutadorId,
                 inteiroPositivo(json.candidatoId, 'candidatoId')
         )
-        responder(exchange, 201, [sucesso: true])
+        responder(exchange, 201, [match: match])
     }
 
     private void tratarMatches(HttpExchange exchange, Integer recrutadorId) {

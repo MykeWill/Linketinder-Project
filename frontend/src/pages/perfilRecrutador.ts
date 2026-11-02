@@ -120,7 +120,8 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
       const candidatoId = Number(botao.dataset.id)
       botao.disabled = true
       try {
-        await recrutadorService.curtirCandidato(recrutadorId, candidatoId)
+        const { match } = await recrutadorService.curtirCandidato(recrutadorId, candidatoId)
+        if (match) alert('Deu Match!')
         await renderizarPerfilRecrutador()
       } catch (erro) {
         erroGeral.textContent = mensagemDoErro(erro)

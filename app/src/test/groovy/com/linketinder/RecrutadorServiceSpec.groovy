@@ -103,7 +103,7 @@ class RecrutadorServiceSpec extends Specification {
         resultado == [candidatoAnonimo]
     }
 
-    def "curte candidato em nome da empresa do recrutador"() {
+    def "curte candidato e retorna true quando o candidato ja curtiu vaga da empresa"() {
         given:
         def repository = Mock(RecrutadorRepository)
         def service = new RecrutadorService(repository)
@@ -111,12 +111,32 @@ class RecrutadorServiceSpec extends Specification {
         recrutador.id = 23
 
         when:
-        service.curtirCandidato(23, 8)
+        boolean match = service.curtirCandidato(23, 8)
 
         then:
         1 * repository.buscarRecrutadorPorId(23) >> recrutador
         1 * repository.empresaJaCurtiuCandidato(1, 8) >> false
         1 * repository.curtirCandidato(1, 8, 23)
+        1 * repository.candidatoCurtiuVagaDaEmpresa(8, 1) >> true
+        match
+    }
+
+    def "retorna false quando o candidato nao curtiu vaga da empresa"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        boolean match = service.curtirCandidato(23, 8)
+
+        then:
+        1 * repository.buscarRecrutadorPorId(23) >> recrutador
+        1 * repository.empresaJaCurtiuCandidato(1, 8) >> false
+        1 * repository.curtirCandidato(1, 8, 23)
+        1 * repository.candidatoCurtiuVagaDaEmpresa(8, 1) >> false
+        !match
     }
 
     def "não repete curtida já feita pela empresa"() {

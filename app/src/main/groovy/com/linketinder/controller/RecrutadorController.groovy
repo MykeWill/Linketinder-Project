@@ -29,8 +29,8 @@ class RecrutadorController {
         return recrutadorService.listarCandidatosDisponiveis(recrutadorId)
     }
 
-    void curtirCandidatoController(Integer recrutadorId, Integer candidatoId) {
-        recrutadorService.curtirCandidato(recrutadorId, candidatoId)
+    boolean curtirCandidatoController(Integer recrutadorId, Integer candidatoId) {
+        return recrutadorService.curtirCandidato(recrutadorId, candidatoId)
     }
 
     List<Match> listarMatchesDoRecrutadorController(Integer recrutadorId) {
