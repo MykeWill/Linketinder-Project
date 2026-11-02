@@ -3,7 +3,6 @@ import type {
     CandidatoInterface,
     MatchCandidatoInterface
 } from '../types/models'
-import * as candidatoRepository from '../repository/candidatoRepository'
 import { request } from './api'
 import {
     validarNome, validarEmail, validarCPF, validarIdade,
@@ -49,10 +48,6 @@ export async function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 
     return resposta.id
 }
 
-export function removerCandidatoService(id: string): void {
-    candidatoRepository.removerCandidatoRepository(id)
-}
-
 export function contarCandidatosPorCompetenciaService(
     candidatos: CandidatoDisponivelInterface[]
 ): Record<string, number> {
@@ -65,8 +60,4 @@ export function contarCandidatosPorCompetenciaService(
     })
 
     return contagem
-}
-
-export function buscarCandidatoPorEmailService(email: string): CandidatoInterface | undefined {
-    return candidatoRepository.buscarCandidatoPorEmailRepository(email)
 }

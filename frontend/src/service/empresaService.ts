@@ -1,14 +1,9 @@
 import type { EmpresaInterface } from '../types/models'
-import * as empresaRepository from '../repository/empresaRepository'
 import { request } from './api'
 import {
     validarNome, validarEmail, validarCNPJ,
     validarEstado, validarCEP, validarDescricao, validarSenha
 } from '../utils/validacoes'
-
-export function listarTodasEmpresasService(): EmpresaInterface[] {
-    return empresaRepository.listarTodasEmpresasRepository()
-}
 
 export async function cadastrarEmpresaService(dados: Omit<EmpresaInterface, 'id'>): Promise<number> {
     const cnpj = dados.cnpj.replace(/\D/g, '')
@@ -31,12 +26,4 @@ export async function cadastrarEmpresaService(dados: Omit<EmpresaInterface, 'id'
         body: JSON.stringify({ ...dados, cnpj })
     })
     return resposta.id
-}
-
-export function removerEmpresaService(id: string): void {
-    empresaRepository.removerEmpresaRepository(id)
-}
-
-export function buscarEmpresaPorEmailService(email: string): EmpresaInterface | undefined {
-    return empresaRepository.buscarEmpresaPorEmailRepository(email)
 }

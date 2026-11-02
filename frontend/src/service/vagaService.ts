@@ -1,5 +1,4 @@
 import type { VagaAnonimaInterface, VagaInterface } from '../types/models'
-import * as vagaRepository from '../repository/vagaRepository'
 import { request } from './api'
 
 type DadosVagaInterface = {
@@ -9,10 +8,6 @@ type DadosVagaInterface = {
     descricao: string
     competencias: string[]
     recrutadorId?: number
-}
-
-export function listarTodasVagasService(): VagaInterface[] {
-    return vagaRepository.listarTodasVagasRepository()
 }
 
 export function listarVagasAnonimas(candidatoId: number): Promise<VagaAnonimaInterface[]> {
