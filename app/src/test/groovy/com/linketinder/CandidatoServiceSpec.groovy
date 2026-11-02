@@ -41,6 +41,21 @@ class CandidatoServiceSpec extends Specification {
         resultado == matchesEsperados
     }
 
+    def "deve listar curtidas do candidato delegando ao repositório"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def curtidasEsperadas = [[id: 42, nome: 'Desenvolvedor Groovy']]
+
+        when:
+        def resultado = service.listarCurtidasDoCandidatoService(7)
+
+        then:
+        1 * candidatoDaoMock.listarCurtidasDoCandidato(7) >> curtidasEsperadas
+        resultado == curtidasEsperadas
+    }
+
     def "deve curtir vaga e retornar true quando a empresa ja curtiu o candidato"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)

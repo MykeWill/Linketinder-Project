@@ -8,6 +8,31 @@ import spock.lang.Specification
 
 class VagaDaoSpec extends Specification {
 
+    def "listagem de vagas nao curtidas filtra pelo candidato informado"() {
+        given:
+        GroovyMock(ConexaoDB, global: true)
+        def conexao = Mock(Connection)
+        def statement = Mock(PreparedStatement)
+        def resultado = Mock(ResultSet)
+        ConexaoDB.executar(_ as Closure) >> { Closure consulta -> consulta.call(conexao) }
+        conexao.prepareStatement(_ as String) >> statement
+        statement.executeQuery() >> resultado
+        resultado.next() >> false
+        def dao = new VagaDao()
+
+        when:
+        def vagas = dao.listarVagasNaoCurtidasPorCandidato(42)
+
+        then:
+        1 * conexao.prepareStatement({ String sql ->
+            sql.contains('NOT EXISTS') &&
+                    sql.contains('ccv.candidato_id = ?') &&
+                    sql.contains('ccv.vaga_id = v.id')
+        }) >> statement
+        1 * statement.setInt(1, 42)
+        vagas.empty
+    }
+
     def "listagem do recrutador filtra pela empresa vinculada"() {
         given:
         GroovyMock(ConexaoDB, global: true)

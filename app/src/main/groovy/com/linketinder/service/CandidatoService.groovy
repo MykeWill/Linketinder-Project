@@ -57,6 +57,14 @@ class CandidatoService {
         }
     }
 
+    List<Map> listarCurtidasDoCandidatoService(Integer candidatoId) {
+        try {
+            return candidatoDao.listarCurtidasDoCandidato(candidatoId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
     boolean curtirVaga(Integer candidatoId, Integer vagaId) {
         try {
             candidatoDao.curtirVaga(candidatoId, vagaId)

@@ -27,6 +27,16 @@ export async function renderizarPerfilCandidato(): Promise<void> {
       </table>
     </section>
     <section>
+      <h2>Minhas Curtidas</h2>
+      <p id="erro-curtidas" class="mensagem-erro" role="alert"></p>
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>Descrição</th><th>Competências</th></tr>
+        </thead>
+        <tbody id="lista-curtidas"></tbody>
+      </table>
+    </section>
+    <section>
       <h2>Meus Matches</h2>
       <p id="erro-matches" class="mensagem-erro" role="alert"></p>
       <table>
@@ -39,14 +49,16 @@ export async function renderizarPerfilCandidato(): Promise<void> {
     <a href="#/">Voltar</a>
   `
 
-  const [vagas, matches] = await Promise.all([
+  const [vagas, curtidas, matches] = await Promise.all([
     carregar(() => vagaService.listarVagasAnonimas(candidatoId), 'erro-vagas'),
+    carregar(() => candidatoService.listarCurtidasCandidato(candidatoId), 'erro-curtidas'),
     carregar(
       () => candidatoService.listarMatchesCandidatoService(candidatoId),
       'erro-matches'
     )
   ])
   renderizarVagas(vagas, candidatoId)
+  renderizarCurtidas(curtidas)
   renderizarMatches(matches)
 }
 
@@ -80,21 +92,48 @@ function renderizarVagas(vagas: VagaAnonimaInterface[] | null, candidatoId: numb
           candidatoId,
           Number(botao.dataset.id)
         )
+        const vagaCurtida = vagas.find(vaga => String(vaga.id) === botao.dataset.id)
+        botao.closest('tr')?.remove()
+        if (vagaCurtida) adicionarVagaCurtida(vagaCurtida)
         if (match) {
           alert('Deu Match!')
           const matchesAtualizados = await candidatoService.listarMatchesCandidatoService(candidatoId)
           console.log("DADOS DO FETCH DO MATCH:", matchesAtualizados)
           renderizarMatches(matchesAtualizados)
-        } else {
-          botao.textContent = 'Curtido'
         }
       } catch (erro) {
         document.getElementById('erro-vagas')!.textContent =
           erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
-        botao.disabled = false
+        if (botao.isConnected) botao.disabled = false
       }
     })
   })
+}
+
+function renderizarCurtidas(curtidas: VagaAnonimaInterface[] | null): void {
+  if (curtidas === null) return
+  const tbody = document.getElementById('lista-curtidas')!
+  tbody.innerHTML = ''
+  if (curtidas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3">Nenhuma curtida ainda.</td></tr>'
+    return
+  }
+  curtidas.forEach(adicionarVagaCurtida)
+}
+
+function adicionarVagaCurtida(vaga: VagaAnonimaInterface): void {
+  const tbody = document.getElementById('lista-curtidas')
+  if (!tbody) return
+  tbody.querySelector('td[colspan="3"]')?.closest('tr')?.remove()
+  const tr = document.createElement('tr')
+  const tdNome = document.createElement('td')
+  const tdDescricao = document.createElement('td')
+  const tdCompetencias = document.createElement('td')
+  tdNome.textContent = vaga.nome
+  tdDescricao.textContent = vaga.descricao
+  tdCompetencias.textContent = vaga.competencias.join(', ')
+  tr.append(tdNome, tdDescricao, tdCompetencias)
+  tbody.appendChild(tr)
 }
 
 function renderizarMatches(matches: MatchCandidatoInterface[] | null): void {

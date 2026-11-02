@@ -27,6 +27,10 @@ class CandidatoController {
         return candidatoService.listarMatchesDoCandidatoService(candidatoId)
     }
 
+    List<Map> listarCurtidasDoCandidatoController(Integer candidatoId) {
+        return candidatoService.listarCurtidasDoCandidatoService(candidatoId)
+    }
+
     boolean curtirVagaController(Integer candidatoId, Integer vagaId) {
         return candidatoService.curtirVaga(candidatoId, vagaId)
     }

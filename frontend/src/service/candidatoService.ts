@@ -1,7 +1,8 @@
 import type {
     CandidatoDisponivelInterface,
     CandidatoInterface,
-    MatchCandidatoInterface
+    MatchCandidatoInterface,
+    VagaAnonimaInterface
 } from '../types/models'
 import { request } from './api'
 import {
@@ -15,6 +16,10 @@ export function listarTodosCandidatosService(): Promise<CandidatoDisponivelInter
 
 export function listarMatchesCandidatoService(candidatoId: number): Promise<MatchCandidatoInterface[]> {
     return request<MatchCandidatoInterface[]>(`/candidatos/${candidatoId}/matches`)
+}
+
+export function listarCurtidasCandidato(candidatoId: number): Promise<VagaAnonimaInterface[]> {
+    return request<VagaAnonimaInterface[]>(`/candidatos/${candidatoId}/curtidas`)
 }
 
 export function curtirVaga(candidatoId: number, vagaId: number): Promise<{ match: boolean }> {

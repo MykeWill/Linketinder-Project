@@ -144,6 +144,38 @@ class CandidatoHandlerSpec extends Specification {
         !corpo.contains('Descrição interna')
     }
 
+    def "curtidas do candidato retornam somente dados anonimos da vaga"() {
+        given:
+        def candidatoRepository = Mock(CandidatoRepository)
+        def competenciaRepository = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoRepository, competenciaRepository)
+        def controller = new CandidatoController(service)
+        def handler = new CandidatoHandler(controller)
+        def resposta = criarExchange('GET', '/candidatos/7/curtidas')
+        1 * candidatoRepository.listarCurtidasDoCandidato(7) >> [[
+                id: 42,
+                nome: 'Desenvolvedor Groovy',
+                descricao: 'Vaga fictícia',
+                competencias: ['Groovy'],
+                empresaNome: 'Empresa privada',
+                local: 'Endereço privado'
+        ]]
+
+        when:
+        handler.handle(resposta.exchange)
+        String corpo = resposta.body.toString('UTF-8')
+        def json = new JsonSlurper().parseText(corpo)
+
+        then:
+        json[0].keySet().toSet() == ['id', 'nome', 'descricao', 'competencias'].toSet()
+        json[0].id == 42
+        json[0].nome == 'Desenvolvedor Groovy'
+        json[0].descricao == 'Vaga fictícia'
+        json[0].competencias == ['Groovy']
+        !corpo.contains('Empresa privada')
+        !corpo.contains('Endereço privado')
+    }
+
     def "endpoint curtir vaga retorna o resultado do match"() {
         given:
         def candidatoRepository = Mock(CandidatoRepository)

@@ -110,6 +110,38 @@ class CandidatoDao implements  CandidatoRepository {
         }
     }
 
+    List<Map> listarCurtidasDoCandidato(Integer candidatoId) {
+        String sql = '''
+            SELECT v.id, v.nome, v.descricao,
+                   array_agg(comp.nome) FILTER (WHERE comp.nome IS NOT NULL) AS competencias
+            FROM curtida_candidato_vaga ccv
+            JOIN vaga v ON v.id = ccv.vaga_id
+            LEFT JOIN vaga_competencia vc ON vc.vaga_id = v.id
+            LEFT JOIN competencia comp ON comp.id = vc.competencia_id
+            WHERE ccv.candidato_id = ?
+            GROUP BY v.id
+            ORDER BY v.id
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            def resultado = stmt.executeQuery()
+            List<Map> curtidas = []
+            while (resultado.next()) {
+                def arrayCompetencias = resultado.getArray('competencias')?.array
+                curtidas << [
+                        id          : resultado.getInt('id'),
+                        nome        : resultado.getString('nome'),
+                        descricao   : resultado.getString('descricao'),
+                        competencias: arrayCompetencias
+                                ? (arrayCompetencias as List).collect { it.toString() }
+                                : []
+                ]
+            }
+            return curtidas
+        }
+    }
+
     void curtirVaga(Integer candidatoId, Integer vagaId) {
         String sql = '''
             INSERT INTO curtida_candidato_vaga (candidato_id, vaga_id)
