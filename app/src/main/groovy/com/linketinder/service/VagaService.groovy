@@ -33,8 +33,9 @@ class VagaService {
             }
 
             return vagaId
-        } catch (SQLException ex) {
-            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
+        } catch (SQLException e) {
+            e.printStackTrace()
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
         }
     }
 
@@ -62,9 +63,9 @@ class VagaService {
         }
     }
 
-    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId, Integer recrutadorId) {
+    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId) {
         try {
-            return vagaDao.listarVagasVisiveisParaRecrutador(empresaId, recrutadorId)
+            return vagaDao.listarVagasVisiveisParaRecrutador(empresaId)
         } catch (SQLException ex) {
             throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
         }

@@ -70,10 +70,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
 
   const erroGeral = document.getElementById('mensagem-erro')!
   const vagasResultado = await carregar(
-    () => vagaService.listarVagasVisiveisParaRecrutadorService(
-      empresaId,
-      recrutadorId
-    ),
+    () => vagaService.listarVagasVisiveisParaRecrutadorService(empresaId),
     'erro-vagas'
   )
   const candidatosResultado = await carregar(

@@ -3,7 +3,11 @@ import * as candidatoService from '../service/candidatoService'
 import * as recrutadorService from '../service/recrutadorService'
 import * as vagaService from '../service/vagaService'
 import { obterSessao } from '../service/sessaoService'
-import type { CandidatoDisponivelInterface, RecrutadorInterface } from '../types/models'
+import type {
+  CandidatoDisponivelInterface,
+  RecrutadorInterface,
+  VagaInterface
+} from '../types/models'
 
 export async function renderizarPerfilEmpresa() {
   const sessao = obterSessao()
@@ -14,11 +18,18 @@ export async function renderizarPerfilEmpresa() {
 
   const empresaId = sessao.id
   const app = document.getElementById('app')!
-  const vagasDaEmpresa = vagaService.listarVagasPorEmpresaService(empresaId)
+  let vagasDaEmpresa: VagaInterface[] = []
+  let erroListagemVagas = ''
   let candidatos: CandidatoDisponivelInterface[] = []
   let erroListagemCandidatos = ''
   let recrutadores: RecrutadorInterface[] = []
   let erroListagemRecrutadores = ''
+
+  try {
+    vagasDaEmpresa = await vagaService.listarVagasPorEmpresaService(empresaId)
+  } catch (erro) {
+    erroListagemVagas = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+  }
 
   try {
     candidatos = await candidatoService.listarTodosCandidatosService()
@@ -43,7 +54,7 @@ export async function renderizarPerfilEmpresa() {
 
   const linhasVagas = vagasDaEmpresa.map(vaga => `
         <tr title="${vaga.descricao}">
-            <td>${vaga.titulo}</td>
+            <td>${escaparHtml(vaga.nome ?? vaga.titulo ?? '')}</td>
             <td>${vaga.competencias.join(', ')}</td>
             <td><button class="btn-remover-vaga" data-id="${vaga.id}">Remover</button></td>
         </tr>
@@ -125,7 +136,7 @@ export async function renderizarPerfilEmpresa() {
     `
 
   const mensagemErro = document.getElementById('mensagem-erro')!
-  mensagemErro.textContent = [erroListagemCandidatos, erroListagemRecrutadores]
+  mensagemErro.textContent = [erroListagemVagas, erroListagemCandidatos, erroListagemRecrutadores]
     .filter(Boolean)
     .join(' ')
 
@@ -148,7 +159,7 @@ export async function renderizarPerfilEmpresa() {
     formularioVaga.classList.toggle('escondido')
   })
 
-  formularioVaga.addEventListener('submit', (evento) => {
+  formularioVaga.addEventListener('submit', async (evento) => {
     evento.preventDefault()
     const titulo = (document.getElementById('titulo') as HTMLInputElement).value
     const descricao = (document.getElementById('descricao') as HTMLTextAreaElement).value
@@ -157,8 +168,8 @@ export async function renderizarPerfilEmpresa() {
         .map(c => c.trim())
         .filter(c => c.length > 0)
     try {
-      vagaService.cadastrarVagaService({ empresaId, titulo, descricao, competencias })
-      renderizarPerfilEmpresa()
+      await vagaService.cadastrarVagaService({ empresaId, titulo, descricao, competencias })
+      await renderizarPerfilEmpresa()
     } catch (erro) {
       mensagemErro.textContent = (erro as Error).message
     }
@@ -193,10 +204,14 @@ export async function renderizarPerfilEmpresa() {
   })
 
   document.querySelectorAll('.btn-remover-vaga').forEach(botao => {
-    botao.addEventListener('click', () => {
+    botao.addEventListener('click', async () => {
       const id = (botao as HTMLElement).dataset.id!
-      vagaService.removerVagaService(id)
-      renderizarPerfilEmpresa()
+      try {
+        await vagaService.removerVagaService(id)
+        await renderizarPerfilEmpresa()
+      } catch (erro) {
+        mensagemErro.textContent = (erro as Error).message
+      }
     })
   })
 

@@ -37,7 +37,8 @@ export function renderizarCadastroEmpresa() {
       await empresaService.cadastrarEmpresaService({
         nome, email, cnpj, pais, estado, cep, descricao, senha
       })
-      window.location.hash = '#/perfil-empresa'
+      alert('Cadastro realizado com sucesso! Faça login para continuar.')
+      window.location.hash = '#/login'
     } catch (erro) {
       document.getElementById('mensagem-erro')!.textContent =
         erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'

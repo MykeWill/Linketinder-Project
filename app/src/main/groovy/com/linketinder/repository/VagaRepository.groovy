@@ -9,7 +9,7 @@ interface VagaRepository {
     List<Vaga> listarTodasVagas() throws SQLException
     List<Vaga> listarVagasNaoCurtidasPorCandidato(Integer candidatoId) throws SQLException
     List<Vaga> listarVagasPorEmpresa(Integer empresaId) throws SQLException
-    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId, Integer recrutadorId) throws SQLException
+    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId) throws SQLException
     void atualizarVaga(Vaga v) throws SQLException
     void removerVaga(Integer id) throws SQLException
 }

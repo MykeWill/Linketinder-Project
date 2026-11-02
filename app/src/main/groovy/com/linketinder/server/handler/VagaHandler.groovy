@@ -1,6 +1,7 @@
 package com.linketinder.server.handler
 
 import com.linketinder.controller.VagaController
+import com.linketinder.exception.ErroBancoException
 import com.linketinder.model.Vaga
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
@@ -31,9 +32,14 @@ class VagaHandler implements HttpHandler {
                 case "GET":
                     tratarGet(exchange)
                     break
+                case "DELETE":
+                    tratarDelete(exchange)
+                    break
                 default:
                     responder(exchange, 405, [erro: "Método não permitido"])
             }
+        } catch (ErroBancoException e) {
+            responder(exchange, 500, [erro: e.message])
         } catch (Exception e) {
             responder(exchange, 400, [erro: e.message])
         } finally {
@@ -75,16 +81,15 @@ class VagaHandler implements HttpHandler {
                 }
                 : []
         def vagas
-        if (parametros.contains('empresaId') || parametros.contains('recrutadorId')) {
+        if (parametros.contains('empresaId')) {
             Integer empresaId = inteiroPositivo(parametroUnico(exchange, 'empresaId'), 'empresaId')
-            Integer recrutadorId = inteiroPositivo(parametroUnico(exchange, 'recrutadorId'), 'recrutadorId')
-            vagas = vagaController.listarVagasVisiveisParaRecrutadorController(empresaId, recrutadorId)
+            vagas = vagaController.listarVagasVisiveisParaRecrutadorController(empresaId)
         } else {
             vagas = vagaController.listarTodasVagasController()
         }
 
         def resposta = vagas.collect { vaga ->
-            if (!parametros.contains('empresaId') && !parametros.contains('recrutadorId')) {
+            if (!parametros.contains('empresaId')) {
                 return mapearVagaAnonima(vaga)
             }
             [
@@ -98,6 +103,18 @@ class VagaHandler implements HttpHandler {
         }
 
         responder(exchange, 200, resposta)
+    }
+
+    private void tratarDelete(HttpExchange exchange) {
+        def match = exchange.requestURI.path =~ /^\/vagas\/(\d+)$/
+        if (!match.matches()) {
+            responder(exchange, 404, [erro: 'Vaga não encontrada.'])
+            return
+        }
+
+        Integer id = inteiroPositivo(match.group(1), 'id')
+        vagaController.removerVagaController(id)
+        responder(exchange, 200, [mensagem: 'Vaga removida.'])
     }
 
     private static Map mapearVagaAnonima(Vaga vaga) {

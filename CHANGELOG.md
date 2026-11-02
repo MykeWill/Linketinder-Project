@@ -26,12 +26,14 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - Tipos TypeScript para recrutador, candidatos anônimos e matches, além de cliente HTTP para cadastro, listagem de candidatos, curtidas e matches.
 
 ### Modificado
+- Listagens de vagas por candidato, recrutador e empresa priorizam o vínculo obrigatório com a empresa e não exigem recrutador criador.
 - Vagas anônimas incluem apenas um ID técnico não exibido na tela, necessário para registrar a curtida, além dos campos públicos permitidos.
 - Endpoints públicos de listagem de vagas restritos a nome, descrição e competências; adicionada listagem dos matches de um candidato com campos pós-match permitidos.
 - Consultas SQL atualizadas para aplicar filtro de candidatos já curtidos e restringir campos visíveis antes/depois do match.
 - Endpoint HTTP de vagas ampliado para consultar o escopo do recrutador.
 
 ### Corrigido
+- Cadastro de vagas pela empresa persistido na API para aparecer nas listagens vinculadas ao banco.
 - Normalização de CPF para dígitos nos cadastros de candidato e recrutador e de CNPJ no cadastro de empresa.
 - CPF aceita entrada com ou sem pontuação no formulário; data de nascimento de recrutador é enviada em ISO.
 - Payloads de cadastro de candidatos e empresas enviados à API no formato esperado pelos handlers.

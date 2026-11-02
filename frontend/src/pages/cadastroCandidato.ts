@@ -43,7 +43,8 @@ export function renderizarCadastroCandidato() {
       await candidatoService.cadastrarCandidatoService({
         nome, email, cpf, idade, estado, cep, descricao, senha, competencias
       })
-      window.location.hash = '#/perfil-candidato'
+      alert('Cadastro realizado com sucesso! Faça login para continuar.')
+      window.location.hash = '#/login'
     } catch (erro) {
       document.getElementById('mensagem-erro')!.textContent =
         erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'

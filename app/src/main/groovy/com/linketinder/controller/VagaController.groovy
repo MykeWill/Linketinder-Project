@@ -27,8 +27,8 @@ class VagaController {
         return vagaService.listarVagasPorEmpresaService(empresaId)
     }
 
-    List<Vaga> listarVagasVisiveisParaRecrutadorController(Integer empresaId, Integer recrutadorId) {
-        return vagaService.listarVagasVisiveisParaRecrutador(empresaId, recrutadorId)
+    List<Vaga> listarVagasVisiveisParaRecrutadorController(Integer empresaId) {
+        return vagaService.listarVagasVisiveisParaRecrutador(empresaId)
     }
 
     void atualizarVagaController(Vaga vaga) {
