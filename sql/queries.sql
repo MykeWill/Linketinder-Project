@@ -46,7 +46,9 @@ FROM candidato c
          JOIN vaga v ON v.id = ccv.vaga_id
          JOIN recrutador r ON r.id = $1 AND r.empresa_id = v.empresa_id
          JOIN curtida_empresa_candidato cec
-              ON cec.empresa_id = r.empresa_id AND cec.candidato_id = c.id
+              ON cec.vaga_id = ccv.vaga_id
+                 AND cec.empresa_id = r.empresa_id
+                 AND cec.candidato_id = c.id
          JOIN candidato_competencia cc ON cc.candidato_id = c.id
          JOIN competencia comp ON comp.id = cc.competencia_id
 GROUP BY c.id
@@ -69,7 +71,9 @@ WITH matches AS (
     FROM curtida_candidato_vaga ccv
              JOIN vaga v ON v.id = ccv.vaga_id
              JOIN curtida_empresa_candidato cec
-                  ON cec.empresa_id = v.empresa_id AND cec.candidato_id = ccv.candidato_id
+                  ON cec.vaga_id = ccv.vaga_id
+                     AND cec.empresa_id = v.empresa_id
+                     AND cec.candidato_id = ccv.candidato_id
 )
 SELECT e.nome AS empresa_nome,
        e.descricao AS empresa_descricao,
