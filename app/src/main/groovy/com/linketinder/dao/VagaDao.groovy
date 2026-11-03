@@ -61,10 +61,18 @@ class VagaDao implements VagaRepository {
     List<Vaga> listarVagasNaoCurtidasPorCandidato(Integer candidatoId) {
         String sql = '''
             SELECT v.id, v.empresa_id, v.recrutador_id, v.nome, v.descricao, v.local,
-                   array_agg(comp.nome) AS competencias
+                   array_agg(comp.nome) AS competencias,
+                   COALESCE(
+                       COUNT(DISTINCT CASE
+                           WHEN cc.competencia_id IS NOT NULL THEN vc.competencia_id
+                       END) * 100.0 / NULLIF(COUNT(DISTINCT vc.competencia_id), 0),
+                       0
+                   ) AS afinidade
             FROM vaga v
             LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
             LEFT JOIN competencia comp ON vc.competencia_id = comp.id
+            LEFT JOIN candidato_competencia cc
+                ON cc.competencia_id = vc.competencia_id AND cc.candidato_id = ?
             WHERE NOT EXISTS (
                 SELECT 1
                 FROM curtida_candidato_vaga ccv
@@ -77,10 +85,11 @@ class VagaDao implements VagaRepository {
         return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, candidatoId)
+            stmt.setInt(2, candidatoId)
             def resultado = stmt.executeQuery()
             List<Vaga> vagas = []
             while (resultado.next()) {
-                vagas << mapearVaga(resultado)
+                vagas << mapearVaga(resultado, true)
             }
             return vagas
         }
@@ -212,7 +221,7 @@ class VagaDao implements VagaRepository {
         }
     }
 
-    private Vaga mapearVaga(ResultSet resultado) {
+    private Vaga mapearVaga(ResultSet resultado, boolean incluirAfinidade = false) {
         Vaga v = new Vaga(
                 resultado.getInt('empresa_id'),
                 resultado.getString('nome'),
@@ -222,6 +231,9 @@ class VagaDao implements VagaRepository {
                 resultado.getObject('recrutador_id') as Integer
         )
         v.id = resultado.getInt('id')
+        if (incluirAfinidade) {
+            v.afinidade = resultado.getBigDecimal('afinidade')
+        }
         return v
     }
 }

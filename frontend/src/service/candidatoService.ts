@@ -3,7 +3,7 @@ import type {
     CandidatoInterface,
     MatchCandidatoInterface,
     PerfilCandidatoInterface,
-    VagaAnonimaInterface
+    VagaResumoAnonimaInterface
 } from '../types/models'
 import { request } from './api'
 import {
@@ -23,8 +23,8 @@ export function listarMatchesCandidatoService(candidatoId: number): Promise<Matc
     return request<MatchCandidatoInterface[]>(`/candidatos/${candidatoId}/matches`)
 }
 
-export function listarCurtidasCandidato(candidatoId: number): Promise<VagaAnonimaInterface[]> {
-    return request<VagaAnonimaInterface[]>(`/candidatos/${candidatoId}/curtidas`)
+export function listarCurtidasCandidato(candidatoId: number): Promise<VagaResumoAnonimaInterface[]> {
+    return request<VagaResumoAnonimaInterface[]>(`/candidatos/${candidatoId}/curtidas`)
 }
 
 export function curtirVaga(candidatoId: number, vagaId: number): Promise<{ match: boolean }> {

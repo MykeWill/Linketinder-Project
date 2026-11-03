@@ -8,6 +8,7 @@ class Vaga {
     String descricao
     String local
     List<String> competencias
+    BigDecimal afinidade
 
     Vaga(Integer empresaId, String nome, String descricao, String local,
          List<String> competencias, Integer recrutadorId = null) {

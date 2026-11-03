@@ -4,7 +4,8 @@ import { obterSessao, salvarSessao } from '../service/sessaoService'
 import type {
   MatchCandidatoInterface,
   PerfilCandidatoInterface,
-  VagaAnonimaInterface
+  VagaAnonimaInterface,
+  VagaResumoAnonimaInterface
 } from '../types/models'
 
 export async function renderizarPerfilCandidato(): Promise<void> {
@@ -39,7 +40,7 @@ export async function renderizarPerfilCandidato(): Promise<void> {
       <p id="erro-vagas" class="mensagem-erro" role="alert"></p>
       <table>
         <thead>
-          <tr><th>Nome</th><th>Descrição</th><th>Competências</th><th>Ações</th></tr>
+          <tr><th>Nome</th><th>Descrição</th><th>Competências</th><th>Afinidade</th><th>Ações</th></tr>
         </thead>
         <tbody id="lista-vagas"></tbody>
       </table>
@@ -144,6 +145,7 @@ function renderizarVagas(vagas: VagaAnonimaInterface[] | null, candidatoId: numb
       <td>${escaparHtml(vaga.nome)}</td>
       <td>${escaparHtml(vaga.descricao)}</td>
       <td>${vaga.competencias.map(escaparHtml).join(', ')}</td>
+      <td><span class="afinidade ${classeAfinidade(vaga.afinidade)}">${Math.round(vaga.afinidade)}%</span></td>
       <td><button class="btn-curtir-vaga" data-id="${escaparHtml(String(vaga.id))}">Curtir</button></td>
     </tr>
   `).join('')
@@ -175,7 +177,13 @@ function renderizarVagas(vagas: VagaAnonimaInterface[] | null, candidatoId: numb
   })
 }
 
-function renderizarCurtidas(curtidas: VagaAnonimaInterface[] | null): void {
+function classeAfinidade(afinidade: number): string {
+  if (afinidade > 70) return 'afinidade-alta'
+  if (afinidade >= 40) return 'afinidade-media'
+  return 'afinidade-baixa'
+}
+
+function renderizarCurtidas(curtidas: VagaResumoAnonimaInterface[] | null): void {
   if (curtidas === null) return
   const tbody = document.getElementById('lista-curtidas')!
   tbody.innerHTML = ''
@@ -186,7 +194,7 @@ function renderizarCurtidas(curtidas: VagaAnonimaInterface[] | null): void {
   curtidas.forEach(adicionarVagaCurtida)
 }
 
-function adicionarVagaCurtida(vaga: VagaAnonimaInterface): void {
+function adicionarVagaCurtida(vaga: VagaResumoAnonimaInterface): void {
   const tbody = document.getElementById('lista-curtidas')
   if (!tbody) return
   tbody.querySelector('td[colspan="3"]')?.closest('tr')?.remove()

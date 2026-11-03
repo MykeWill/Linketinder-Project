@@ -54,6 +54,7 @@ class VagaHandlerSpec extends Specification {
         def handler = new VagaHandler(controller)
         def vaga = new Vaga(3, 'Desenvolvedor Groovy', 'Descrição fictícia', 'Local privado', ['Groovy'])
         vaga.id = 21
+        vaga.afinidade = new BigDecimal('50.0')
         def resposta = criarExchange('GET', '/vagas/anonimas?candidatoId=1')
         1 * controller.listarVagasNaoCurtidasPorCandidatoController(1) >> [vaga]
 
@@ -63,11 +64,12 @@ class VagaHandlerSpec extends Specification {
         def json = new JsonSlurper().parseText(corpo)
 
         then:
-        json[0].keySet().toSet() == ['id', 'nome', 'descricao', 'competencias'].toSet()
+        json[0].keySet().toSet() == ['id', 'nome', 'descricao', 'competencias', 'afinidade'].toSet()
         json[0].id == 21
         json[0].nome == 'Desenvolvedor Groovy'
         json[0].descricao == 'Descrição fictícia'
         json[0].competencias == ['Groovy']
+        json[0].afinidade == 50.0
         !corpo.contains('empresaId')
         !corpo.contains('Local privado')
     }
