@@ -27,6 +27,10 @@ class EmpresaController {
         empresaService.atualizarEmpresaService(empresa)
     }
 
+    Empresa buscarEmpresaPorIdController(Integer id) {
+        return empresaService.buscarEmpresaPorIdService(id)
+    }
+
     void removerEmpresaController(Integer id) {
         empresaService.removerEmpresaService(id)
     }

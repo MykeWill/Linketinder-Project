@@ -30,7 +30,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
       <p id="erro-vagas" class="mensagem-erro" role="alert"></p>
       <table>
         <thead>
-          <tr><th>Título</th><th>Descrição</th><th>Competências</th></tr>
+          <tr><th>Título</th><th>Descrição</th><th>Competências</th><th>Ações</th></tr>
         </thead>
         <tbody id="lista-vagas"></tbody>
       </table>
@@ -41,6 +41,15 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
         <input type="text" id="vaga-competencias"
           placeholder="Competências (separadas por vírgula)" required>
         <button type="submit">Salvar vaga</button>
+      </form>
+      <form id="form-editar-vaga" class="escondido">
+        <input type="text" id="editar-vaga-titulo" placeholder="Título da vaga" required>
+        <textarea id="editar-vaga-descricao" placeholder="Descrição da vaga" required></textarea>
+        <input type="text" id="editar-vaga-local" placeholder="Local">
+        <input type="text" id="editar-vaga-competencias"
+          placeholder="Competências (separadas por vírgula)" required>
+        <button type="submit">Salvar alterações</button>
+        <button id="btn-cancelar-edicao-vaga" type="button">Cancelar</button>
       </form>
     </section>
     <section>
@@ -87,7 +96,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
     `${candidatosResultado?.length ?? 0} candidatos disponíveis e ` +
     `${matchesResultado?.length ?? 0} matches.`
 
-  renderizarVagas(vagasResultado)
+  renderizarVagas(vagasResultado, recrutadorId)
   renderizarCandidatos(candidatosResultado, vagasResultado)
   renderizarMatches(matchesResultado)
 
@@ -108,6 +117,45 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
         descricao: (document.getElementById('vaga-descricao') as HTMLTextAreaElement).value,
         local: '',
         competencias
+      })
+      await renderizarPerfilRecrutador()
+    } catch (erro) {
+      erroGeral.textContent = mensagemDoErro(erro)
+    }
+  })
+
+  const formularioEdicaoVaga = document.getElementById('form-editar-vaga') as HTMLFormElement
+  let vagaEmEdicao: VagaInterface | null = null
+  document.querySelectorAll<HTMLButtonElement>('.btn-editar-vaga').forEach(botao => {
+    botao.addEventListener('click', () => {
+      vagaEmEdicao = vagasResultado?.find(vaga => String(vaga.id) === botao.dataset.id) ?? null
+      if (!vagaEmEdicao) return
+      ;(document.getElementById('editar-vaga-titulo') as HTMLInputElement).value =
+        vagaEmEdicao.nome ?? vagaEmEdicao.titulo ?? ''
+      ;(document.getElementById('editar-vaga-descricao') as HTMLTextAreaElement).value =
+        vagaEmEdicao.descricao
+      ;(document.getElementById('editar-vaga-local') as HTMLInputElement).value =
+        vagaEmEdicao.local ?? ''
+      ;(document.getElementById('editar-vaga-competencias') as HTMLInputElement).value =
+        vagaEmEdicao.competencias.join(', ')
+      formularioEdicaoVaga.classList.remove('escondido')
+    })
+  })
+  document.getElementById('btn-cancelar-edicao-vaga')!.addEventListener('click', () => {
+    formularioEdicaoVaga.classList.add('escondido')
+    vagaEmEdicao = null
+  })
+  formularioEdicaoVaga.addEventListener('submit', async evento => {
+    evento.preventDefault()
+    if (!vagaEmEdicao) return
+    try {
+      await vagaService.atualizarVagaService({
+        id: vagaEmEdicao.id,
+        nome: (document.getElementById('editar-vaga-titulo') as HTMLInputElement).value,
+        descricao: (document.getElementById('editar-vaga-descricao') as HTMLTextAreaElement).value,
+        local: (document.getElementById('editar-vaga-local') as HTMLInputElement).value,
+        competencias: (document.getElementById('editar-vaga-competencias') as HTMLInputElement)
+          .value.split(',').map(valor => valor.trim()).filter(Boolean)
       })
       await renderizarPerfilRecrutador()
     } catch (erro) {
@@ -147,7 +195,7 @@ async function carregar<T>(carregador: () => Promise<T>, idErro: string): Promis
   }
 }
 
-function renderizarVagas(vagas: VagaInterface[] | null): void {
+function renderizarVagas(vagas: VagaInterface[] | null, recrutadorId: number): void {
   const tabela = document.getElementById('lista-vagas')!
   if (vagas === null) return
   tabela.innerHTML = vagas.map(vaga => `
@@ -155,6 +203,9 @@ function renderizarVagas(vagas: VagaInterface[] | null): void {
       <td>${escaparHtml(vaga.nome ?? vaga.titulo ?? '')}</td>
       <td>${escaparHtml(vaga.descricao)}</td>
       <td>${vaga.competencias.map(escaparHtml).join(', ')}</td>
+      <td>${Number(vaga.recrutadorId) === recrutadorId
+        ? `<button class="btn-editar-vaga" data-id="${escaparHtml(String(vaga.id))}">Editar</button>`
+        : ''}</td>
     </tr>
   `).join('')
 }

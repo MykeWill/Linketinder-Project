@@ -2,6 +2,7 @@ import type {
     CandidatoDisponivelInterface,
     CandidatoInterface,
     MatchCandidatoInterface,
+    PerfilCandidatoInterface,
     VagaAnonimaInterface
 } from '../types/models'
 import { request } from './api'
@@ -30,6 +31,35 @@ export function curtirVaga(candidatoId: number, vagaId: number): Promise<{ match
     return request<{ match: boolean }>(`/candidatos/${candidatoId}/curtir-vaga`, {
         method: 'POST',
         body: JSON.stringify({ vagaId })
+    })
+}
+
+export function buscarPerfilCandidato(id: number): Promise<PerfilCandidatoInterface> {
+    return request<PerfilCandidatoInterface>(`/candidatos/${id}`)
+}
+
+export async function atualizarPerfilCandidato(
+    id: number,
+    dados: Omit<CandidatoInterface, 'id' | 'senha'> & { senha?: string }
+): Promise<void> {
+    const cpf = dados.cpf.replace(/\D/g, '')
+    const erros = [
+        validarNome(dados.nome),
+        validarEmail(dados.email),
+        validarCPF(cpf),
+        validarIdade(dados.idade),
+        validarEstado(dados.estado),
+        validarCEP(dados.cep),
+        validarDescricao(dados.descricao),
+        dados.senha ? validarSenha(dados.senha) : null
+    ].filter(e => e !== null)
+    if (erros.length > 0) {
+        throw new Error(erros[0] as string)
+    }
+
+    await request<{ mensagem: string }>(`/candidatos/${id}`, {
+        method: 'PUT',
+        body: JSON.stringify({ ...dados, cpf })
     })
 }
 

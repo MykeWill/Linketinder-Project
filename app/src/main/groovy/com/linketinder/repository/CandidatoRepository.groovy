@@ -12,8 +12,9 @@ interface CandidatoRepository {
     List<Map> listarMatchesDoCandidato(Integer candidatoId) throws SQLException
     void curtirVaga(Integer candidatoId, Integer vagaId) throws SQLException
     boolean existeCurtidaDaEmpresaParaVaga(Integer candidatoId, Integer vagaId) throws SQLException
+    Candidato buscarPorId(Integer id) throws SQLException
     Candidato buscarPorEmail(String email) throws SQLException
     List<Candidato> listarTodosCandidatos() throws SQLException
-    void atualizarCandidato(Candidato c) throws SQLException
+    boolean atualizarCandidato(Candidato c, List<Integer> competenciaIds) throws SQLException
     void removerCandidato(Integer id) throws SQLException
 }

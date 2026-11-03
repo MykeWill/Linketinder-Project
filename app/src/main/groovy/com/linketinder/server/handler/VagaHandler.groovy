@@ -3,6 +3,7 @@ package com.linketinder.server.handler
 import com.linketinder.controller.VagaController
 import com.linketinder.exception.ErroBancoException
 import com.linketinder.model.Vaga
+import com.linketinder.server.SessaoHttp
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import groovy.json.JsonSlurper
@@ -23,6 +24,10 @@ class VagaHandler implements HttpHandler {
         try {
             if (exchange.requestURI.path == '/vagas/anonimas' && exchange.requestMethod != 'GET') {
                 responder(exchange, 405, [erro: "Método não permitido"])
+                return
+            }
+            if (exchange.requestMethod == 'PUT') {
+                tratarPut(exchange)
                 return
             }
             switch (exchange.requestMethod) {
@@ -83,6 +88,18 @@ class VagaHandler implements HttpHandler {
         def vagas
         if (parametros.contains('empresaId')) {
             Integer empresaId = inteiroPositivo(parametroUnico(exchange, 'empresaId'), 'empresaId')
+            Map sessao = SessaoHttp.obter(exchange)
+            if (sessao == null) {
+                responder(exchange, 401, [erro: 'Sessão inválida ou expirada.'])
+                return
+            }
+            boolean acessoPermitido = sessao.tipo == 'EMPRESA'
+                    ? sessao.id == empresaId
+                    : sessao.tipo == 'RECRUTADOR' && sessao.empresaId == empresaId
+            if (!acessoPermitido) {
+                responder(exchange, 403, [erro: 'Acesso não autorizado.'])
+                return
+            }
             vagas = vagaController.listarVagasVisiveisParaRecrutadorController(empresaId)
         } else {
             vagas = vagaController.listarTodasVagasController()
@@ -95,6 +112,7 @@ class VagaHandler implements HttpHandler {
             [
                     id          : vaga.id,
                     empresaId   : vaga.empresaId,
+                    recrutadorId: vaga.recrutadorId,
                     nome        : vaga.nome,
                     descricao   : vaga.descricao,
                     local       : vaga.local,
@@ -115,6 +133,36 @@ class VagaHandler implements HttpHandler {
         Integer id = inteiroPositivo(match.group(1), 'id')
         vagaController.removerVagaController(id)
         responder(exchange, 200, [mensagem: 'Vaga removida.'])
+    }
+
+    private void tratarPut(HttpExchange exchange) {
+        def match = exchange.requestURI.path =~ /^\/vagas\/(\d+)$/
+        if (!match.matches()) {
+            responder(exchange, 404, [erro: 'Vaga não encontrada.'])
+            return
+        }
+
+        Integer id = inteiroPositivo(match.group(1), 'id')
+        Map sessao = SessaoHttp.obter(exchange)
+        if (sessao == null) {
+            responder(exchange, 401, [erro: 'Sessão inválida ou expirada.'])
+            return
+        }
+        def json = new JsonSlurper().parseText(exchange.requestBody.text)
+        Vaga vaga = new Vaga(
+                null,
+                json.nome as String,
+                json.descricao as String,
+                json.local as String ?: '',
+                json.competencias instanceof List ? json.competencias.collect { it as String } : []
+        )
+        vaga.id = id
+        if (!(sessao.tipo in ['EMPRESA', 'RECRUTADOR']) ||
+                !vagaController.atualizarVagaController(vaga, sessao.tipo as String, sessao.id as Integer)) {
+            responder(exchange, 403, [erro: 'Você não tem permissão para editar esta vaga.'])
+            return
+        }
+        responder(exchange, 200, [mensagem: 'Vaga atualizada.'])
     }
 
     private static Map mapearVagaAnonima(Vaga vaga) {

@@ -28,7 +28,10 @@ class LoginHandlerSpec extends Specification {
 
         then:
         1 * resposta.exchange.sendResponseHeaders(200, _)
-        json == [id: 42, nome: 'Ana Souza', tipo: 'CANDIDATO']
+        json.id == 42
+        json.nome == 'Ana Souza'
+        json.tipo == 'CANDIDATO'
+        json.token ==~ /^[0-9a-f-]{36}$/
     }
 
     def "login retorna 401 para credenciais inválidas"() {

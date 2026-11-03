@@ -11,6 +11,8 @@ export interface CandidatoInterface {
   senha: string
 }
 
+export type PerfilCandidatoInterface = Omit<CandidatoInterface, 'senha'>
+
 export interface EmpresaInterface {
   id: number | string
   nome: string
@@ -23,12 +25,15 @@ export interface EmpresaInterface {
   senha: string
 }
 
+export type PerfilEmpresaInterface = Omit<EmpresaInterface, 'senha'>
+
 export interface VagaInterface {
   id: number | string
   empresaId: number | string
   nome: string
   titulo?: string
   descricao: string
+  local?: string
   competencias: string[]
   recrutadorId?: number
 }
@@ -59,6 +64,15 @@ export interface RecrutadorInterface {
   areaRecrutamento: string
   descricao: string
   email: string
+}
+
+export interface PerfilRecrutadorInterface {
+  id: number | string
+  nome: string
+  areaRecrutamento: string
+  descricao: string
+  email: string
+  dataNascimento: string
 }
 
 export interface CadastroRecrutadorInterface {
@@ -99,5 +113,6 @@ export interface SessaoInterface {
   id: number
   nome: string
   tipo: TipoUsuario
+  token: string
   empresaId?: number
 }

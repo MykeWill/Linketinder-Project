@@ -2,6 +2,7 @@ import type {
     CadastroRecrutadorInterface,
     CandidatoDisponivelInterface,
     MatchInterface,
+    PerfilRecrutadorInterface,
     RecrutadorInterface
 } from '../types/models'
 import { request } from './api'
@@ -20,6 +21,20 @@ export function listarPorEmpresa(empresaId: number): Promise<RecrutadorInterface
 
 export async function removerRecrutador(id: number | string): Promise<void> {
     await request<void>(`/recrutadores/${id}`, { method: 'DELETE' })
+}
+
+export function buscarRecrutador(id: number | string): Promise<PerfilRecrutadorInterface> {
+    return request<PerfilRecrutadorInterface>(`/recrutadores/${encodeURIComponent(String(id))}`)
+}
+
+export async function atualizarRecrutador(
+    id: number | string,
+    dados: Omit<PerfilRecrutadorInterface, 'id'> & { senha?: string }
+): Promise<void> {
+    await request<{ mensagem: string }>(`/recrutadores/${encodeURIComponent(String(id))}`, {
+        method: 'PUT',
+        body: JSON.stringify(dados)
+    })
 }
 
 export function listarCandidatos(recrutadorId: number): Promise<CandidatoDisponivelInterface[]> {

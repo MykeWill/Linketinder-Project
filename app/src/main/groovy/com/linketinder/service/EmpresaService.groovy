@@ -51,9 +51,29 @@ class EmpresaService {
 
     void atualizarEmpresaService(Empresa e) {
         try {
-            empresaDao.atualizarEmpresa(e)
+            String cnpj = e?.cnpj?.replaceAll('\\D', '')
+            if (!(cnpj ==~ /\d{14}/) || e.id == null || e.id <= 0 ||
+                    !e.nome?.trim() || !e.email?.trim() || !e.pais?.trim() ||
+                    !e.estado?.trim() || !e.cep?.trim() || !e.descricao?.trim()) {
+                throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+            }
+            e.cnpj = cnpj
+            if (e.senha) {
+                e.senha = BCrypt.hashpw(e.senha, BCrypt.gensalt())
+            }
+            if (!empresaDao.atualizarEmpresa(e)) {
+                throw new IllegalArgumentException('Empresa não encontrada.')
+            }
         } catch (SQLException ex) {
             throw traduzirErro(ex)
+        }
+    }
+
+    Empresa buscarEmpresaPorIdService(Integer id) {
+        try {
+            return empresaDao.buscarPorId(id)
+        } catch (SQLException ex) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
         }
     }
 

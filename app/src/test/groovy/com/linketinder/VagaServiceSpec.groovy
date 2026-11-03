@@ -71,4 +71,39 @@ class VagaServiceSpec extends Specification {
         1 * vagaRepository.listarVagasNaoCurtidasPorCandidato(1) >> esperadas
         resultado == esperadas
     }
+
+    def "atualiza vaga somente após validar que pertence à empresa"() {
+        given:
+        def vagaRepository = Mock(VagaRepository)
+        def competenciaRepository = Mock(CompetenciaRepository)
+        def service = new VagaService(vagaRepository, competenciaRepository)
+        def vaga = new Vaga(7, 'Desenvolvedor Sênior', 'Descrição atualizada',
+                'Remoto', ['Groovy'])
+        vaga.id = 51
+
+        when:
+        boolean atualizada = service.atualizarVagaService(vaga, 'EMPRESA', 7)
+
+        then:
+        1 * vagaRepository.vagaPertenceEmpresa(51, 7) >> true
+        1 * competenciaRepository.buscarOuCriar('Groovy') >> 12
+        1 * vagaRepository.atualizarVaga(vaga, 'EMPRESA', 7, [12]) >> true
+        atualizada
+    }
+
+    def "nao atualiza vaga que nao pertence ao recrutador da sessao"() {
+        given:
+        def vagaRepository = Mock(VagaRepository)
+        def service = new VagaService(vagaRepository, Mock(CompetenciaRepository))
+        def vaga = new Vaga(7, 'Desenvolvedor', 'Descrição fictícia', 'Remoto', ['Java'])
+        vaga.id = 51
+
+        when:
+        boolean atualizada = service.atualizarVagaService(vaga, 'RECRUTADOR', 23)
+
+        then:
+        1 * vagaRepository.vagaPertenceRecrutador(51, 23) >> false
+        0 * vagaRepository.atualizarVaga(_, _, _, _)
+        !atualizada
+    }
 }

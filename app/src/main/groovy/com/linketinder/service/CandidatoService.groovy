@@ -94,9 +94,35 @@ class CandidatoService {
 
     void atualizarCandidatoService(Candidato c) {
         try {
-            candidatoDao.atualizarCandidato(c)
+            String cpf = c?.cpf?.replaceAll('\\D', '')
+            if (!(cpf ==~ /\d{11}/) || c.id == null || c.id <= 0 ||
+                    c.idade <= 0 || !c.nome?.trim() || !c.email?.trim() ||
+                    !c.estado?.trim() || !c.cep?.trim() || !c.descricao?.trim()) {
+                throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+            }
+            c.cpf = cpf
+            if (c.senha) {
+                c.senha = BCrypt.hashpw(c.senha, BCrypt.gensalt())
+            }
+            List<Integer> competenciaIds = (c.competencias ?: []).collect { String nome ->
+                if (!nome?.trim()) {
+                    throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+                }
+                competenciaDao.buscarOuCriar(nome.trim())
+            }
+            if (!candidatoDao.atualizarCandidato(c, competenciaIds)) {
+                throw new IllegalArgumentException('Candidato não encontrado.')
+            }
         } catch (SQLException e) {
             throw traduzirErro(e)
+        }
+    }
+
+    Candidato buscarCandidatoPorIdService(Integer id) {
+        try {
+            return candidatoDao.buscarPorId(id)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
         }
     }
 

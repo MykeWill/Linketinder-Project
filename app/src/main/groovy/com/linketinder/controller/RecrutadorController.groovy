@@ -21,6 +21,14 @@ class RecrutadorController {
         recrutadorService.removerRecrutador(id)
     }
 
+    Recrutador buscarRecrutadorDaEmpresaController(Integer recrutadorId, Integer empresaId) {
+        return recrutadorService.buscarRecrutadorDaEmpresa(recrutadorId, empresaId)
+    }
+
+    void atualizarRecrutadorController(Recrutador recrutador, String senhaPura, Integer empresaId) {
+        recrutadorService.atualizarRecrutador(recrutador, senhaPura, empresaId)
+    }
+
     List<Recrutador> listarRecrutadoresPorEmpresaController(Integer empresaId) {
         return recrutadorService.listarRecrutadoresPorEmpresa(empresaId)
     }

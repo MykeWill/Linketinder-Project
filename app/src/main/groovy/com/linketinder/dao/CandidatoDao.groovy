@@ -216,6 +216,24 @@ class CandidatoDao implements  CandidatoRepository {
         }
     }
 
+    Candidato buscarPorId(Integer id) {
+        String sql = '''
+            SELECT c.id, c.nome, c.email, c.cpf, c.idade, c.estado, c.cep, c.descricao, c.senha,
+                   array_agg(comp.nome) FILTER (WHERE comp.nome IS NOT NULL) AS competencias
+            FROM candidato c
+            LEFT JOIN candidato_competencia cc ON c.id = cc.candidato_id
+            LEFT JOIN competencia comp ON cc.competencia_id = comp.id
+            WHERE c.id = ?
+            GROUP BY c.id
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, id)
+            def resultado = stmt.executeQuery()
+            return resultado.next() ? mapearCandidato(resultado) : null
+        }
+    }
+
     List<Candidato> listarTodosCandidatos() {
         String sql = '''
             SELECT c.id, c.nome, c.email, c.cpf, c.idade, c.estado, c.cep, c.descricao, c.senha,
@@ -237,20 +255,50 @@ class CandidatoDao implements  CandidatoRepository {
         }
     }
 
-    void atualizarCandidato(Candidato c) {
-        String sql = 'UPDATE candidato SET nome = ?, email = ?, cpf = ?, idade = ?, estado = ?, cep = ?, descricao = ?, senha = ? WHERE id = ?'
-        ConexaoDB.executar { conexao ->
-            def stmt = conexao.prepareStatement(sql)
-            stmt.setString(1, c.nome)
-            stmt.setString(2, c.email)
-            stmt.setString(3, c.cpf)
-            stmt.setInt(4, c.idade)
-            stmt.setString(5, c.estado)
-            stmt.setString(6, c.cep)
-            stmt.setString(7, c.descricao)
-            stmt.setString(8, c.senha)
-            stmt.setInt(9, c.id)
-            stmt.executeUpdate()
+    boolean atualizarCandidato(Candidato c, List<Integer> competenciaIds) {
+        String sql = '''
+            UPDATE candidato
+            SET nome = ?, email = ?, cpf = ?, idade = ?, estado = ?, cep = ?, descricao = ?,
+                senha = COALESCE(NULLIF(?, ''), senha)
+            WHERE id = ?
+        '''
+        return ConexaoDB.executar { conexao ->
+            conexao.autoCommit = false
+            try {
+                def stmt = conexao.prepareStatement(sql)
+                stmt.setString(1, c.nome)
+                stmt.setString(2, c.email)
+                stmt.setString(3, c.cpf)
+                stmt.setInt(4, c.idade)
+                stmt.setString(5, c.estado)
+                stmt.setString(6, c.cep)
+                stmt.setString(7, c.descricao)
+                stmt.setString(8, c.senha)
+                stmt.setInt(9, c.id)
+                if (stmt.executeUpdate() == 0) {
+                    conexao.rollback()
+                    return false
+                }
+
+                def removerCompetencias = conexao.prepareStatement(
+                        'DELETE FROM candidato_competencia WHERE candidato_id = ?')
+                removerCompetencias.setInt(1, c.id)
+                removerCompetencias.executeUpdate()
+
+                def inserirCompetencia = conexao.prepareStatement(
+                        'INSERT INTO candidato_competencia (candidato_id, competencia_id) VALUES (?, ?)')
+                competenciaIds.each { Integer competenciaId ->
+                    inserirCompetencia.setInt(1, c.id)
+                    inserirCompetencia.setInt(2, competenciaId)
+                    inserirCompetencia.addBatch()
+                }
+                inserirCompetencia.executeBatch()
+                conexao.commit()
+                return true
+            } catch (Exception e) {
+                conexao.rollback()
+                throw e
+            }
         }
     }
 

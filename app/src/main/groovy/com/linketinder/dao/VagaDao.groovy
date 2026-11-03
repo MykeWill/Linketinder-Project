@@ -132,16 +132,74 @@ class VagaDao implements VagaRepository {
         }
     }
 
-    void atualizarVaga(Vaga v) {
-        String sql = 'UPDATE vaga SET empresa_id = ?, nome = ?, descricao = ?, local = ? WHERE id = ?'
-        ConexaoDB.executar { conexao ->
+    boolean vagaPertenceRecrutador(Integer vagaId, Integer recrutadorId) {
+        String sql = 'SELECT EXISTS (SELECT 1 FROM vaga WHERE id = ? AND recrutador_id = ?)'
+        return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
-            stmt.setInt(1, v.empresaId)
-            stmt.setString(2, v.nome)
-            stmt.setString(3, v.descricao)
-            stmt.setString(4, v.local)
-            stmt.setInt(5, v.id)
-            stmt.executeUpdate()
+            stmt.setInt(1, vagaId)
+            stmt.setInt(2, recrutadorId)
+            def resultado = stmt.executeQuery()
+            resultado.next()
+            return resultado.getBoolean(1)
+        }
+    }
+
+    boolean vagaPertenceEmpresa(Integer vagaId, Integer empresaId) {
+        String sql = 'SELECT EXISTS (SELECT 1 FROM vaga WHERE id = ? AND empresa_id = ?)'
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, vagaId)
+            stmt.setInt(2, empresaId)
+            def resultado = stmt.executeQuery()
+            resultado.next()
+            return resultado.getBoolean(1)
+        }
+    }
+
+    boolean atualizarVaga(Vaga v, String tipoEditor, Integer editorId, List<Integer> competenciaIds) {
+        String sql = '''
+            UPDATE vaga
+            SET nome = ?, descricao = ?, local = ?
+            WHERE id = ?
+              AND ((? = 'EMPRESA' AND empresa_id = ?)
+                OR (? = 'RECRUTADOR' AND recrutador_id = ?))
+        '''
+        return ConexaoDB.executar { conexao ->
+            conexao.autoCommit = false
+            try {
+                def stmt = conexao.prepareStatement(sql)
+                stmt.setString(1, v.nome)
+                stmt.setString(2, v.descricao)
+                stmt.setString(3, v.local)
+                stmt.setInt(4, v.id)
+                stmt.setString(5, tipoEditor)
+                stmt.setInt(6, editorId)
+                stmt.setString(7, tipoEditor)
+                stmt.setInt(8, editorId)
+                if (stmt.executeUpdate() == 0) {
+                    conexao.rollback()
+                    return false
+                }
+
+                def removerCompetencias = conexao.prepareStatement(
+                        'DELETE FROM vaga_competencia WHERE vaga_id = ?')
+                removerCompetencias.setInt(1, v.id)
+                removerCompetencias.executeUpdate()
+
+                def inserirCompetencia = conexao.prepareStatement(
+                        'INSERT INTO vaga_competencia (vaga_id, competencia_id) VALUES (?, ?)')
+                competenciaIds.each { Integer competenciaId ->
+                    inserirCompetencia.setInt(1, v.id)
+                    inserirCompetencia.setInt(2, competenciaId)
+                    inserirCompetencia.addBatch()
+                }
+                inserirCompetencia.executeBatch()
+                conexao.commit()
+                return true
+            } catch (Exception e) {
+                conexao.rollback()
+                throw e
+            }
         }
     }
 
