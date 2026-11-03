@@ -97,7 +97,8 @@ class CandidatoDao implements  CandidatoRepository {
             FROM curtida_candidato_vaga ccv
             JOIN vaga v ON v.id = ccv.vaga_id
             JOIN curtida_empresa_candidato cec
-                ON cec.empresa_id = v.empresa_id
+                ON cec.vaga_id = ccv.vaga_id
+               AND cec.empresa_id = v.empresa_id
                AND cec.candidato_id = ccv.candidato_id
             JOIN empresa e ON e.id = v.empresa_id
             LEFT JOIN recrutador executor ON executor.id = cec.recrutador_id
@@ -182,7 +183,8 @@ class CandidatoDao implements  CandidatoRepository {
                 FROM curtida_candidato_vaga ccv
                 JOIN vaga v ON v.id = ccv.vaga_id
                 JOIN curtida_empresa_candidato cec
-                    ON cec.empresa_id = v.empresa_id
+                    ON cec.vaga_id = ccv.vaga_id
+                   AND cec.empresa_id = v.empresa_id
                    AND cec.candidato_id = ccv.candidato_id
                 WHERE ccv.candidato_id = ?
                   AND ccv.vaga_id = ?

@@ -159,15 +159,21 @@ function renderizarVagas(vagas: VagaAnonimaInterface[] | null, candidatoId: numb
           candidatoId,
           Number(botao.dataset.id)
         )
-        const vagaCurtida = vagas.find(vaga => String(vaga.id) === botao.dataset.id)
         botao.closest('tr')?.remove()
-        if (vagaCurtida) adicionarVagaCurtida(vagaCurtida)
-        if (match) {
-          alert('Deu Match!')
-          const matchesAtualizados = await candidatoService.listarMatchesCandidatoService(candidatoId)
-          console.log("DADOS DO FETCH DO MATCH:", matchesAtualizados)
-          renderizarMatches(matchesAtualizados)
-        }
+        if (match) alert('Deu Match!')
+
+        const [curtidasAtualizadas, matchesAtualizados] = await Promise.all([
+          carregar(
+            () => candidatoService.listarCurtidasCandidato(candidatoId),
+            'erro-curtidas'
+          ),
+          carregar(
+            () => candidatoService.listarMatchesCandidatoService(candidatoId),
+            'erro-matches'
+          )
+        ])
+        renderizarCurtidas(curtidasAtualizadas)
+        renderizarMatches(matchesAtualizados)
       } catch (erro) {
         document.getElementById('erro-vagas')!.textContent =
           erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
@@ -210,7 +216,6 @@ function adicionarVagaCurtida(vaga: VagaResumoAnonimaInterface): void {
 }
 
 function renderizarMatches(matches: MatchCandidatoInterface[] | null): void {
-  console.log("DADOS RECEBIDOS PARA RENDERIZAR MATCHES:", matches)
   const tbody = document.getElementById('lista-matches')
   if (!tbody) {
     console.error('Elemento #lista-matches não encontrado.')

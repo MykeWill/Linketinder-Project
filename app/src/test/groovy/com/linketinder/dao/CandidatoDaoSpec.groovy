@@ -58,7 +58,8 @@ class CandidatoDaoSpec extends Specification {
 
         then:
         1 * conexao.prepareStatement({ String sql ->
-            sql.contains('JOIN vaga v ON v.id = ccv.vaga_id') &&
+            sql.contains('FROM curtida_candidato_vaga ccv') &&
+                    sql.contains('JOIN vaga v ON v.id = ccv.vaga_id') &&
                     sql.contains('WHERE ccv.candidato_id = ?') &&
                     sql.contains('LEFT JOIN vaga_competencia') &&
                     sql.contains('LEFT JOIN competencia')
@@ -69,5 +70,56 @@ class CandidatoDaoSpec extends Specification {
                  competencias: ['Groovy']],
                 [id: 43, nome: 'Analista', descricao: 'Outra descrição', competencias: []]
         ]
+    }
+
+    def "lista matches do candidato somente quando as duas curtidas sao da mesma vaga"() {
+        given:
+        GroovyMock(ConexaoDB, global: true)
+        def conexao = Mock(Connection)
+        def statement = Mock(PreparedStatement)
+        def resultado = Mock(ResultSet)
+        ConexaoDB.executar(_ as Closure) >> { Closure consulta -> consulta.call(conexao) }
+        conexao.prepareStatement(_ as String) >> statement
+        statement.executeQuery() >> resultado
+        resultado.next() >> false
+        def dao = new CandidatoDao()
+
+        when:
+        def matches = dao.listarMatchesDoCandidato(7)
+
+        then:
+        1 * conexao.prepareStatement({ String sql ->
+            sql.contains('cec.vaga_id = ccv.vaga_id') &&
+                    sql.contains('cec.empresa_id = v.empresa_id') &&
+                    sql.contains('cec.candidato_id = ccv.candidato_id')
+        }) >> statement
+        1 * statement.setInt(1, 7)
+        matches.empty
+    }
+
+    def "detecta match da empresa somente na vaga curtida pelo candidato"() {
+        given:
+        GroovyMock(ConexaoDB, global: true)
+        def conexao = Mock(Connection)
+        def statement = Mock(PreparedStatement)
+        def resultado = Mock(ResultSet)
+        ConexaoDB.executar(_ as Closure) >> { Closure consulta -> consulta.call(conexao) }
+        conexao.prepareStatement(_ as String) >> statement
+        statement.executeQuery() >> resultado
+        resultado.next() >> true
+        resultado.getBoolean(1) >> true
+        def dao = new CandidatoDao()
+
+        when:
+        boolean match = dao.existeCurtidaDaEmpresaParaVaga(7, 42)
+
+        then:
+        1 * conexao.prepareStatement({ String sql ->
+            sql.contains('cec.vaga_id = ccv.vaga_id') &&
+                    sql.contains('ccv.vaga_id = ?')
+        }) >> statement
+        1 * statement.setInt(1, 7)
+        1 * statement.setInt(2, 42)
+        match
     }
 }

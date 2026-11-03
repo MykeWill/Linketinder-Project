@@ -27,6 +27,7 @@ class VagaDaoSpec extends Specification {
         then:
         1 * conexao.prepareStatement({ String sql ->
             sql.contains('NOT EXISTS') &&
+                    sql.contains('FROM curtida_candidato_vaga ccv') &&
                     sql.contains('ccv.candidato_id = ?') &&
                     sql.contains('ccv.vaga_id = v.id')
         }) >> statement
