@@ -71,9 +71,25 @@ class VagaService {
         }
     }
 
-    void atualizarVagaService(Vaga v) {
+    boolean atualizarVagaService(Vaga v, String tipoEditor, Integer editorId) {
         try {
-            vagaDao.atualizarVaga(v)
+            if (v == null || v.id == null || v.id <= 0 || editorId == null || editorId <= 0 ||
+                    !(tipoEditor in ['EMPRESA', 'RECRUTADOR']) ||
+                    !v.nome?.trim() || !v.descricao?.trim() ||
+                    !(v.competencias instanceof List) ||
+                    v.competencias.any { !it?.trim() }) {
+                throw new IllegalArgumentException('Dados inválidos para atualizar a vaga.')
+            }
+            boolean pertenceAoEditor = tipoEditor == 'EMPRESA'
+                    ? vagaDao.vagaPertenceEmpresa(v.id, editorId)
+                    : vagaDao.vagaPertenceRecrutador(v.id, editorId)
+            if (!pertenceAoEditor) {
+                return false
+            }
+            List<Integer> competenciaIds = v.competencias.collect { String nome ->
+                competenciaDao.buscarOuCriar(nome.trim())
+            }
+            return vagaDao.atualizarVaga(v, tipoEditor, editorId, competenciaIds)
         } catch (SQLException ex) {
             throw new ErroBancoException(MensagensErro.ERRO_BANCO, ex)
         }

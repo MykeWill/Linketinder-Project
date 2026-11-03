@@ -1,7 +1,11 @@
 import * as candidatoService from '../service/candidatoService'
 import * as vagaService from '../service/vagaService'
-import { obterSessao } from '../service/sessaoService'
-import type { MatchCandidatoInterface, VagaAnonimaInterface } from '../types/models'
+import { obterSessao, salvarSessao } from '../service/sessaoService'
+import type {
+  MatchCandidatoInterface,
+  PerfilCandidatoInterface,
+  VagaAnonimaInterface
+} from '../types/models'
 
 export async function renderizarPerfilCandidato(): Promise<void> {
   const sessao = obterSessao()
@@ -15,6 +19,21 @@ export async function renderizarPerfilCandidato(): Promise<void> {
   app.innerHTML = `
     <h1>Perfil do Candidato</h1>
     <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
+    <button id="btn-editar-perfil" type="button">Editar Perfil</button>
+    <p id="erro-perfil" class="mensagem-erro" role="alert"></p>
+    <form id="form-editar-perfil" class="escondido">
+      <label>Nome <input id="perfil-nome" required></label>
+      <label>E-mail <input id="perfil-email" type="email" required></label>
+      <label>CPF <input id="perfil-cpf" required></label>
+      <label>Idade <input id="perfil-idade" type="number" min="16" max="120" required></label>
+      <label>Estado <input id="perfil-estado" required></label>
+      <label>CEP <input id="perfil-cep" required></label>
+      <label>Descrição <textarea id="perfil-descricao" required></textarea></label>
+      <label>Competências <input id="perfil-competencias"></label>
+      <label>Nova senha <input id="perfil-senha" type="password"
+        autocomplete="new-password" placeholder="Deixe em branco para manter a senha"></label>
+      <button type="submit">Salvar perfil</button>
+    </form>
     <section>
       <h2>Vagas disponíveis</h2>
       <p id="erro-vagas" class="mensagem-erro" role="alert"></p>
@@ -48,7 +67,8 @@ export async function renderizarPerfilCandidato(): Promise<void> {
     <a href="#/">Voltar</a>
   `
 
-  const [vagas, curtidas, matches] = await Promise.all([
+  const [perfil, vagas, curtidas, matches] = await Promise.all([
+    carregar(() => candidatoService.buscarPerfilCandidato(candidatoId), 'erro-perfil'),
     carregar(() => vagaService.listarVagasAnonimas(candidatoId), 'erro-vagas'),
     carregar(() => candidatoService.listarCurtidasCandidato(candidatoId), 'erro-curtidas'),
     carregar(
@@ -56,9 +76,55 @@ export async function renderizarPerfilCandidato(): Promise<void> {
       'erro-matches'
     )
   ])
+  configurarEdicaoPerfil(perfil, candidatoId, sessao)
   renderizarVagas(vagas, candidatoId)
   renderizarCurtidas(curtidas)
   renderizarMatches(matches)
+}
+
+function configurarEdicaoPerfil(
+  perfil: PerfilCandidatoInterface | null,
+  candidatoId: number,
+  sessao: NonNullable<ReturnType<typeof obterSessao>>
+): void {
+  const formulario = document.getElementById('form-editar-perfil') as HTMLFormElement
+  formulario.querySelectorAll<HTMLInputElement | HTMLTextAreaElement>('[id^="perfil-"]')
+    .forEach(campo => {
+      const propriedade = campo.id.replace('perfil-', '') as keyof PerfilCandidatoInterface
+      if (perfil && propriedade in perfil) {
+        const valor = perfil[propriedade]
+        campo.value = Array.isArray(valor) ? valor.join(', ') : String(valor ?? '')
+      }
+    })
+
+  document.getElementById('btn-editar-perfil')!.addEventListener('click', () => {
+    formulario.classList.toggle('escondido')
+  })
+
+  formulario.addEventListener('submit', async evento => {
+    evento.preventDefault()
+    const erro = document.getElementById('erro-perfil')!
+    erro.textContent = ''
+    try {
+      const senha = (document.getElementById('perfil-senha') as HTMLInputElement).value
+      await candidatoService.atualizarPerfilCandidato(candidatoId, {
+        nome: (document.getElementById('perfil-nome') as HTMLInputElement).value,
+        email: (document.getElementById('perfil-email') as HTMLInputElement).value,
+        cpf: (document.getElementById('perfil-cpf') as HTMLInputElement).value,
+        idade: Number((document.getElementById('perfil-idade') as HTMLInputElement).value),
+        estado: (document.getElementById('perfil-estado') as HTMLInputElement).value,
+        cep: (document.getElementById('perfil-cep') as HTMLInputElement).value,
+        descricao: (document.getElementById('perfil-descricao') as HTMLTextAreaElement).value,
+        competencias: (document.getElementById('perfil-competencias') as HTMLInputElement)
+          .value.split(',').map(valor => valor.trim()).filter(Boolean),
+        senha
+      })
+      salvarSessao({ ...sessao, nome: (document.getElementById('perfil-nome') as HTMLInputElement).value })
+      await renderizarPerfilCandidato()
+    } catch (falha) {
+      erro.textContent = falha instanceof Error ? falha.message : 'Ocorreu um erro inesperado.'
+    }
+  })
 }
 
 async function carregar<T>(carregador: () => Promise<T>, idErro: string): Promise<T | null> {

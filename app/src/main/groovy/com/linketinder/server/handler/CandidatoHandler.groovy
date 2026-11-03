@@ -2,6 +2,7 @@ package com.linketinder.server.handler
 
 import com.linketinder.controller.CandidatoController
 import com.linketinder.model.Candidato
+import com.linketinder.server.SessaoHttp
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import groovy.json.JsonSlurper
@@ -27,10 +28,20 @@ class CandidatoHandler implements HttpHandler {
             } else if (path == '/candidatos/competencias' && method == 'GET') {
                 responder(exchange, 200, candidatoController.contarCandidatosPorCompetenciaController())
             } else {
+                def perfil = path =~ /^\/candidatos\/(\d+)$/
                 def curtida = path =~ /^\/candidatos\/(\d+)\/curtir-vaga$/
                 def curtidas = path =~ /^\/candidatos\/(\d+)\/curtidas$/
                 def matches = path =~ /^\/candidatos\/(\d+)\/matches$/
-                if (curtida.matches()) {
+                if (perfil.matches()) {
+                    Integer id = inteiroPositivo(perfil[0][1])
+                    if (method == 'GET') {
+                        tratarPerfil(exchange, id)
+                    } else if (method == 'PUT') {
+                        tratarAtualizacao(exchange, id)
+                    } else {
+                        responder(exchange, 405, [erro: 'Método não permitido'])
+                    }
+                } else if (curtida.matches()) {
                     if (method != 'POST') {
                         responder(exchange, 405, [erro: 'Método não permitido'])
                     } else {
@@ -126,6 +137,62 @@ class CandidatoHandler implements HttpHandler {
         Integer vagaId = inteiroPositivo(json.vagaId?.toString())
         boolean match = candidatoController.curtirVagaController(candidatoId, vagaId)
         responder(exchange, 200, [match: match])
+    }
+
+    private void tratarPerfil(HttpExchange exchange, Integer candidatoId) {
+        Map sessao = SessaoHttp.obter(exchange)
+        if (sessao == null) {
+            responder(exchange, 401, [erro: 'Sessão inválida ou expirada.'])
+            return
+        }
+        if (sessao.id != candidatoId || sessao.tipo != 'CANDIDATO') {
+            responder(exchange, 403, [erro: 'Acesso não autorizado.'])
+            return
+        }
+
+        Candidato candidato = candidatoController.buscarCandidatoPorIdController(candidatoId)
+        if (candidato == null) {
+            responder(exchange, 404, [erro: 'Candidato não encontrado.'])
+            return
+        }
+        responder(exchange, 200, [
+                id: candidato.id,
+                nome: candidato.nome,
+                email: candidato.email,
+                cpf: candidato.cpf,
+                idade: candidato.idade,
+                estado: candidato.estado,
+                cep: candidato.cep,
+                descricao: candidato.descricao,
+                competencias: candidato.competencias
+        ])
+    }
+
+    private void tratarAtualizacao(HttpExchange exchange, Integer candidatoId) {
+        Map sessao = SessaoHttp.obter(exchange)
+        if (sessao == null) {
+            responder(exchange, 401, [erro: 'Sessão inválida ou expirada.'])
+            return
+        }
+        if (sessao.id != candidatoId || sessao.tipo != 'CANDIDATO') {
+            responder(exchange, 403, [erro: 'Acesso não autorizado.'])
+            return
+        }
+        def json = new JsonSlurper().parseText(exchange.requestBody.text)
+        Candidato candidato = new Candidato(
+                json.nome as String,
+                json.email as String,
+                json.cpf as String,
+                json.idade as Integer,
+                json.estado as String,
+                json.cep as String,
+                json.descricao as String,
+                json.senha as String,
+                json.competencias instanceof List ? json.competencias.collect { it as String } : []
+        )
+        candidato.id = candidatoId
+        candidatoController.atualizarCandidatoController(candidato)
+        responder(exchange, 200, [mensagem: 'Perfil atualizado.'])
     }
 
     private static Integer inteiroPositivo(String valor) {

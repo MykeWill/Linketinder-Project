@@ -86,6 +86,56 @@ class RecrutadorServiceSpec extends Specification {
         1 * repository.removerRecrutador(23)
     }
 
+    def "atualiza recrutador da empresa com hash bcrypt quando a senha muda"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+        String senha = 'senha-atualizada'
+
+        when:
+        service.atualizarRecrutador(recrutador, senha, 1)
+
+        then:
+        1 * repository.buscarRecrutadorPorId(23) >> novoRecrutador()
+        1 * repository.existeEmailParaOutroRecrutador(recrutador.email, 23) >> false
+        1 * repository.atualizarRecrutador(recrutador, {
+            it != senha && BCrypt.checkpw(senha, it)
+        }, 1) >> true
+    }
+
+    def "mantem a senha quando a atualizacao nao informa senha"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        service.atualizarRecrutador(recrutador, '', 1)
+
+        then:
+        1 * repository.buscarRecrutadorPorId(23) >> novoRecrutador()
+        1 * repository.existeEmailParaOutroRecrutador(recrutador.email, 23) >> false
+        1 * repository.atualizarRecrutador(recrutador, '', 1) >> true
+    }
+
+    def "nao permite alterar recrutador vinculado a outra empresa"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        service.atualizarRecrutador(recrutador, '', 2)
+
+        then:
+        thrown(DadosInvalidosException)
+        0 * repository._
+    }
+
     def "lista candidatos disponíveis sem carregar dados pessoais"() {
         given:
         def repository = Mock(RecrutadorRepository)

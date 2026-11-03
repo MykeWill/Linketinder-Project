@@ -4,6 +4,7 @@ import com.linketinder.controller.RecrutadorController
 import com.linketinder.model.Candidato
 import com.linketinder.model.Match
 import com.linketinder.model.Recrutador
+import com.linketinder.server.SessaoHttp
 import com.linketinder.service.RecrutadorService
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpExchange
@@ -160,12 +161,87 @@ class RecrutadorHandlerSpec extends Specification {
         !corpo.contains('hash')
     }
 
-    private Map criarExchange(String metodo, String caminho, String corpo = '') {
+    def "retorna detalhes de edicao sem CPF nem hash e exige empresa proprietaria"() {
+        given:
+        def service = Mock(RecrutadorService)
+        def controller = new RecrutadorController(service)
+        def handler = new RecrutadorHandler(controller)
+        def recrutador = new Recrutador(
+                1, 'Recrutador Fictício', 'Tecnologia', 'Descrição fictícia',
+                'recrutador@exemplo.com', '52998224725',
+                LocalDate.parse('1990-01-01'), 'hash-ficticio'
+        )
+        recrutador.id = 12
+        String token = SessaoHttp.criar([id: 1, nome: 'Empresa', tipo: 'EMPRESA']).token
+        def resposta = criarExchange('GET', '/recrutadores/12', '', token)
+        1 * service.buscarRecrutadorDaEmpresa(12, 1) >> recrutador
+
+        when:
+        handler.handle(resposta.exchange)
+        String corpo = resposta.body.toString('UTF-8')
+        def json = new JsonSlurper().parseText(corpo)
+
+        then:
+        json.keySet().toSet() ==
+                ['id', 'nome', 'areaRecrutamento', 'descricao', 'email', 'dataNascimento'].toSet()
+        json.dataNascimento == '1990-01-01'
+        !corpo.contains('cpf')
+        !corpo.contains('52998224725')
+        !corpo.contains('hash-ficticio')
+    }
+
+    def "atualiza recrutador com sessao da empresa e sem CPF no payload"() {
+        given:
+        def service = Mock(RecrutadorService)
+        def controller = new RecrutadorController(service)
+        def handler = new RecrutadorHandler(controller)
+        String token = SessaoHttp.criar([id: 1, nome: 'Empresa', tipo: 'EMPRESA']).token
+        def resposta = criarExchange('PUT', '/recrutadores/12', '''{
+            "nome":"Recrutador Atualizado","areaRecrutamento":"Produto",
+            "descricao":"Descrição atualizada","email":"novo@exemplo.com",
+            "dataNascimento":"1990-01-01","senha":""
+        }''', token)
+        1 * service.atualizarRecrutador(
+                { it.id == 12 && it.empresaId == 1 && it.cpf == null &&
+                        it.nome == 'Recrutador Atualizado' },
+                '', 1)
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        1 * resposta.exchange.sendResponseHeaders(200, _)
+        json.mensagem == 'Recrutador atualizado.'
+    }
+
+    def "nega edicao de recrutador sem sessao de empresa"() {
+        given:
+        def service = Mock(RecrutadorService)
+        def handler = new RecrutadorHandler(new RecrutadorController(service))
+        def resposta = criarExchange('PUT', '/recrutadores/12', '{}')
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        1 * resposta.exchange.sendResponseHeaders(401, _)
+        json.erro == 'Sessão inválida ou expirada.'
+        0 * service._
+    }
+
+    private Map criarExchange(String metodo, String caminho, String corpo = '', String token = null) {
         def exchange = Mock(HttpExchange)
         def output = new ByteArrayOutputStream()
+        def headers = new Headers()
+        if (token) {
+            headers.set('Authorization', "Bearer ${token}")
+        }
         exchange.requestMethod >> metodo
         exchange.requestURI >> URI.create(caminho)
         exchange.requestBody >> new ByteArrayInputStream(corpo.getBytes('UTF-8'))
+        exchange.requestHeaders >> headers
         exchange.responseHeaders >> new Headers()
         exchange.responseBody >> output
         [exchange: exchange, body: output]

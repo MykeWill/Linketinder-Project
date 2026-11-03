@@ -3,6 +3,7 @@ package com.linketinder.server.handler
 import com.linketinder.controller.LoginController
 import com.linketinder.exception.DadosInvalidosException
 import com.linketinder.exception.ErroBancoException
+import com.linketinder.server.SessaoHttp
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import groovy.json.JsonException
@@ -46,12 +47,12 @@ class LoginHandler implements HttpHandler {
             throw new IllegalArgumentException('Dados inválidos.')
         }
 
-        Map sessao = loginController.autenticar(
+        Map principal = loginController.autenticar(
                 dados.email instanceof String ? dados.email : null,
                 dados.senha instanceof String ? dados.senha : null,
                 dados.tipo instanceof String ? dados.tipo : null
         )
-        responder(exchange, 200, sessao)
+        responder(exchange, 200, SessaoHttp.criar(principal))
     }
 
     private void responder(HttpExchange exchange, int status, Object corpo) {

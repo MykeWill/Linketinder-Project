@@ -42,6 +42,20 @@ class EmpresaDao implements EmpresaRepository {
         }
     }
 
+    Empresa buscarPorId(Integer id) {
+        String sql = '''
+            SELECT id, nome, email, cnpj, pais, estado, cep, descricao, senha
+            FROM empresa
+            WHERE id = ?
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, id)
+            def resultado = stmt.executeQuery()
+            return resultado.next() ? mapearEmpresa(resultado) : null
+        }
+    }
+
     List<Empresa> listarTodasEmpresas() {
         String sql = 'SELECT id, nome, cnpj, email, descricao, pais, estado, cep, senha FROM empresa'
         return ConexaoDB.executar { conexao ->
@@ -82,9 +96,14 @@ class EmpresaDao implements EmpresaRepository {
         }
     }
 
-    void atualizarEmpresa(Empresa e) {
-        String sql = 'UPDATE empresa SET nome = ?, cnpj = ?, email = ?, descricao = ?, pais = ?, estado = ?, cep = ?, senha = ? WHERE id = ?'
-        ConexaoDB.executar { conexao ->
+    boolean atualizarEmpresa(Empresa e) {
+        String sql = '''
+            UPDATE empresa
+            SET nome = ?, cnpj = ?, email = ?, descricao = ?, pais = ?, estado = ?, cep = ?,
+                senha = COALESCE(NULLIF(?, ''), senha)
+            WHERE id = ?
+        '''
+        return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
             stmt.setString(1, e.nome)
             stmt.setString(2, e.cnpj)
@@ -95,7 +114,7 @@ class EmpresaDao implements EmpresaRepository {
             stmt.setString(7, e.cep)
             stmt.setString(8, e.senha)
             stmt.setInt(9, e.id)
-            stmt.executeUpdate()
+            return stmt.executeUpdate() > 0
         }
     }
 

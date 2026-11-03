@@ -1,9 +1,11 @@
 import { Chart } from 'chart.js/auto'
 import * as candidatoService from '../service/candidatoService'
+import * as empresaService from '../service/empresaService'
 import * as recrutadorService from '../service/recrutadorService'
 import * as vagaService from '../service/vagaService'
-import { obterSessao } from '../service/sessaoService'
+import { obterSessao, salvarSessao } from '../service/sessaoService'
 import type {
+  PerfilEmpresaInterface,
   RecrutadorInterface,
   VagaInterface
 } from '../types/models'
@@ -23,6 +25,14 @@ export async function renderizarPerfilEmpresa() {
   let erroContagemCompetencias = ''
   let recrutadores: RecrutadorInterface[] = []
   let erroListagemRecrutadores = ''
+  let perfilEmpresa: PerfilEmpresaInterface | null = null
+  let erroPerfil = ''
+
+  try {
+    perfilEmpresa = await empresaService.buscarPerfilEmpresa(empresaId)
+  } catch (erro) {
+    erroPerfil = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+  }
 
   try {
     vagasDaEmpresa = await vagaService.listarVagasPorEmpresaService(empresaId)
@@ -45,10 +55,13 @@ export async function renderizarPerfilEmpresa() {
   }
 
   const linhasVagas = vagasDaEmpresa.map(vaga => `
-        <tr title="${vaga.descricao}">
+        <tr title="${escaparHtml(vaga.descricao)}">
             <td>${escaparHtml(vaga.nome ?? vaga.titulo ?? '')}</td>
-            <td>${vaga.competencias.join(', ')}</td>
-            <td><button class="btn-remover-vaga" data-id="${vaga.id}">Remover</button></td>
+            <td>${vaga.competencias.map(escaparHtml).join(', ')}</td>
+            <td>
+              <button class="btn-editar-vaga" data-id="${escaparHtml(String(vaga.id))}">Editar</button>
+              <button class="btn-remover-vaga" data-id="${escaparHtml(String(vaga.id))}">Remover</button>
+            </td>
         </tr>
     `).join('')
 
@@ -57,13 +70,30 @@ export async function renderizarPerfilEmpresa() {
             <td>${escaparHtml(recrutador.nome)}</td>
             <td>${escaparHtml(recrutador.areaRecrutamento)}</td>
             <td>${escaparHtml(recrutador.email)}</td>
-            <td><button class="btn-remover-recrutador" data-id="${escaparHtml(String(recrutador.id))}">Remover</button></td>
+            <td>
+              <button class="btn-editar-recrutador" data-id="${escaparHtml(String(recrutador.id))}">Editar</button>
+              <button class="btn-remover-recrutador" data-id="${escaparHtml(String(recrutador.id))}">Remover</button>
+            </td>
         </tr>
     `).join('')
 
   app.innerHTML = `
         <h1>Perfil da Empresa</h1>
         <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
+        <button id="btn-editar-perfil" type="button">Editar Perfil</button>
+        <form id="form-editar-perfil" class="escondido">
+            <label>Nome <input id="perfil-nome" required></label>
+            <label>E-mail <input id="perfil-email" type="email" required></label>
+            <label>CNPJ <input id="perfil-cnpj" required></label>
+            <label>País <input id="perfil-pais" required></label>
+            <label>Estado <input id="perfil-estado" required></label>
+            <label>CEP <input id="perfil-cep" required></label>
+            <label>Descrição <textarea id="perfil-descricao" required></textarea></label>
+            <label>Nova senha <input id="perfil-senha" type="password"
+              autocomplete="new-password" placeholder="Deixe em branco para manter a senha"></label>
+            <button type="submit">Salvar perfil</button>
+        </form>
+        <p id="erro-perfil" class="mensagem-erro" role="alert">${escaparHtml(erroPerfil)}</p>
         <h2>Minhas vagas</h2>
         <table>
             <thead>
@@ -84,6 +114,15 @@ export async function renderizarPerfilEmpresa() {
             <input type="text" id="competencias" placeholder="Competências exigidas (separadas por vírgula)" required>
             <button type="submit">Salvar vaga</button>
         </form>
+        <form id="form-editar-vaga" class="escondido">
+            <input type="text" id="editar-vaga-titulo" placeholder="Título da vaga" required>
+            <textarea id="editar-vaga-descricao" placeholder="Descrição da vaga" required></textarea>
+            <input type="text" id="editar-vaga-local" placeholder="Local">
+            <input type="text" id="editar-vaga-competencias"
+              placeholder="Competências exigidas (separadas por vírgula)" required>
+            <button type="submit">Salvar alterações</button>
+            <button id="btn-cancelar-edicao-vaga" type="button">Cancelar</button>
+        </form>
         <h2>Meus Recrutadores</h2>
         <table>
             <thead>
@@ -98,7 +137,9 @@ export async function renderizarPerfilEmpresa() {
                 ${linhasRecrutadores}
             </tbody>
         </table>
-        <button id="btn-novo-recrutador">+ Cadastrar novo recrutador</button>
+        <button id="btn-novo-recrutador" class="btn-novo-recrutador" type="button">
+          + Cadastrar novo recrutador
+        </button>
         <form id="form-novo-recrutador" class="escondido">
             <input type="text" id="recrutador-nome" placeholder="Nome" required>
             <input type="text" id="recrutador-area" placeholder="Área de recrutamento" required>
@@ -109,6 +150,19 @@ export async function renderizarPerfilEmpresa() {
             <input type="password" id="recrutador-senha" placeholder="Senha" required>
             <button type="submit">Salvar recrutador</button>
         </form>
+        <form id="form-editar-recrutador" class="escondido">
+            <h3>Editar recrutador</h3>
+            <label>Nome <input id="editar-recrutador-nome" required></label>
+            <label>Área de recrutamento <input id="editar-recrutador-area" required></label>
+            <label>Descrição <textarea id="editar-recrutador-descricao" required></textarea></label>
+            <label>E-mail <input id="editar-recrutador-email" type="email" required></label>
+            <label>Data de nascimento <input id="editar-recrutador-data-nascimento"
+              type="date" required></label>
+            <label>Nova senha <input id="editar-recrutador-senha" type="password"
+              autocomplete="new-password" placeholder="Deixe em branco para manter a senha"></label>
+            <button type="submit">Salvar alterações</button>
+            <button id="btn-cancelar-edicao-recrutador" type="button">Cancelar</button>
+        </form>
         <p id="mensagem-erro" class="mensagem-erro"></p>
         <h2>Candidatos por competência</h2>
         <canvas id="grafico-competencias"></canvas>
@@ -116,6 +170,35 @@ export async function renderizarPerfilEmpresa() {
     `
 
   const mensagemErro = document.getElementById('mensagem-erro')!
+  const formularioPerfil = document.getElementById('form-editar-perfil') as HTMLFormElement
+  preencherFormularioPerfil(perfilEmpresa)
+  document.getElementById('btn-editar-perfil')!.addEventListener('click', () => {
+    formularioPerfil.classList.toggle('escondido')
+  })
+  formularioPerfil.addEventListener('submit', async evento => {
+    evento.preventDefault()
+    const senha = (document.getElementById('perfil-senha') as HTMLInputElement).value
+    try {
+      await empresaService.atualizarPerfilEmpresa(empresaId, {
+        nome: (document.getElementById('perfil-nome') as HTMLInputElement).value,
+        email: (document.getElementById('perfil-email') as HTMLInputElement).value,
+        cnpj: (document.getElementById('perfil-cnpj') as HTMLInputElement).value,
+        pais: (document.getElementById('perfil-pais') as HTMLInputElement).value,
+        estado: (document.getElementById('perfil-estado') as HTMLInputElement).value,
+        cep: (document.getElementById('perfil-cep') as HTMLInputElement).value,
+        descricao: (document.getElementById('perfil-descricao') as HTMLTextAreaElement).value,
+        senha
+      })
+      salvarSessao({
+        ...sessao,
+        nome: (document.getElementById('perfil-nome') as HTMLInputElement).value
+      })
+      await renderizarPerfilEmpresa()
+    } catch (erro) {
+      document.getElementById('erro-perfil')!.textContent =
+        erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+    }
+  })
   mensagemErro.textContent = [
     erroListagemVagas,
     erroListagemRecrutadores,
@@ -159,6 +242,45 @@ export async function renderizarPerfilEmpresa() {
     }
   })
 
+  const formularioEdicaoVaga = document.getElementById('form-editar-vaga') as HTMLFormElement
+  let vagaEmEdicao: VagaInterface | null = null
+  document.querySelectorAll<HTMLButtonElement>('.btn-editar-vaga').forEach(botao => {
+    botao.addEventListener('click', () => {
+      vagaEmEdicao = vagasDaEmpresa.find(vaga => String(vaga.id) === botao.dataset.id) ?? null
+      if (!vagaEmEdicao) return
+      ;(document.getElementById('editar-vaga-titulo') as HTMLInputElement).value =
+        vagaEmEdicao.nome ?? vagaEmEdicao.titulo ?? ''
+      ;(document.getElementById('editar-vaga-descricao') as HTMLTextAreaElement).value =
+        vagaEmEdicao.descricao
+      ;(document.getElementById('editar-vaga-local') as HTMLInputElement).value =
+        vagaEmEdicao.local ?? ''
+      ;(document.getElementById('editar-vaga-competencias') as HTMLInputElement).value =
+        vagaEmEdicao.competencias.join(', ')
+      formularioEdicaoVaga.classList.remove('escondido')
+    })
+  })
+  document.getElementById('btn-cancelar-edicao-vaga')!.addEventListener('click', () => {
+    formularioEdicaoVaga.classList.add('escondido')
+    vagaEmEdicao = null
+  })
+  formularioEdicaoVaga.addEventListener('submit', async evento => {
+    evento.preventDefault()
+    if (!vagaEmEdicao) return
+    try {
+      await vagaService.atualizarVagaService({
+        id: vagaEmEdicao.id,
+        nome: (document.getElementById('editar-vaga-titulo') as HTMLInputElement).value,
+        descricao: (document.getElementById('editar-vaga-descricao') as HTMLTextAreaElement).value,
+        local: (document.getElementById('editar-vaga-local') as HTMLInputElement).value,
+        competencias: (document.getElementById('editar-vaga-competencias') as HTMLInputElement)
+          .value.split(',').map(valor => valor.trim()).filter(Boolean)
+      })
+      await renderizarPerfilEmpresa()
+    } catch (erro) {
+      mensagemErro.textContent = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+    }
+  })
+
   const botaoNovoRecrutador = document.getElementById('btn-novo-recrutador')!
   const formularioRecrutador = document.getElementById('form-novo-recrutador')!
 
@@ -187,6 +309,57 @@ export async function renderizarPerfilEmpresa() {
     }
   })
 
+  const formularioEdicaoRecrutador =
+    document.getElementById('form-editar-recrutador') as HTMLFormElement
+  let recrutadorEmEdicao: RecrutadorInterface | null = null
+  document.querySelectorAll<HTMLButtonElement>('.btn-editar-recrutador').forEach(botao => {
+    botao.addEventListener('click', async () => {
+      try {
+        const recrutador = await recrutadorService.buscarRecrutador(botao.dataset.id!)
+        recrutadorEmEdicao = recrutador
+        ;(document.getElementById('editar-recrutador-nome') as HTMLInputElement).value =
+          recrutador.nome
+        ;(document.getElementById('editar-recrutador-area') as HTMLInputElement).value =
+          recrutador.areaRecrutamento
+        ;(document.getElementById('editar-recrutador-descricao') as HTMLTextAreaElement).value =
+          recrutador.descricao
+        ;(document.getElementById('editar-recrutador-email') as HTMLInputElement).value =
+          recrutador.email
+        ;(document.getElementById('editar-recrutador-data-nascimento') as HTMLInputElement).value =
+          recrutador.dataNascimento
+        ;(document.getElementById('editar-recrutador-senha') as HTMLInputElement).value = ''
+        formularioEdicaoRecrutador.classList.remove('escondido')
+      } catch (erro) {
+        mensagemErro.textContent = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+      }
+    })
+  })
+
+  document.getElementById('btn-cancelar-edicao-recrutador')!.addEventListener('click', () => {
+    formularioEdicaoRecrutador.classList.add('escondido')
+    recrutadorEmEdicao = null
+  })
+
+  formularioEdicaoRecrutador.addEventListener('submit', async evento => {
+    evento.preventDefault()
+    if (!recrutadorEmEdicao) return
+    try {
+      await recrutadorService.atualizarRecrutador(recrutadorEmEdicao.id, {
+        nome: (document.getElementById('editar-recrutador-nome') as HTMLInputElement).value,
+        areaRecrutamento: (document.getElementById('editar-recrutador-area') as HTMLInputElement).value,
+        descricao: (document.getElementById('editar-recrutador-descricao') as HTMLTextAreaElement).value,
+        email: (document.getElementById('editar-recrutador-email') as HTMLInputElement).value,
+        dataNascimento: (document.getElementById(
+          'editar-recrutador-data-nascimento'
+        ) as HTMLInputElement).value,
+        senha: (document.getElementById('editar-recrutador-senha') as HTMLInputElement).value
+      })
+      await renderizarPerfilEmpresa()
+    } catch (erro) {
+      mensagemErro.textContent = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+    }
+  })
+
   document.querySelectorAll('.btn-remover-vaga').forEach(botao => {
     botao.addEventListener('click', async () => {
       const id = (botao as HTMLElement).dataset.id!
@@ -209,6 +382,16 @@ export async function renderizarPerfilEmpresa() {
         mensagemErro.textContent = (erro as Error).message
       }
     })
+  })
+}
+
+function preencherFormularioPerfil(perfil: PerfilEmpresaInterface | null): void {
+  if (!perfil) return
+  ;(['nome', 'email', 'cnpj', 'pais', 'estado', 'cep', 'descricao'] as const).forEach(campo => {
+    const elemento = document.getElementById(`perfil-${campo}`)
+    if (elemento instanceof HTMLInputElement || elemento instanceof HTMLTextAreaElement) {
+      elemento.value = perfil[campo]
+    }
   })
 }
 

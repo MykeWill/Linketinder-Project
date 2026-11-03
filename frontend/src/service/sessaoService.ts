@@ -30,6 +30,9 @@ function isSessao(dados: unknown): dados is SessaoInterface {
     typeof dados.id !== 'number' ||
     !Number.isInteger(dados.id) ||
     dados.id <= 0 ||
+    !('token' in dados) ||
+    typeof dados.token !== 'string' ||
+    dados.token.length === 0 ||
     !('nome' in dados) ||
     typeof dados.nome !== 'string' ||
     !('tipo' in dados) ||

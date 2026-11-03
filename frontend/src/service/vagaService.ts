@@ -80,3 +80,20 @@ export async function cadastrarVagaService(dados: DadosVagaInterface): Promise<V
 export async function removerVagaService(id: number | string): Promise<void> {
     await request<void>(`/vagas/${encodeURIComponent(String(id))}`, { method: 'DELETE' })
 }
+
+export async function atualizarVagaService(dados: {
+    id: number | string
+    nome: string
+    descricao: string
+    local: string
+    competencias: string[]
+}): Promise<void> {
+    if (!dados.nome.trim() || !dados.descricao.trim() || dados.competencias.length === 0) {
+        throw new Error('Preencha título, descrição e ao menos uma competência.')
+    }
+    const { id, ...atualizacao } = dados
+    await request<{ mensagem: string }>(`/vagas/${encodeURIComponent(String(id))}`, {
+        method: 'PUT',
+        body: JSON.stringify(atualizacao)
+    })
+}

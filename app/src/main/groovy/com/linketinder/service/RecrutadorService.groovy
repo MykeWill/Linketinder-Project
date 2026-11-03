@@ -55,6 +55,44 @@ class RecrutadorService {
         }
     }
 
+    Recrutador buscarRecrutadorDaEmpresa(Integer recrutadorId, Integer empresaId) {
+        try {
+            Recrutador recrutador = recrutadorRepository.buscarRecrutadorPorId(recrutadorId)
+            if (recrutador == null || recrutador.empresaId != empresaId) {
+                throw new RegistroNaoEncontradoException(MensagensErro.RECRUTADOR_NAO_ENCONTRADO)
+            }
+            return recrutador
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
+    void atualizarRecrutador(Recrutador recrutador, String senhaPura, Integer empresaId) {
+        if (recrutador == null || recrutador.id == null || recrutador.id <= 0 ||
+                empresaId == null || empresaId <= 0 ||
+                recrutador.empresaId != empresaId) {
+            throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+        }
+        validarDadosRecrutador(recrutador, senhaPura, false)
+
+        try {
+            Recrutador existente = recrutadorRepository.buscarRecrutadorPorId(recrutador.id)
+            if (existente == null || existente.empresaId != empresaId) {
+                throw new RegistroNaoEncontradoException(MensagensErro.RECRUTADOR_NAO_ENCONTRADO)
+            }
+            if (recrutadorRepository.existeEmailParaOutroRecrutador(
+                    recrutador.email, recrutador.id)) {
+                throw new RegistroDuplicadoException(MensagensErro.EMAIL_DUPLICADO)
+            }
+            if (!recrutadorRepository.atualizarRecrutador(
+                    recrutador, senhaPura ? BCrypt.hashpw(senhaPura, BCrypt.gensalt()) : '', empresaId)) {
+                throw new RegistroNaoEncontradoException(MensagensErro.RECRUTADOR_NAO_ENCONTRADO)
+            }
+        } catch (SQLException e) {
+            throw traduzirErro(e)
+        }
+    }
+
     List<Candidato> listarCandidatosDisponiveis(Integer recrutadorId) {
         try {
             return recrutadorRepository.listarCandidatosDisponiveis(recrutadorId)
@@ -103,12 +141,21 @@ class RecrutadorService {
     }
 
     private void validarDados(Recrutador recrutador, String senhaPura) {
-        if (recrutador == null || recrutador.email == null ||
+        validarDadosRecrutador(recrutador, senhaPura, true)
+    }
+
+    private void validarDadosRecrutador(
+            Recrutador recrutador, String senhaPura, boolean senhaObrigatoria) {
+        if (recrutador == null || !recrutador.nome?.trim() ||
+                !recrutador.areaRecrutamento?.trim() ||
+                !recrutador.descricao?.trim() ||
+                recrutador.email == null ||
                 !EMAIL_VALIDO.matcher(recrutador.email).matches() ||
-                senhaPura == null || senhaPura.isEmpty()) {
+                (senhaObrigatoria && !senhaPura) ||
+                (senhaPura && senhaPura.length() < 6)) {
             throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
         }
-        if (!cpfValido(recrutador.cpf)) {
+        if (senhaObrigatoria && !cpfValido(recrutador.cpf)) {
             throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
         }
         if (recrutador.dataNascimento == null ||

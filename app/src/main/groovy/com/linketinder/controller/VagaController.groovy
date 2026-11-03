@@ -31,8 +31,8 @@ class VagaController {
         return vagaService.listarVagasVisiveisParaRecrutador(empresaId)
     }
 
-    void atualizarVagaController(Vaga vaga) {
-        vagaService.atualizarVagaService(vaga)
+    boolean atualizarVagaController(Vaga vaga, String tipoEditor, Integer editorId) {
+        return vagaService.atualizarVagaService(vaga, tipoEditor, editorId)
     }
 
     void removerVagaController(Integer id) {

@@ -8,6 +8,10 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Edição dos dados de recrutadores pela empresa proprietária, com senha opcional protegida por bcrypt e sem leitura ou alteração de CPF.
+- Espaçamento superior de 16px no botão de cadastro de recrutadores no perfil da empresa.
+- Edição de perfil de candidatos e empresas com atualização de senha opcional via bcrypt e edição de vagas por empresa ou recrutador responsável.
+- Sessões bearer com validade de oito horas para proteger a leitura/edição de perfis e a edição de vagas, vinculadas ao usuário autenticado.
 - Bcrypt implementado no cadastro e login de candidatos e empresas.
 - Autenticação de candidatos, empresas e recrutadores via API, com sessão local e perfis vinculados ao usuário autenticado.
 - Curtidas de vagas pelo candidato com confirmação de match, apresentação de matches atualizada e botão de ação no perfil do candidato.

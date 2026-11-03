@@ -4,6 +4,7 @@ import com.linketinder.controller.CandidatoController
 import com.linketinder.model.Candidato
 import com.linketinder.repository.CandidatoRepository
 import com.linketinder.repository.CompetenciaRepository
+import com.linketinder.server.SessaoHttp
 import com.linketinder.service.CandidatoService
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpExchange
@@ -212,12 +213,58 @@ class CandidatoHandlerSpec extends Specification {
         json == [match: true]
     }
 
-    private Map criarExchange(String metodo, String caminho, String corpo = '') {
+    def "atualiza somente o perfil correspondente ao ID da sessao"() {
+        given:
+        def controller = Mock(CandidatoController)
+        def handler = new CandidatoHandler(controller)
+        String token = SessaoHttp.criar([id: 7, nome: 'Ana Souza', tipo: 'CANDIDATO']).token
+        def resposta = criarExchange('PUT', '/candidatos/7', '''
+            {"nome":"Ana Souza","email":"ana@example.test",
+             "cpf":"529.982.247-25","idade":30,"estado":"SP","cep":"01000-000",
+             "descricao":"Descrição fictícia","senha":"","competencias":["Groovy"]}
+        ''', token)
+        1 * controller.atualizarCandidatoController({
+            it.id == 7 && it.nome == 'Ana Souza' &&
+                    it.competencias == ['Groovy'] && it.senha == ''
+        })
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        1 * resposta.exchange.sendResponseHeaders(200, _)
+        json.mensagem == 'Perfil atualizado.'
+    }
+
+    def "nega leitura do perfil quando o ID diverge da sessao"() {
+        given:
+        def controller = Mock(CandidatoController)
+        def handler = new CandidatoHandler(controller)
+        String token = SessaoHttp.criar([id: 7, nome: 'Ana Souza', tipo: 'CANDIDATO']).token
+        def resposta = criarExchange('GET', '/candidatos/8', '', token)
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        1 * resposta.exchange.sendResponseHeaders(403, _)
+        json.erro == 'Acesso não autorizado.'
+        0 * controller._
+    }
+
+    private Map criarExchange(String metodo, String caminho, String corpo = '', String token = null) {
         def exchange = Mock(HttpExchange)
         def output = new ByteArrayOutputStream()
+        def headers = new Headers()
+        if (token) {
+            headers.set('Authorization', "Bearer ${token}")
+        }
         exchange.requestMethod >> metodo
         exchange.requestURI >> URI.create(caminho)
         exchange.requestBody >> new ByteArrayInputStream(corpo.getBytes('UTF-8'))
+        exchange.requestHeaders >> headers
         exchange.responseHeaders >> new Headers()
         exchange.responseBody >> output
         [exchange: exchange, body: output]

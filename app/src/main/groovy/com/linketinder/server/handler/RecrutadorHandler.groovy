@@ -8,6 +8,7 @@ import com.linketinder.exception.RegistroNaoEncontradoException
 import com.linketinder.model.Candidato
 import com.linketinder.model.Match
 import com.linketinder.model.Recrutador
+import com.linketinder.server.SessaoHttp
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
 import groovy.json.JsonException
@@ -97,12 +98,17 @@ class RecrutadorHandler implements HttpHandler {
 
         def recrutador = path =~ /^\/recrutadores\/(\d+)$/
         if (recrutador.matches()) {
-            if (method != 'DELETE') {
+            Integer recrutadorId = idDaRota(recrutador[0][1])
+            if (method == 'GET') {
+                tratarPerfilRecrutador(exchange, recrutadorId)
+            } else if (method == 'PUT') {
+                tratarAtualizacao(exchange, recrutadorId)
+            } else if (method == 'DELETE') {
+                recrutadorController.removerRecrutadorController(recrutadorId)
+                responder(exchange, 204, null)
+            } else {
                 responder(exchange, 405, [erro: 'Método não permitido'])
-                return
             }
-            recrutadorController.removerRecrutadorController(idDaRota(recrutador[0][1]))
-            responder(exchange, 204, null)
             return
         }
 
@@ -142,6 +148,60 @@ class RecrutadorHandler implements HttpHandler {
 
         Integer id = recrutadorController.cadastrarRecrutadorController(recrutador, json.senha as String)
         responder(exchange, 201, [id: id])
+    }
+
+    private void tratarPerfilRecrutador(HttpExchange exchange, Integer recrutadorId) {
+        Map sessao = SessaoHttp.obter(exchange)
+        if (sessao == null) {
+            responder(exchange, 401, [erro: 'Sessão inválida ou expirada.'])
+            return
+        }
+        if (sessao.tipo != 'EMPRESA') {
+            responder(exchange, 403, [erro: 'Acesso não autorizado.'])
+            return
+        }
+        Recrutador recrutador = recrutadorController.buscarRecrutadorDaEmpresaController(
+                recrutadorId, sessao.id as Integer)
+        responder(exchange, 200, [
+                id: recrutador.id,
+                nome: recrutador.nome,
+                areaRecrutamento: recrutador.areaRecrutamento,
+                descricao: recrutador.descricao,
+                email: recrutador.email,
+                dataNascimento: recrutador.dataNascimento.toString()
+        ])
+    }
+
+    private void tratarAtualizacao(HttpExchange exchange, Integer recrutadorId) {
+        Map sessao = SessaoHttp.obter(exchange)
+        if (sessao == null) {
+            responder(exchange, 401, [erro: 'Sessão inválida ou expirada.'])
+            return
+        }
+        if (sessao.tipo != 'EMPRESA') {
+            responder(exchange, 403, [erro: 'Acesso não autorizado.'])
+            return
+        }
+
+        Map json = parsearObjeto(exchange)
+        if (!(json.dataNascimento instanceof String)) {
+            throw new IllegalArgumentException('Data de nascimento inválida.')
+        }
+        Integer empresaId = sessao.id as Integer
+        Recrutador recrutador = new Recrutador(
+                empresaId,
+                json.nome as String,
+                json.areaRecrutamento as String,
+                json.descricao as String,
+                json.email as String,
+                null,
+                LocalDate.parse(json.dataNascimento as String),
+                null
+        )
+        recrutador.id = recrutadorId
+        recrutadorController.atualizarRecrutadorController(
+                recrutador, json.senha instanceof String ? json.senha as String : '', empresaId)
+        responder(exchange, 200, [mensagem: 'Recrutador atualizado.'])
     }
 
     private void tratarCandidatos(HttpExchange exchange, Integer recrutadorId) {

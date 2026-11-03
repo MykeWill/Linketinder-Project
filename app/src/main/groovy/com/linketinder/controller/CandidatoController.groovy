@@ -43,6 +43,10 @@ class CandidatoController {
         candidatoService.atualizarCandidatoService(candidato)
     }
 
+    Candidato buscarCandidatoPorIdController(Integer id) {
+        return candidatoService.buscarCandidatoPorIdService(id)
+    }
+
     void removerCandidatoController(Integer id) {
         candidatoService.removerCandidatoService(id)
     }

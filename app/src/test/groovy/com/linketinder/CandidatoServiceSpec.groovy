@@ -123,6 +123,27 @@ class CandidatoServiceSpec extends Specification {
         1 * candidatoDaoMock.vincularCompetenciaAoCandidato(42, 2)
     }
 
+    def "atualiza candidato e aplica hash bcrypt à nova senha"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def candidato = new Candidato("João Silva", "joao@example.test", "529.982.247-25",
+                25, "SP", "01000-000", "Descrição profissional fictícia",
+                "senha-nova", ["Groovy"])
+        candidato.id = 42
+
+        when:
+        service.atualizarCandidatoService(candidato)
+
+        then:
+        1 * competenciaDaoMock.buscarOuCriar('Groovy') >> 7
+        1 * candidatoDaoMock.atualizarCandidato({
+            it.id == 42 && it.cpf == '52998224725' &&
+                    BCrypt.checkpw('senha-nova', it.senha)
+        }, [7]) >> true
+    }
+
     def "normaliza CPF para somente digitos antes de cadastrar"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)

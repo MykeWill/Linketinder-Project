@@ -42,6 +42,24 @@ class EmpresaServiceSpec extends Specification {
         }) >> 1
     }
 
+    def "atualiza empresa e aplica hash bcrypt à nova senha"() {
+        given:
+        def empresaDaoMock = Mock(EmpresaRepository)
+        def service = new EmpresaService(empresaDaoMock)
+        def empresa = new Empresa("Tech Exemplo", "rh@example.test", "11.111.111/0001-11",
+                "Brasil", "SP", "01000-000", "Descrição comercial fictícia", "senha-nova")
+        empresa.id = 8
+
+        when:
+        service.atualizarEmpresaService(empresa)
+
+        then:
+        1 * empresaDaoMock.atualizarEmpresa({
+            it.id == 8 && it.cnpj == '11111111000111' &&
+                    BCrypt.checkpw('senha-nova', it.senha)
+        }) >> true
+    }
+
     def "normaliza CNPJ para somente digitos antes de cadastrar"() {
         given:
         def empresaDaoMock = Mock(EmpresaRepository)

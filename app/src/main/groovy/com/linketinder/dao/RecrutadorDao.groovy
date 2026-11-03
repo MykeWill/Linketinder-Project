@@ -91,6 +91,18 @@ class RecrutadorDao implements RecrutadorRepository {
         }
     }
 
+    boolean existeEmailParaOutroRecrutador(String email, Integer recrutadorId) {
+        String sql = 'SELECT EXISTS (SELECT 1 FROM recrutador WHERE email = ? AND id <> ?)'
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setString(1, email)
+            stmt.setInt(2, recrutadorId)
+            def resultado = stmt.executeQuery()
+            resultado.next()
+            return resultado.getBoolean(1)
+        }
+    }
+
     boolean existeCpf(String cpf) {
         String sql = 'SELECT EXISTS (SELECT 1 FROM recrutador WHERE cpf = ?)'
         return ConexaoDB.executar { conexao ->
@@ -99,6 +111,27 @@ class RecrutadorDao implements RecrutadorRepository {
             def resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getBoolean(1)
+        }
+    }
+
+    boolean atualizarRecrutador(Recrutador recrutador, String senhaPura, Integer empresaId) {
+        String sql = '''
+            UPDATE recrutador
+            SET nome = ?, area_recrutamento = ?, descricao = ?, email = ?,
+                data_nascimento = ?, senha_hash = COALESCE(NULLIF(?, ''), senha_hash)
+            WHERE id = ? AND empresa_id = ?
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setString(1, recrutador.nome)
+            stmt.setString(2, recrutador.areaRecrutamento)
+            stmt.setString(3, recrutador.descricao)
+            stmt.setString(4, recrutador.email)
+            stmt.setDate(5, Date.valueOf(recrutador.dataNascimento))
+            stmt.setString(6, senhaPura)
+            stmt.setInt(7, recrutador.id)
+            stmt.setInt(8, empresaId)
+            return stmt.executeUpdate() > 0
         }
     }
 
