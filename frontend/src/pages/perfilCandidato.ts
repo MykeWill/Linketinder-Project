@@ -15,7 +15,6 @@ export async function renderizarPerfilCandidato(): Promise<void> {
   app.innerHTML = `
     <h1>Perfil do Candidato</h1>
     <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
-    <p style="color: red; font-weight: bold;">[VERSAO NOVA 2.0]</p>
     <section>
       <h2>Vagas disponíveis</h2>
       <p id="erro-vagas" class="mensagem-erro" role="alert"></p>
