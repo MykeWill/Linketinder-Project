@@ -5,21 +5,24 @@ export function renderizarLogin() {
   const app = document.getElementById('app')!
 
   app.innerHTML = `
-    <h1>Login</h1>
-    <form id="form-login">
+    <main class="tela-autenticacao">
+      <h1>Bem-vindo de volta!</h1>
+      <p>Acesse sua conta para continuar no Linketinder.</p>
+      <form id="form-login" class="form-login">
       <label for="tipo">Tipo de usuário</label>
-      <select id="tipo" required>
+      <select id="tipo" class="campo-formulario" required>
         <option value="">Selecione</option>
         <option value="CANDIDATO">Candidato</option>
         <option value="EMPRESA">Empresa</option>
         <option value="RECRUTADOR">Recrutador</option>
       </select>
-      <input type="email" id="email" placeholder="E-mail" required>
-      <input type="password" id="senha" placeholder="Senha" required>
-      <button type="submit">Entrar</button>
-    </form>
-    <p id="mensagem-erro" class="mensagem-erro" role="alert"></p>
-    <a href="#/">Ainda não tenho cadastro</a>
+      <input class="campo-formulario" type="email" id="email" placeholder="E-mail" required>
+      <input class="campo-formulario" type="password" id="senha" placeholder="Senha" required>
+      <button class="botao-entrar" type="submit">Entrar</button>
+      </form>
+      <p id="mensagem-erro" class="mensagem-erro" role="alert"></p>
+      <p class="link-secundario"><a href="#/">Ainda não tenho cadastro</a></p>
+    </main>
   `
 
   const formulario = document.getElementById('form-login') as HTMLFormElement

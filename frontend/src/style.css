@@ -26,6 +26,51 @@ body {
   padding: 32px 20px 64px;
 }
 
+.tela-autenticacao {
+  max-width: 480px;
+  margin: 8vh auto 0;
+}
+
+.tela-autenticacao h2 {
+  margin-top: 28px;
+}
+
+.botoes-escolha {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: 20px;
+}
+
+.botao-escolha {
+  display: block;
+  padding: 12px 16px;
+  border-radius: var(--raio);
+  background-color: var(--cor-primaria);
+  color: var(--cor-branco);
+  text-align: center;
+  font-weight: 600;
+  transition: background-color 0.15s ease;
+}
+
+.botao-escolha:hover {
+  background-color: var(--cor-primaria-escura);
+  text-decoration: none;
+}
+
+.link-secundario {
+  margin-top: 24px;
+  text-align: center;
+}
+
+.form-login {
+  width: 100%;
+}
+
+.form-login .botao-entrar {
+  width: 100%;
+}
+
 h1 {
   font-size: 1.8rem;
   margin-bottom: 4px;
