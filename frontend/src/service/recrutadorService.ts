@@ -28,11 +28,12 @@ export function listarCandidatos(recrutadorId: number): Promise<CandidatoDisponi
 
 export function curtirCandidato(
     recrutadorId: number,
-    candidatoId: number
+    candidatoId: number,
+    vagaId: number
 ): Promise<{ match: boolean }> {
     return request<{ match: boolean }>(`/recrutadores/${recrutadorId}/curtidas`, {
         method: 'POST',
-        body: JSON.stringify({ candidatoId })
+        body: JSON.stringify({ candidatoId, vagaId })
     })
 }
 

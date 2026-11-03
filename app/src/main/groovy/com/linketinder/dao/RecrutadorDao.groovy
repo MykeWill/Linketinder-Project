@@ -108,11 +108,17 @@ class RecrutadorDao implements RecrutadorRepository {
             FROM candidato c
             JOIN candidato_competencia cc ON c.id = cc.candidato_id
             JOIN competencia comp ON cc.competencia_id = comp.id
-            WHERE NOT EXISTS (
+            WHERE EXISTS (
                 SELECT 1
                 FROM recrutador r
-                JOIN curtida_empresa_candidato cec ON cec.empresa_id = r.empresa_id
-                WHERE r.id = ? AND cec.candidato_id = c.id
+                JOIN vaga v ON v.empresa_id = r.empresa_id
+                WHERE r.id = ?
+                  AND NOT EXISTS (
+                      SELECT 1
+                      FROM curtida_empresa_candidato cec
+                      WHERE cec.vaga_id = v.id
+                        AND cec.candidato_id = c.id
+                  )
             )
             GROUP BY c.id
             ORDER BY c.id
@@ -141,36 +147,36 @@ class RecrutadorDao implements RecrutadorRepository {
         }
     }
 
-    boolean empresaJaCurtiuCandidato(Integer empresaId, Integer candidatoId) {
+    boolean empresaJaCurtiuCandidatoNaVaga(Integer empresaId, Integer candidatoId, Integer vagaId) {
         String sql = '''
             SELECT EXISTS (
-                SELECT 1 FROM curtida_empresa_candidato
-                WHERE empresa_id = ? AND candidato_id = ?
+                SELECT 1
+                FROM curtida_empresa_candidato
+                WHERE empresa_id = ? AND candidato_id = ? AND vaga_id = ?
             )
         '''
         return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, empresaId)
             stmt.setInt(2, candidatoId)
+            stmt.setInt(3, vagaId)
             def resultado = stmt.executeQuery()
             resultado.next()
             return resultado.getBoolean(1)
         }
     }
 
-    boolean candidatoCurtiuVagaDaEmpresa(Integer candidatoId, Integer empresaId) {
+    boolean vagaPertenceEmpresa(Integer vagaId, Integer empresaId) {
         String sql = '''
             SELECT EXISTS (
                 SELECT 1
-                FROM curtida_candidato_vaga ccv
-                JOIN vaga v ON v.id = ccv.vaga_id
-                WHERE ccv.candidato_id = ?
-                  AND v.empresa_id = ?
+                FROM vaga
+                WHERE id = ? AND empresa_id = ?
             )
         '''
         return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
-            stmt.setInt(1, candidatoId)
+            stmt.setInt(1, vagaId)
             stmt.setInt(2, empresaId)
             def resultado = stmt.executeQuery()
             resultado.next()
@@ -178,16 +184,37 @@ class RecrutadorDao implements RecrutadorRepository {
         }
     }
 
-    void curtirCandidato(Integer empresaId, Integer candidatoId, Integer recrutadorId) {
+    boolean candidatoCurtiuVaga(Integer candidatoId, Integer vagaId) {
         String sql = '''
-            INSERT INTO curtida_empresa_candidato (empresa_id, candidato_id, recrutador_id)
-            VALUES (?, ?, ?)
+            SELECT EXISTS (
+                SELECT 1
+                FROM curtida_candidato_vaga ccv
+                WHERE ccv.candidato_id = ?
+                  AND ccv.vaga_id = ?
+            )
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            stmt.setInt(2, vagaId)
+            def resultado = stmt.executeQuery()
+            resultado.next()
+            return resultado.getBoolean(1)
+        }
+    }
+
+    void curtirCandidato(Integer empresaId, Integer candidatoId, Integer recrutadorId, Integer vagaId) {
+        String sql = '''
+            INSERT INTO curtida_empresa_candidato
+                (empresa_id, candidato_id, recrutador_id, vaga_id)
+            VALUES (?, ?, ?, ?)
         '''
         ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, empresaId)
             stmt.setInt(2, candidatoId)
             stmt.setInt(3, recrutadorId)
+            stmt.setInt(4, vagaId)
             stmt.executeUpdate()
         }
     }
@@ -199,7 +226,9 @@ class RecrutadorDao implements RecrutadorRepository {
                 FROM curtida_candidato_vaga ccv
                 JOIN vaga v ON v.id = ccv.vaga_id
                 JOIN curtida_empresa_candidato cec
-                    ON cec.empresa_id = v.empresa_id AND cec.candidato_id = ccv.candidato_id
+                    ON cec.vaga_id = ccv.vaga_id
+                   AND cec.empresa_id = v.empresa_id
+                   AND cec.candidato_id = ccv.candidato_id
             )
             SELECT e.nome AS empresa_nome,
                    e.descricao AS empresa_descricao,

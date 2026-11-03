@@ -63,17 +63,21 @@ class RecrutadorService {
         }
     }
 
-    boolean curtirCandidato(Integer recrutadorId, Integer candidatoId) {
+    boolean curtirCandidato(Integer recrutadorId, Integer candidatoId, Integer vagaId) {
         try {
             Recrutador recrutador = recrutadorRepository.buscarRecrutadorPorId(recrutadorId)
             if (recrutador == null) {
                 throw new RegistroNaoEncontradoException(MensagensErro.RECRUTADOR_NAO_ENCONTRADO)
             }
-            if (recrutadorRepository.empresaJaCurtiuCandidato(recrutador.empresaId, candidatoId)) {
+            if (!recrutadorRepository.vagaPertenceEmpresa(vagaId, recrutador.empresaId)) {
+                throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+            }
+            if (recrutadorRepository.empresaJaCurtiuCandidatoNaVaga(
+                    recrutador.empresaId, candidatoId, vagaId)) {
                 throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)
             }
-            recrutadorRepository.curtirCandidato(recrutador.empresaId, candidatoId, recrutadorId)
-            return recrutadorRepository.candidatoCurtiuVagaDaEmpresa(candidatoId, recrutador.empresaId)
+            recrutadorRepository.curtirCandidato(recrutador.empresaId, candidatoId, recrutadorId, vagaId)
+            return recrutadorRepository.candidatoCurtiuVaga(candidatoId, vagaId)
         } catch (SQLException e) {
             if (e.sqlState == '23505') {
                 throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)

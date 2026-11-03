@@ -90,9 +90,9 @@ class RecrutadorHandlerSpec extends Specification {
         def resposta = criarExchange(
                 'POST',
                 '/recrutadores/42/curtidas',
-                '{"candidatoId":7}'
+                '{"candidatoId":7,"vagaId":31}'
         )
-        1 * service.curtirCandidato(42, 7) >> true
+        1 * service.curtirCandidato(42, 7, 31) >> true
 
         when:
         handler.handle(resposta.exchange)

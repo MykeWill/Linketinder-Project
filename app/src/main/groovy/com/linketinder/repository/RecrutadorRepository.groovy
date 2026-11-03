@@ -14,9 +14,10 @@ interface RecrutadorRepository {
     boolean existeEmail(String email) throws SQLException
     boolean existeCpf(String cpf) throws SQLException
     List<Candidato> listarCandidatosDisponiveis(Integer recrutadorId) throws SQLException
-    boolean empresaJaCurtiuCandidato(Integer empresaId, Integer candidatoId) throws SQLException
-    boolean candidatoCurtiuVagaDaEmpresa(Integer candidatoId, Integer empresaId) throws SQLException
-    void curtirCandidato(Integer empresaId, Integer candidatoId, Integer recrutadorId) throws SQLException
+    boolean empresaJaCurtiuCandidatoNaVaga(Integer empresaId, Integer candidatoId, Integer vagaId) throws SQLException
+    boolean vagaPertenceEmpresa(Integer vagaId, Integer empresaId) throws SQLException
+    boolean candidatoCurtiuVaga(Integer candidatoId, Integer vagaId) throws SQLException
+    void curtirCandidato(Integer empresaId, Integer candidatoId, Integer recrutadorId, Integer vagaId) throws SQLException
     List<Match> listarMatchesDoRecrutador(Integer recrutadorId) throws SQLException
     void removerRecrutador(Integer id) throws SQLException
 }

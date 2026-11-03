@@ -48,7 +48,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
       <p id="erro-candidatos" class="mensagem-erro" role="alert"></p>
       <table>
         <thead>
-          <tr><th>Descrição profissional</th><th>Competências</th><th>Ações</th></tr>
+          <tr><th>Descrição profissional</th><th>Competências</th><th>Vaga</th><th>Ações</th></tr>
         </thead>
         <tbody id="lista-candidatos"></tbody>
       </table>
@@ -88,7 +88,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
     `${matchesResultado?.length ?? 0} matches.`
 
   renderizarVagas(vagasResultado)
-  renderizarCandidatos(candidatosResultado)
+  renderizarCandidatos(candidatosResultado, vagasResultado)
   renderizarMatches(matchesResultado)
 
   document.getElementById('btn-nova-vaga')!.addEventListener('click', () => {
@@ -118,9 +118,16 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
   document.querySelectorAll<HTMLButtonElement>('.btn-curtir-candidato').forEach(botao => {
     botao.addEventListener('click', async () => {
       const candidatoId = Number(botao.dataset.id)
+      const selecaoVaga = botao.closest('tr')
+        ?.querySelector<HTMLSelectElement>('.vaga-candidato')
+      const vagaId = Number(selecaoVaga?.value)
+      if (!Number.isInteger(vagaId) || vagaId <= 0) {
+        erroGeral.textContent = 'Selecione uma vaga para indicar o candidato.'
+        return
+      }
       botao.disabled = true
       try {
-        const { match } = await recrutadorService.curtirCandidato(recrutadorId, candidatoId)
+        const { match } = await recrutadorService.curtirCandidato(recrutadorId, candidatoId, vagaId)
         if (match) alert('Deu Match!')
         await renderizarPerfilRecrutador()
       } catch (erro) {
@@ -152,15 +159,30 @@ function renderizarVagas(vagas: VagaInterface[] | null): void {
   `).join('')
 }
 
-function renderizarCandidatos(candidatos: CandidatoDisponivelInterface[] | null): void {
+function renderizarCandidatos(
+  candidatos: CandidatoDisponivelInterface[] | null,
+  vagas: VagaInterface[] | null
+): void {
   const tabela = document.getElementById('lista-candidatos')!
   if (candidatos === null) return
+  const opcoesVaga = vagas?.map(vaga => `
+    <option value="${escaparHtml(String(vaga.id))}">
+      ${escaparHtml(vaga.nome ?? vaga.titulo ?? '')}
+    </option>
+  `).join('') ?? ''
   tabela.innerHTML = candidatos.map(candidato => `
     <tr>
       <td>${escaparHtml(candidato.descricao)}</td>
       <td>${candidato.competencias.map(escaparHtml).join(', ')}</td>
       <td>
-        <button class="btn-curtir-candidato" data-id="${escaparHtml(String(candidato.id))}">
+        <select class="vaga-candidato" aria-label="Vaga para indicação do candidato">
+          <option value="">Selecione uma vaga</option>
+          ${opcoesVaga}
+        </select>
+      </td>
+      <td>
+        <button class="btn-curtir-candidato"
+          data-id="${escaparHtml(String(candidato.id))}" ${opcoesVaga ? '' : 'disabled'}>
           Curtir
         </button>
       </td>

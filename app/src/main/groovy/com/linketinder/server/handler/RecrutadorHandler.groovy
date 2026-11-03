@@ -160,7 +160,8 @@ class RecrutadorHandler implements HttpHandler {
         Map json = parsearObjeto(exchange)
         boolean match = recrutadorController.curtirCandidatoController(
                 recrutadorId,
-                inteiroPositivo(json.candidatoId, 'candidatoId')
+                inteiroPositivo(json.candidatoId, 'candidatoId'),
+                inteiroPositivo(json.vagaId, 'vagaId')
         )
         responder(exchange, 201, [match: match])
     }
