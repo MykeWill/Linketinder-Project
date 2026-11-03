@@ -7,6 +7,7 @@ interface CandidatoRepository {
     Integer inserirCandidato(Candidato c) throws SQLException
     void vincularCompetenciaAoCandidato(Integer candidatoId, Integer competenciaId) throws SQLException
     List<Map> listarCandidatosAnonimos() throws SQLException
+    Map<String, Integer> contarCandidatosPorCompetencia() throws SQLException
     List<Map> listarCurtidasDoCandidato(Integer candidatoId) throws SQLException
     List<Map> listarMatchesDoCandidato(Integer candidatoId) throws SQLException
     void curtirVaga(Integer candidatoId, Integer vagaId) throws SQLException

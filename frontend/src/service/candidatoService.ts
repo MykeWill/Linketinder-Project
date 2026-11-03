@@ -14,6 +14,10 @@ export function listarTodosCandidatosService(): Promise<CandidatoDisponivelInter
     return request<CandidatoDisponivelInterface[]>('/candidatos')
 }
 
+export function contarCandidatosPorCompetenciaService(): Promise<Record<string, number>> {
+    return request<Record<string, number>>('/candidatos/competencias')
+}
+
 export function listarMatchesCandidatoService(candidatoId: number): Promise<MatchCandidatoInterface[]> {
     return request<MatchCandidatoInterface[]>(`/candidatos/${candidatoId}/matches`)
 }
@@ -51,18 +55,4 @@ export async function cadastrarCandidatoService(dados: Omit<CandidatoInterface, 
         body: JSON.stringify({ ...dados, cpf })
     })
     return resposta.id
-}
-
-export function contarCandidatosPorCompetenciaService(
-    candidatos: CandidatoDisponivelInterface[]
-): Record<string, number> {
-    const contagem: Record<string, number> = {}
-
-    candidatos.forEach(candidato => {
-        candidato.competencias.forEach(competencia => {
-            contagem[competencia] = (contagem[competencia] ?? 0) + 1
-        })
-    })
-
-    return contagem
 }

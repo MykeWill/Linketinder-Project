@@ -8,6 +8,33 @@ import spock.lang.Specification
 
 class CandidatoDaoSpec extends Specification {
 
+    def "agrega contagem de candidatos por competencia sem retornar perfis"() {
+        given:
+        GroovyMock(ConexaoDB, global: true)
+        def conexao = Mock(Connection)
+        def statement = Mock(PreparedStatement)
+        def resultado = Mock(ResultSet)
+        ConexaoDB.executar(_ as Closure) >> { Closure consulta -> consulta.call(conexao) }
+        conexao.prepareStatement(_ as String) >> statement
+        statement.executeQuery() >> resultado
+        resultado.next() >>> [true, true, false]
+        resultado.getString('competencia') >>> ['Groovy', 'Java']
+        resultado.getInt('quantidade') >>> [2, 1]
+        def dao = new CandidatoDao()
+
+        when:
+        def contagem = dao.contarCandidatosPorCompetencia()
+
+        then:
+        1 * conexao.prepareStatement({ String sql ->
+            sql.contains('COUNT(DISTINCT cc.candidato_id)') &&
+                    sql.contains('GROUP BY comp.id, comp.nome') &&
+                    !sql.contains('c.descricao') &&
+                    !sql.contains('c.email')
+        }) >> statement
+        contagem == [Groovy: 2, Java: 1]
+    }
+
     def "lista curtidas do candidato com dados anonimos e competencias"() {
         given:
         GroovyMock(ConexaoDB, global: true)

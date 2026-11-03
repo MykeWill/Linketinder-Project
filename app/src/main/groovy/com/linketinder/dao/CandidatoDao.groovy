@@ -63,6 +63,25 @@ class CandidatoDao implements  CandidatoRepository {
         }
     }
 
+    Map<String, Integer> contarCandidatosPorCompetencia() {
+        String sql = '''
+            SELECT comp.nome AS competencia, COUNT(DISTINCT cc.candidato_id) AS quantidade
+            FROM candidato_competencia cc
+            JOIN competencia comp ON comp.id = cc.competencia_id
+            GROUP BY comp.id, comp.nome
+            ORDER BY comp.nome
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            def resultado = stmt.executeQuery()
+            Map<String, Integer> contagem = [:]
+            while (resultado.next()) {
+                contagem[resultado.getString('competencia')] = resultado.getInt('quantidade')
+            }
+            return contagem
+        }
+    }
+
     List<Map> listarMatchesDoCandidato(Integer candidatoId) {
         String sql = '''
             SELECT v.id AS vaga_id,

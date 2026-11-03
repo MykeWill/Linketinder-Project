@@ -41,6 +41,20 @@ class CandidatoServiceSpec extends Specification {
         resultado == matchesEsperados
     }
 
+    def "deve contar candidatos por competencia delegando ao repositorio"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def service = new CandidatoService(candidatoDaoMock, Mock(CompetenciaRepository))
+        def contagemEsperada = [Groovy: 2, Java: 1]
+
+        when:
+        def resultado = service.contarCandidatosPorCompetenciaService()
+
+        then:
+        1 * candidatoDaoMock.contarCandidatosPorCompetencia() >> contagemEsperada
+        resultado == contagemEsperada
+    }
+
     def "deve listar curtidas do candidato delegando ao repositório"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)

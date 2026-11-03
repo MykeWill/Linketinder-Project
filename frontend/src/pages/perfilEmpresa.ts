@@ -4,7 +4,6 @@ import * as recrutadorService from '../service/recrutadorService'
 import * as vagaService from '../service/vagaService'
 import { obterSessao } from '../service/sessaoService'
 import type {
-  CandidatoDisponivelInterface,
   RecrutadorInterface,
   VagaInterface
 } from '../types/models'
@@ -20,8 +19,8 @@ export async function renderizarPerfilEmpresa() {
   const app = document.getElementById('app')!
   let vagasDaEmpresa: VagaInterface[] = []
   let erroListagemVagas = ''
-  let candidatos: CandidatoDisponivelInterface[] = []
-  let erroListagemCandidatos = ''
+  let competenciaContagem: Record<string, number> = {}
+  let erroContagemCompetencias = ''
   let recrutadores: RecrutadorInterface[] = []
   let erroListagemRecrutadores = ''
 
@@ -32,25 +31,18 @@ export async function renderizarPerfilEmpresa() {
   }
 
   try {
-    candidatos = await candidatoService.listarTodosCandidatosService()
-  } catch (erro) {
-    erroListagemCandidatos = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
-  }
-
-  try {
     recrutadores = await recrutadorService.listarPorEmpresa(empresaId)
   } catch (erro) {
     erroListagemRecrutadores =
       erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
   }
-  const competenciaContagem = candidatoService.contarCandidatosPorCompetenciaService(candidatos)
 
-  const linhasTabelaCandidatos = candidatos.map(candidato => `
-        <tr title="${escaparHtml(candidato.descricao)}">
-            <td>${escaparHtml(candidato.descricao)}</td>
-            <td>${candidato.competencias.map(escaparHtml).join(', ')}</td>
-        </tr>
-    `).join('')
+  try {
+    competenciaContagem = await candidatoService.contarCandidatosPorCompetenciaService()
+  } catch (erro) {
+    erroContagemCompetencias =
+      erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+  }
 
   const linhasVagas = vagasDaEmpresa.map(vaga => `
         <tr title="${vaga.descricao}">
@@ -118,25 +110,17 @@ export async function renderizarPerfilEmpresa() {
             <button type="submit">Salvar recrutador</button>
         </form>
         <p id="mensagem-erro" class="mensagem-erro"></p>
-        <h2>Candidatos disponíveis</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Descrição profissional</th>
-                    <th>Competências</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${linhasTabelaCandidatos}
-            </tbody>
-        </table>
         <h2>Candidatos por competência</h2>
         <canvas id="grafico-competencias"></canvas>
         <a href="#/">Voltar</a>
     `
 
   const mensagemErro = document.getElementById('mensagem-erro')!
-  mensagemErro.textContent = [erroListagemVagas, erroListagemCandidatos, erroListagemRecrutadores]
+  mensagemErro.textContent = [
+    erroListagemVagas,
+    erroListagemRecrutadores,
+    erroContagemCompetencias
+  ]
     .filter(Boolean)
     .join(' ')
 

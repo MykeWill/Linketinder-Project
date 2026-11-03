@@ -24,6 +24,8 @@ class CandidatoHandler implements HttpHandler {
                 tratarPost(exchange)
             } else if (path == '/candidatos' && method == 'GET') {
                 tratarGet(exchange)
+            } else if (path == '/candidatos/competencias' && method == 'GET') {
+                responder(exchange, 200, candidatoController.contarCandidatosPorCompetenciaController())
             } else {
                 def curtida = path =~ /^\/candidatos\/(\d+)\/curtir-vaga$/
                 def curtidas = path =~ /^\/candidatos\/(\d+)\/curtidas$/

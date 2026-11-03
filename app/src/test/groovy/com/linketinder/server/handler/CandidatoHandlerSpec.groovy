@@ -96,6 +96,22 @@ class CandidatoHandlerSpec extends Specification {
         !corpo.contains('01000-000')
     }
 
+    def "contagem por competencia retorna somente valores agregados"() {
+        given:
+        def candidatoRepository = Mock(CandidatoRepository)
+        def service = new CandidatoService(candidatoRepository, Mock(CompetenciaRepository))
+        def handler = new CandidatoHandler(new CandidatoController(service))
+        def resposta = criarExchange('GET', '/candidatos/competencias')
+        1 * candidatoRepository.contarCandidatosPorCompetencia() >> [Groovy: 2, Java: 1]
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        json == [Groovy: 2, Java: 1]
+    }
+
     def "matches do candidato retornam somente contatos permitidos apos o match"() {
         given:
         def candidatoRepository = Mock(CandidatoRepository)
