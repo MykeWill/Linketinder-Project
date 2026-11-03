@@ -21,12 +21,12 @@ export function renderizarCadastroEmpresa() {
 
   const formulario = document.getElementById('form-cadastro-empresa') as HTMLFormElement
 
-  formulario.addEventListener('submit', (evento) => {
+  formulario.addEventListener('submit', async (evento) => {
     evento.preventDefault()
 
     const nome = (document.getElementById('nome') as HTMLInputElement).value
     const email = (document.getElementById('email') as HTMLInputElement).value
-    const cnpj = (document.getElementById('cnpj') as HTMLInputElement).value
+    const cnpj = (document.getElementById('cnpj') as HTMLInputElement).value.replace(/\D/g, '')
     const pais = (document.getElementById('pais') as HTMLInputElement).value
     const estado = (document.getElementById('estado') as HTMLInputElement).value
     const cep = (document.getElementById('cep') as HTMLInputElement).value
@@ -34,12 +34,14 @@ export function renderizarCadastroEmpresa() {
     const senha = (document.getElementById('senha') as HTMLInputElement).value
 
     try {
-      empresaService.cadastrarEmpresaService({
+      await empresaService.cadastrarEmpresaService({
         nome, email, cnpj, pais, estado, cep, descricao, senha
       })
-      window.location.hash = '#/perfil-empresa'
+      alert('Cadastro realizado com sucesso! Faça login para continuar.')
+      window.location.hash = '#/login'
     } catch (erro) {
-      document.getElementById('mensagem-erro')!.textContent = (erro as Error).message
+      document.getElementById('mensagem-erro')!.textContent =
+        erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
     }
   })
 }

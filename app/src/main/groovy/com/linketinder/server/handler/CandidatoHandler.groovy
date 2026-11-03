@@ -24,14 +24,23 @@ class CandidatoHandler implements HttpHandler {
                 tratarPost(exchange)
             } else if (path == '/candidatos' && method == 'GET') {
                 tratarGet(exchange)
+            } else if (path == '/candidatos/competencias' && method == 'GET') {
+                responder(exchange, 200, candidatoController.contarCandidatosPorCompetenciaController())
             } else {
                 def curtida = path =~ /^\/candidatos\/(\d+)\/curtir-vaga$/
+                def curtidas = path =~ /^\/candidatos\/(\d+)\/curtidas$/
                 def matches = path =~ /^\/candidatos\/(\d+)\/matches$/
                 if (curtida.matches()) {
                     if (method != 'POST') {
                         responder(exchange, 405, [erro: 'Método não permitido'])
                     } else {
                         tratarCurtidaVaga(exchange, inteiroPositivo(curtida[0][1]))
+                    }
+                } else if (curtidas.matches()) {
+                    if (method != 'GET') {
+                        responder(exchange, 405, [erro: 'Método não permitido'])
+                    } else {
+                        tratarCurtidas(exchange, inteiroPositivo(curtidas[0][1]))
                     }
                 } else if (!matches.matches()) {
                     responder(exchange, 404, [erro: 'Rota não encontrada'])
@@ -96,6 +105,18 @@ class CandidatoHandler implements HttpHandler {
                     recrutadorNome             : match.recrutadorNome,
                     recrutadorAreaRecrutamento : match.recrutadorAreaRecrutamento,
                     recrutadorEmail            : match.recrutadorEmail
+            ]
+        })
+    }
+
+    private void tratarCurtidas(HttpExchange exchange, Integer candidatoId) {
+        List<Map> curtidas = candidatoController.listarCurtidasDoCandidatoController(candidatoId)
+        responder(exchange, 200, curtidas.collect { Map curtida ->
+            [
+                    id          : curtida.id,
+                    nome        : curtida.nome,
+                    descricao   : curtida.descricao,
+                    competencias: curtida.competencias
             ]
         })
     }

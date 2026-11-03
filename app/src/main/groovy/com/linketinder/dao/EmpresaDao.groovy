@@ -28,6 +28,20 @@ class EmpresaDao implements EmpresaRepository {
         }
     }
 
+    Empresa buscarPorEmail(String email) {
+        String sql = '''
+            SELECT id, nome, email, cnpj, pais, estado, cep, descricao, senha
+            FROM empresa
+            WHERE email = ?
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setString(1, email)
+            def resultado = stmt.executeQuery()
+            return resultado.next() ? mapearEmpresa(resultado) : null
+        }
+    }
+
     List<Empresa> listarTodasEmpresas() {
         String sql = 'SELECT id, nome, cnpj, email, descricao, pais, estado, cep, senha FROM empresa'
         return ConexaoDB.executar { conexao ->

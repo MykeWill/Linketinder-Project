@@ -5,6 +5,7 @@ import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
 import com.linketinder.repository.CandidatoRepository
 import com.linketinder.repository.CompetenciaRepository
+import org.mindrot.jbcrypt.BCrypt
 import spock.lang.Specification
 
 class CandidatoServiceSpec extends Specification {
@@ -41,6 +42,35 @@ class CandidatoServiceSpec extends Specification {
         resultado == matchesEsperados
     }
 
+    def "deve contar candidatos por competencia delegando ao repositorio"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def service = new CandidatoService(candidatoDaoMock, Mock(CompetenciaRepository))
+        def contagemEsperada = [Groovy: 2, Java: 1]
+
+        when:
+        def resultado = service.contarCandidatosPorCompetenciaService()
+
+        then:
+        1 * candidatoDaoMock.contarCandidatosPorCompetencia() >> contagemEsperada
+        resultado == contagemEsperada
+    }
+
+    def "deve listar curtidas do candidato delegando ao repositório"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def competenciaDaoMock = Mock(CompetenciaRepository)
+        def service = new CandidatoService(candidatoDaoMock, competenciaDaoMock)
+        def curtidasEsperadas = [[id: 42, nome: 'Desenvolvedor Groovy']]
+
+        when:
+        def resultado = service.listarCurtidasDoCandidatoService(7)
+
+        then:
+        1 * candidatoDaoMock.listarCurtidasDoCandidato(7) >> curtidasEsperadas
+        resultado == curtidasEsperadas
+    }
+
     def "deve curtir vaga e retornar true quando a empresa ja curtiu o candidato"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)
@@ -71,7 +101,7 @@ class CandidatoServiceSpec extends Specification {
         !resultado
     }
 
-    def "deve cadastrar candidato e vincular suas competências"() {
+    def "deve cadastrar candidato com hash bcrypt e vincular suas competências"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)
         def competenciaDaoMock = Mock(CompetenciaRepository)
@@ -82,11 +112,46 @@ class CandidatoServiceSpec extends Specification {
         service.cadastrarCandidato(candidato)
 
         then:
-        1 * candidatoDaoMock.inserirCandidato(candidato) >> 42
+        1 * candidatoDaoMock.inserirCandidato({
+            it.is(candidato) &&
+                    it.senha != 'senha123' &&
+                    BCrypt.checkpw('senha123', it.senha)
+        }) >> 42
         1 * competenciaDaoMock.buscarOuCriar("Java") >> 1
         1 * candidatoDaoMock.vincularCompetenciaAoCandidato(42, 1)
         1 * competenciaDaoMock.buscarOuCriar("SQL") >> 2
         1 * candidatoDaoMock.vincularCompetenciaAoCandidato(42, 2)
+    }
+
+    def "normaliza CPF para somente digitos antes de cadastrar"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def service = new CandidatoService(candidatoDaoMock, Mock(CompetenciaRepository))
+        def candidato = new Candidato("Teste", "teste@email.com", "529.982.247-25",
+                30, "SP", "01000-000", "Descrição fictícia", "senha123", [])
+
+        when:
+        service.cadastrarCandidato(candidato)
+
+        then:
+        1 * candidatoDaoMock.inserirCandidato({
+            it.cpf == '52998224725'
+        }) >> 42
+    }
+
+    def "rejeita CPF que nao tenha onze digitos"() {
+        given:
+        def candidatoDaoMock = Mock(CandidatoRepository)
+        def service = new CandidatoService(candidatoDaoMock, Mock(CompetenciaRepository))
+        def candidato = new Candidato("Teste", "teste@email.com", "123-45",
+                30, "SP", "01000-000", "Descrição fictícia", "senha123", [])
+
+        when:
+        service.cadastrarCandidato(candidato)
+
+        then:
+        thrown(com.linketinder.exception.DadosInvalidosException)
+        0 * candidatoDaoMock._
     }
 
     def "deve lançar RegistroDuplicadoException quando o e-mail já existe"() {

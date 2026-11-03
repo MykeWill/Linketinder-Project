@@ -4,6 +4,7 @@ import com.linketinder.exception.ErroBancoException
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Empresa
 import com.linketinder.repository.EmpresaRepository
+import org.mindrot.jbcrypt.BCrypt
 import spock.lang.Specification
 
 class EmpresaServiceSpec extends Specification {
@@ -24,7 +25,7 @@ class EmpresaServiceSpec extends Specification {
         resultado == listaEsperada
     }
 
-    def "deve cadastrar uma empresa chamando o repositório"() {
+    def "deve cadastrar empresa com hash bcrypt"() {
         given:
         def empresaDaoMock = Mock(EmpresaRepository)
         def service = new EmpresaService(empresaDaoMock)
@@ -34,7 +35,27 @@ class EmpresaServiceSpec extends Specification {
         service.cadastrarEmpresa(empresa)
 
         then:
-        1 * empresaDaoMock.inserirEmpresa(empresa) >> 1
+        1 * empresaDaoMock.inserirEmpresa({
+            it.is(empresa) &&
+                    it.senha != 'senha123' &&
+                    BCrypt.checkpw('senha123', it.senha)
+        }) >> 1
+    }
+
+    def "normaliza CNPJ para somente digitos antes de cadastrar"() {
+        given:
+        def empresaDaoMock = Mock(EmpresaRepository)
+        def service = new EmpresaService(empresaDaoMock)
+        def empresa = new Empresa("Tech", "tech@email.com", "11.111.111/0001-11",
+                "Brasil", "SP", "01000-000", "Descrição fictícia", "senha123")
+
+        when:
+        service.cadastrarEmpresa(empresa)
+
+        then:
+        1 * empresaDaoMock.inserirEmpresa({
+            it.cnpj == '11111111000111'
+        }) >> 1
     }
 
     def "deve lançar RegistroDuplicadoException quando o CNPJ já existe"() {

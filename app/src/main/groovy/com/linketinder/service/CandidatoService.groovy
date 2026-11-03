@@ -1,11 +1,13 @@
 package com.linketinder.service
 
 import com.linketinder.exception.ErroBancoException
+import com.linketinder.exception.DadosInvalidosException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
 import com.linketinder.repository.CandidatoRepository
 import com.linketinder.repository.CompetenciaRepository
+import org.mindrot.jbcrypt.BCrypt
 
 import java.sql.SQLException
 
@@ -20,6 +22,13 @@ class CandidatoService {
     }
 
     Integer cadastrarCandidato(Candidato c) {
+        String cpf = c?.cpf?.replaceAll('\\D', '')
+        if (!(cpf ==~ /\d{11}/)) {
+            throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+        }
+        c.cpf = cpf
+        c.senha = BCrypt.hashpw(c.senha, BCrypt.gensalt())
+
         try {
             Integer candidatoId = candidatoDao.inserirCandidato(c)
 
@@ -42,9 +51,25 @@ class CandidatoService {
         }
     }
 
+    Map<String, Integer> contarCandidatosPorCompetenciaService() {
+        try {
+            return candidatoDao.contarCandidatosPorCompetencia()
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
     List<Map> listarMatchesDoCandidatoService(Integer candidatoId) {
         try {
             return candidatoDao.listarMatchesDoCandidato(candidatoId)
+        } catch (SQLException e) {
+            throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
+        }
+    }
+
+    List<Map> listarCurtidasDoCandidatoService(Integer candidatoId) {
+        try {
+            return candidatoDao.listarCurtidasDoCandidato(candidatoId)
         } catch (SQLException e) {
             throw new ErroBancoException(MensagensErro.ERRO_BANCO, e)
         }

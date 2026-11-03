@@ -38,7 +38,26 @@ class VagaServiceSpec extends Specification {
         id == 52
     }
 
-    def "lista vagas da empresa ou criadas pelo recrutador"() {
+    def "lista todas as vagas da empresa independentemente do recrutador criador"() {
+        given:
+        def vagaRepository = Mock(VagaRepository)
+        def competenciaRepository = Mock(CompetenciaRepository)
+        def service = new VagaService(vagaRepository, competenciaRepository)
+        def esperadas = [
+                new Vaga(7, 'Criada pela empresa', 'Descrição', 'Remoto', [], null),
+                new Vaga(7, 'Criada pelo recrutador', 'Outra descrição', 'Remoto', [], 1)
+        ]
+
+        when:
+        def resultado = service.listarVagasVisiveisParaRecrutador(7)
+
+        then:
+        1 * vagaRepository.listarVagasVisiveisParaRecrutador(7) >> esperadas
+        resultado == esperadas
+        resultado*.recrutadorId == [null, 1]
+    }
+
+    def "lista vagas ainda nao curtidas pelo candidato"() {
         given:
         def vagaRepository = Mock(VagaRepository)
         def competenciaRepository = Mock(CompetenciaRepository)
@@ -46,10 +65,10 @@ class VagaServiceSpec extends Specification {
         def esperadas = [new Vaga(7, 'Desenvolvedor', 'Descrição', 'Remoto', [], 23)]
 
         when:
-        def resultado = service.listarVagasVisiveisParaRecrutador(7, 23)
+        def resultado = service.listarVagasNaoCurtidasPorCandidato(1)
 
         then:
-        1 * vagaRepository.listarVagasVisiveisParaRecrutador(7, 23) >> esperadas
+        1 * vagaRepository.listarVagasNaoCurtidasPorCandidato(1) >> esperadas
         resultado == esperadas
     }
 }

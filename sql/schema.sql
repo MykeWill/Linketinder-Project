@@ -79,7 +79,8 @@ CREATE TABLE curtida_empresa_candidato
 (
     empresa_id   INTEGER NOT NULL REFERENCES empresa (id) ON DELETE CASCADE,
     candidato_id INTEGER NOT NULL REFERENCES candidato (id) ON DELETE CASCADE,
+    vaga_id      INTEGER NOT NULL REFERENCES vaga (id) ON DELETE CASCADE,
     recrutador_id INTEGER REFERENCES recrutador (id) ON DELETE SET NULL,
     data_hora    TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    PRIMARY KEY (empresa_id, candidato_id)
+    PRIMARY KEY (vaga_id, candidato_id)
 );

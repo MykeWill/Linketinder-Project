@@ -4,6 +4,7 @@ package com.linketinder
 
 import com.linketinder.controller.CandidatoController
 import com.linketinder.controller.EmpresaController
+import com.linketinder.controller.LoginController
 import com.linketinder.controller.RecrutadorController
 import com.linketinder.controller.VagaController
 import com.linketinder.dao.CandidatoDao
@@ -17,6 +18,7 @@ import com.linketinder.menu.MenuPrincipal
 import com.linketinder.server.ServidorHttp
 import com.linketinder.service.CandidatoService
 import com.linketinder.service.EmpresaService
+import com.linketinder.service.LoginService
 import com.linketinder.service.RecrutadorService
 import com.linketinder.service.VagaService
 
@@ -35,14 +37,18 @@ class Main {
         def empresaService = new EmpresaService(empresaDao)
         def recrutadorService = new RecrutadorService(recrutadorDao)
         def vagaService = new VagaService(vagaDao, competenciaDao)
+        def loginService = new LoginService(candidatoDao, empresaDao, recrutadorDao)
 
 
         def candidatoController = new CandidatoController(candidatoService)
         def empresaController = new EmpresaController(empresaService)
         def recrutadorController = new RecrutadorController(recrutadorService)
         def vagaController = new VagaController(vagaService)
+        def loginController = new LoginController(loginService)
 
-        def servidor = new ServidorHttp(candidatoController, empresaController, vagaController, recrutadorController)
+        def servidor = new ServidorHttp(
+                candidatoController, empresaController, vagaController, recrutadorController, loginController
+        )
         def threadServidor = new Thread({
             try {
                 servidor.iniciar()

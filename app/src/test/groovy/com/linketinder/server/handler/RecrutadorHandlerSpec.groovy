@@ -82,6 +82,27 @@ class RecrutadorHandlerSpec extends Specification {
         !resposta.body.toString('UTF-8').contains('candidato@exemplo.com')
     }
 
+    def "curtida do recrutador retorna status do match"() {
+        given:
+        def service = Mock(RecrutadorService)
+        def controller = new RecrutadorController(service)
+        def handler = new RecrutadorHandler(controller)
+        def resposta = criarExchange(
+                'POST',
+                '/recrutadores/42/curtidas',
+                '{"candidatoId":7,"vagaId":31}'
+        )
+        1 * service.curtirCandidato(42, 7, 31) >> true
+
+        when:
+        handler.handle(resposta.exchange)
+        def json = new JsonSlurper().parseText(resposta.body.toString('UTF-8'))
+
+        then:
+        json == [match: true]
+        1 * resposta.exchange.sendResponseHeaders(201, _)
+    }
+
     def "matches não serializam campos sigilosos"() {
         given:
         def service = Mock(RecrutadorService)

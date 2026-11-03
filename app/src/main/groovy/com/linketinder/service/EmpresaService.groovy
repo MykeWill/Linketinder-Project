@@ -1,10 +1,12 @@
 package com.linketinder.service
 
 import com.linketinder.exception.ErroBancoException
+import com.linketinder.exception.DadosInvalidosException
 import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Empresa
 import com.linketinder.repository.EmpresaRepository
+import org.mindrot.jbcrypt.BCrypt
 
 import java.sql.SQLException
 
@@ -17,6 +19,13 @@ class EmpresaService {
     }
 
     Integer cadastrarEmpresa(Empresa e) {
+        String cnpj = e?.cnpj?.replaceAll('\\D', '')
+        if (!(cnpj ==~ /\d{14}/)) {
+            throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+        }
+        e.cnpj = cnpj
+        e.senha = BCrypt.hashpw(e.senha, BCrypt.gensalt())
+
         try {
             return empresaDao.inserirEmpresa(e)
         } catch (SQLException ex) {

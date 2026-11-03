@@ -27,6 +27,9 @@ class RecrutadorService {
     }
 
     Integer cadastrarRecrutador(Recrutador recrutador, String senhaPura) {
+        if (recrutador != null) {
+            recrutador.cpf = recrutador.cpf?.replaceAll('\\D', '')
+        }
         validarDados(recrutador, senhaPura)
 
         try {
@@ -60,16 +63,21 @@ class RecrutadorService {
         }
     }
 
-    void curtirCandidato(Integer recrutadorId, Integer candidatoId) {
+    boolean curtirCandidato(Integer recrutadorId, Integer candidatoId, Integer vagaId) {
         try {
             Recrutador recrutador = recrutadorRepository.buscarRecrutadorPorId(recrutadorId)
             if (recrutador == null) {
                 throw new RegistroNaoEncontradoException(MensagensErro.RECRUTADOR_NAO_ENCONTRADO)
             }
-            if (recrutadorRepository.empresaJaCurtiuCandidato(recrutador.empresaId, candidatoId)) {
+            if (!recrutadorRepository.vagaPertenceEmpresa(vagaId, recrutador.empresaId)) {
+                throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
+            }
+            if (recrutadorRepository.empresaJaCurtiuCandidatoNaVaga(
+                    recrutador.empresaId, candidatoId, vagaId)) {
                 throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)
             }
-            recrutadorRepository.curtirCandidato(recrutador.empresaId, candidatoId, recrutadorId)
+            recrutadorRepository.curtirCandidato(recrutador.empresaId, candidatoId, recrutadorId, vagaId)
+            return recrutadorRepository.candidatoCurtiuVaga(candidatoId, vagaId)
         } catch (SQLException e) {
             if (e.sqlState == '23505') {
                 throw new RegistroDuplicadoException(MensagensErro.CURTIDA_DUPLICADA)
@@ -110,11 +118,11 @@ class RecrutadorService {
     }
 
     private boolean cpfValido(String cpf) {
-        if (cpf == null || !(cpf ==~ /(?:\d{11}|\d{3}\.\d{3}\.\d{3}-\d{2})/)) {
+        if (cpf == null || !(cpf ==~ /\d{11}/)) {
             return false
         }
 
-        String digitos = cpf.replaceAll('\\D', '')
+        String digitos = cpf
         if (digitos.toSet().size() == 1) {
             return false
         }

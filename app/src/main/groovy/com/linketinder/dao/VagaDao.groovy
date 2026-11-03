@@ -58,6 +58,34 @@ class VagaDao implements VagaRepository {
         }
     }
 
+    List<Vaga> listarVagasNaoCurtidasPorCandidato(Integer candidatoId) {
+        String sql = '''
+            SELECT v.id, v.empresa_id, v.recrutador_id, v.nome, v.descricao, v.local,
+                   array_agg(comp.nome) AS competencias
+            FROM vaga v
+            LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
+            LEFT JOIN competencia comp ON vc.competencia_id = comp.id
+            WHERE NOT EXISTS (
+                SELECT 1
+                FROM curtida_candidato_vaga ccv
+                WHERE ccv.candidato_id = ?
+                  AND ccv.vaga_id = v.id
+            )
+            GROUP BY v.id
+            ORDER BY v.id
+        '''
+        return ConexaoDB.executar { conexao ->
+            def stmt = conexao.prepareStatement(sql)
+            stmt.setInt(1, candidatoId)
+            def resultado = stmt.executeQuery()
+            List<Vaga> vagas = []
+            while (resultado.next()) {
+                vagas << mapearVaga(resultado)
+            }
+            return vagas
+        }
+    }
+
     List<Vaga> listarVagasPorEmpresa(Integer empresaId) {
         String sql = '''
             SELECT v.id, v.empresa_id, v.recrutador_id, v.nome, v.descricao, v.local,
@@ -81,21 +109,20 @@ class VagaDao implements VagaRepository {
         }
     }
 
-    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId, Integer recrutadorId) {
+    List<Vaga> listarVagasVisiveisParaRecrutador(Integer empresaId) {
         String sql = '''
             SELECT v.id, v.empresa_id, v.recrutador_id, v.nome, v.descricao, v.local,
                    array_agg(comp.nome) AS competencias
             FROM vaga v
             LEFT JOIN vaga_competencia vc ON v.id = vc.vaga_id
             LEFT JOIN competencia comp ON vc.competencia_id = comp.id
-            WHERE v.empresa_id = ? OR v.recrutador_id = ?
+            WHERE v.empresa_id = ?
             GROUP BY v.id
             ORDER BY v.id
         '''
         return ConexaoDB.executar { conexao ->
             def stmt = conexao.prepareStatement(sql)
             stmt.setInt(1, empresaId)
-            stmt.setInt(2, recrutadorId)
             def resultado = stmt.executeQuery()
             List<Vaga> vagas = []
             while (resultado.next()) {

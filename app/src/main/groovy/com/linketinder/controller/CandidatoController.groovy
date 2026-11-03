@@ -23,8 +23,16 @@ class CandidatoController {
         return candidatoService.listarCandidatosAnonimosService()
     }
 
+    Map<String, Integer> contarCandidatosPorCompetenciaController() {
+        return candidatoService.contarCandidatosPorCompetenciaService()
+    }
+
     List<Map> listarMatchesDoCandidatoController(Integer candidatoId) {
         return candidatoService.listarMatchesDoCandidatoService(candidatoId)
+    }
+
+    List<Map> listarCurtidasDoCandidatoController(Integer candidatoId) {
+        return candidatoService.listarCurtidasDoCandidatoService(candidatoId)
     }
 
     boolean curtirVagaController(Integer candidatoId, Integer vagaId) {

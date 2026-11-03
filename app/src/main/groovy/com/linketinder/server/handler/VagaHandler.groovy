@@ -1,6 +1,7 @@
 package com.linketinder.server.handler
 
 import com.linketinder.controller.VagaController
+import com.linketinder.exception.ErroBancoException
 import com.linketinder.model.Vaga
 import com.sun.net.httpserver.HttpExchange
 import com.sun.net.httpserver.HttpHandler
@@ -31,9 +32,14 @@ class VagaHandler implements HttpHandler {
                 case "GET":
                     tratarGet(exchange)
                     break
+                case "DELETE":
+                    tratarDelete(exchange)
+                    break
                 default:
                     responder(exchange, 405, [erro: "Método não permitido"])
             }
+        } catch (ErroBancoException e) {
+            responder(exchange, 500, [erro: e.message])
         } catch (Exception e) {
             responder(exchange, 400, [erro: e.message])
         } finally {
@@ -62,7 +68,8 @@ class VagaHandler implements HttpHandler {
     private void tratarGet(HttpExchange exchange) {
         String path = exchange.requestURI.path
         if (path == '/vagas/anonimas') {
-            responder(exchange, 200, vagaController.listarTodasVagasController()
+            Integer candidatoId = inteiroPositivo(parametroUnico(exchange, 'candidatoId'), 'candidatoId')
+            responder(exchange, 200, vagaController.listarVagasNaoCurtidasPorCandidatoController(candidatoId)
                     .collect { Vaga vaga -> mapearVagaAnonima(vaga) })
             return
         }
@@ -74,16 +81,15 @@ class VagaHandler implements HttpHandler {
                 }
                 : []
         def vagas
-        if (parametros.contains('empresaId') || parametros.contains('recrutadorId')) {
+        if (parametros.contains('empresaId')) {
             Integer empresaId = inteiroPositivo(parametroUnico(exchange, 'empresaId'), 'empresaId')
-            Integer recrutadorId = inteiroPositivo(parametroUnico(exchange, 'recrutadorId'), 'recrutadorId')
-            vagas = vagaController.listarVagasVisiveisParaRecrutadorController(empresaId, recrutadorId)
+            vagas = vagaController.listarVagasVisiveisParaRecrutadorController(empresaId)
         } else {
             vagas = vagaController.listarTodasVagasController()
         }
 
         def resposta = vagas.collect { vaga ->
-            if (!parametros.contains('empresaId') && !parametros.contains('recrutadorId')) {
+            if (!parametros.contains('empresaId')) {
                 return mapearVagaAnonima(vaga)
             }
             [
@@ -99,6 +105,18 @@ class VagaHandler implements HttpHandler {
         responder(exchange, 200, resposta)
     }
 
+    private void tratarDelete(HttpExchange exchange) {
+        def match = exchange.requestURI.path =~ /^\/vagas\/(\d+)$/
+        if (!match.matches()) {
+            responder(exchange, 404, [erro: 'Vaga não encontrada.'])
+            return
+        }
+
+        Integer id = inteiroPositivo(match.group(1), 'id')
+        vagaController.removerVagaController(id)
+        responder(exchange, 200, [mensagem: 'Vaga removida.'])
+    }
+
     private static Map mapearVagaAnonima(Vaga vaga) {
         [
                 id          : vaga.id,
@@ -109,7 +127,9 @@ class VagaHandler implements HttpHandler {
     }
 
     private static String parametroUnico(HttpExchange exchange, String nome) {
-        List<String> valores = exchange.requestURI.rawQuery
+        String query = exchange.requestURI.rawQuery
+        List<String> valores = query
+                ? query
                 .split('&')
                 .findAll { parametro ->
                     String[] partes = parametro.split('=', 2)
@@ -119,6 +139,7 @@ class VagaHandler implements HttpHandler {
                     String[] partes = parametro.split('=', 2)
                     URLDecoder.decode(partes.length == 2 ? partes[1] : '', StandardCharsets.UTF_8)
                 }
+                : []
 
         if (valores.size() != 1) {
             throw new IllegalArgumentException("${nome} inválido.")

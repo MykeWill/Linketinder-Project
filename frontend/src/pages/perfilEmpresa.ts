@@ -2,34 +2,51 @@ import { Chart } from 'chart.js/auto'
 import * as candidatoService from '../service/candidatoService'
 import * as recrutadorService from '../service/recrutadorService'
 import * as vagaService from '../service/vagaService'
-import type { RecrutadorInterface } from '../types/models'
-
-const EMPRESA_LOGADA_ID = 1
+import { obterSessao } from '../service/sessaoService'
+import type {
+  RecrutadorInterface,
+  VagaInterface
+} from '../types/models'
 
 export async function renderizarPerfilEmpresa() {
+  const sessao = obterSessao()
+  if (!sessao || sessao.tipo !== 'EMPRESA') {
+    window.location.hash = '#/login'
+    return
+  }
+
+  const empresaId = sessao.id
   const app = document.getElementById('app')!
-  const candidatos = candidatoService.listarTodosCandidatosService()
-  const competenciaContagem = candidatoService.contarCandidatosPorCompetenciaService()
-  const vagasDaEmpresa = vagaService.listarVagasPorEmpresaService(EMPRESA_LOGADA_ID)
+  let vagasDaEmpresa: VagaInterface[] = []
+  let erroListagemVagas = ''
+  let competenciaContagem: Record<string, number> = {}
+  let erroContagemCompetencias = ''
   let recrutadores: RecrutadorInterface[] = []
   let erroListagemRecrutadores = ''
 
   try {
-    recrutadores = await recrutadorService.listarPorEmpresa(EMPRESA_LOGADA_ID)
+    vagasDaEmpresa = await vagaService.listarVagasPorEmpresaService(empresaId)
   } catch (erro) {
-    erroListagemRecrutadores = (erro as Error).message
+    erroListagemVagas = erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
   }
 
-  const linhasTabelaCandidatos = candidatos.map(candidato => `
-        <tr title="${escaparHtml(candidato.descricao)}">
-            <td>${escaparHtml(candidato.descricao)}</td>
-            <td>${candidato.competencias.map(escaparHtml).join(', ')}</td>
-        </tr>
-    `).join('')
+  try {
+    recrutadores = await recrutadorService.listarPorEmpresa(empresaId)
+  } catch (erro) {
+    erroListagemRecrutadores =
+      erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+  }
+
+  try {
+    competenciaContagem = await candidatoService.contarCandidatosPorCompetenciaService()
+  } catch (erro) {
+    erroContagemCompetencias =
+      erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
+  }
 
   const linhasVagas = vagasDaEmpresa.map(vaga => `
         <tr title="${vaga.descricao}">
-            <td>${vaga.titulo}</td>
+            <td>${escaparHtml(vaga.nome ?? vaga.titulo ?? '')}</td>
             <td>${vaga.competencias.join(', ')}</td>
             <td><button class="btn-remover-vaga" data-id="${vaga.id}">Remover</button></td>
         </tr>
@@ -46,6 +63,7 @@ export async function renderizarPerfilEmpresa() {
 
   app.innerHTML = `
         <h1>Perfil da Empresa</h1>
+        <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
         <h2>Minhas vagas</h2>
         <table>
             <thead>
@@ -92,25 +110,19 @@ export async function renderizarPerfilEmpresa() {
             <button type="submit">Salvar recrutador</button>
         </form>
         <p id="mensagem-erro" class="mensagem-erro"></p>
-        <h2>Candidatos disponíveis</h2>
-        <table>
-            <thead>
-                <tr>
-                    <th>Descrição profissional</th>
-                    <th>Competências</th>
-                </tr>
-            </thead>
-            <tbody>
-                ${linhasTabelaCandidatos}
-            </tbody>
-        </table>
         <h2>Candidatos por competência</h2>
         <canvas id="grafico-competencias"></canvas>
         <a href="#/">Voltar</a>
     `
 
   const mensagemErro = document.getElementById('mensagem-erro')!
-  mensagemErro.textContent = erroListagemRecrutadores
+  mensagemErro.textContent = [
+    erroListagemVagas,
+    erroListagemRecrutadores,
+    erroContagemCompetencias
+  ]
+    .filter(Boolean)
+    .join(' ')
 
   const canvas = document.getElementById('grafico-competencias') as HTMLCanvasElement
   new Chart(canvas, {
@@ -131,7 +143,7 @@ export async function renderizarPerfilEmpresa() {
     formularioVaga.classList.toggle('escondido')
   })
 
-  formularioVaga.addEventListener('submit', (evento) => {
+  formularioVaga.addEventListener('submit', async (evento) => {
     evento.preventDefault()
     const titulo = (document.getElementById('titulo') as HTMLInputElement).value
     const descricao = (document.getElementById('descricao') as HTMLTextAreaElement).value
@@ -140,8 +152,8 @@ export async function renderizarPerfilEmpresa() {
         .map(c => c.trim())
         .filter(c => c.length > 0)
     try {
-      vagaService.cadastrarVagaService({ empresaId: EMPRESA_LOGADA_ID, titulo, descricao, competencias })
-      renderizarPerfilEmpresa()
+      await vagaService.cadastrarVagaService({ empresaId, titulo, descricao, competencias })
+      await renderizarPerfilEmpresa()
     } catch (erro) {
       mensagemErro.textContent = (erro as Error).message
     }
@@ -158,13 +170,15 @@ export async function renderizarPerfilEmpresa() {
     evento.preventDefault()
     try {
       await recrutadorService.cadastrarRecrutador({
-        empresaId: EMPRESA_LOGADA_ID,
+        empresaId,
         nome: (document.getElementById('recrutador-nome') as HTMLInputElement).value,
         areaRecrutamento: (document.getElementById('recrutador-area') as HTMLInputElement).value,
         descricao: (document.getElementById('recrutador-descricao') as HTMLTextAreaElement).value,
         email: (document.getElementById('recrutador-email') as HTMLInputElement).value,
-        cpf: (document.getElementById('recrutador-cpf') as HTMLInputElement).value,
-        dataNascimento: (document.getElementById('recrutador-data-nascimento') as HTMLInputElement).value,
+        cpf: (document.getElementById('recrutador-cpf') as HTMLInputElement).value.replace(/\D/g, ''),
+        dataNascimento: normalizarDataISO(
+          (document.getElementById('recrutador-data-nascimento') as HTMLInputElement).value
+        ),
         senha: (document.getElementById('recrutador-senha') as HTMLInputElement).value
       })
       await renderizarPerfilEmpresa()
@@ -174,10 +188,14 @@ export async function renderizarPerfilEmpresa() {
   })
 
   document.querySelectorAll('.btn-remover-vaga').forEach(botao => {
-    botao.addEventListener('click', () => {
+    botao.addEventListener('click', async () => {
       const id = (botao as HTMLElement).dataset.id!
-      vagaService.removerVagaService(id)
-      renderizarPerfilEmpresa()
+      try {
+        await vagaService.removerVagaService(id)
+        await renderizarPerfilEmpresa()
+      } catch (erro) {
+        mensagemErro.textContent = (erro as Error).message
+      }
     })
   })
 
@@ -192,6 +210,14 @@ export async function renderizarPerfilEmpresa() {
       }
     })
   })
+}
+
+function normalizarDataISO(data: string): string {
+  const dataBrasileira = /^(\d{2})\/(\d{2})\/(\d{4})$/.exec(data)
+  if (dataBrasileira) {
+    return `${dataBrasileira[3]}-${dataBrasileira[2]}-${dataBrasileira[1]}`
+  }
+  return data
 }
 
 function escaparHtml(valor: string): string {

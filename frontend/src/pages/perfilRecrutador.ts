@@ -1,4 +1,5 @@
 import * as recrutadorService from '../service/recrutadorService'
+import { obterSessao } from '../service/sessaoService'
 import * as vagaService from '../service/vagaService'
 import type {
   CandidatoDisponivelInterface,
@@ -6,13 +7,19 @@ import type {
   VagaInterface
 } from '../types/models'
 
-const RECRUTADOR_LOGADO_ID = 1
-const EMPRESA_LOGADA_ID = 1
-
 export async function renderizarPerfilRecrutador(): Promise<void> {
+  const sessao = obterSessao()
+  if (!sessao || sessao.tipo !== 'RECRUTADOR' || sessao.empresaId === undefined) {
+    window.location.hash = '#/login'
+    return
+  }
+
+  const recrutadorId = sessao.id
+  const empresaId = sessao.empresaId
   const app = document.getElementById('app')!
   app.innerHTML = `
     <h1>Área do Recrutador</h1>
+    <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
     <p id="mensagem-erro" class="mensagem-erro" role="alert"></p>
     <section>
       <h2>Resumo</h2>
@@ -41,7 +48,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
       <p id="erro-candidatos" class="mensagem-erro" role="alert"></p>
       <table>
         <thead>
-          <tr><th>Descrição profissional</th><th>Competências</th><th>Ações</th></tr>
+          <tr><th>Descrição profissional</th><th>Competências</th><th>Vaga</th><th>Ações</th></tr>
         </thead>
         <tbody id="lista-candidatos"></tbody>
       </table>
@@ -63,18 +70,15 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
 
   const erroGeral = document.getElementById('mensagem-erro')!
   const vagasResultado = await carregar(
-    () => vagaService.listarVagasVisiveisParaRecrutadorService(
-      EMPRESA_LOGADA_ID,
-      RECRUTADOR_LOGADO_ID
-    ),
+    () => vagaService.listarVagasVisiveisParaRecrutadorService(empresaId),
     'erro-vagas'
   )
   const candidatosResultado = await carregar(
-    () => recrutadorService.listarCandidatos(RECRUTADOR_LOGADO_ID),
+    () => recrutadorService.listarCandidatos(recrutadorId),
     'erro-candidatos'
   )
   const matchesResultado = await carregar(
-    () => recrutadorService.listarMatches(RECRUTADOR_LOGADO_ID),
+    () => recrutadorService.listarMatches(recrutadorId),
     'erro-matches'
   )
 
@@ -84,7 +88,7 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
     `${matchesResultado?.length ?? 0} matches.`
 
   renderizarVagas(vagasResultado)
-  renderizarCandidatos(candidatosResultado)
+  renderizarCandidatos(candidatosResultado, vagasResultado)
   renderizarMatches(matchesResultado)
 
   document.getElementById('btn-nova-vaga')!.addEventListener('click', () => {
@@ -98,10 +102,11 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
 
     try {
       await vagaService.cadastrarVagaPorRecrutadorService({
-        empresaId: EMPRESA_LOGADA_ID,
-        recrutadorId: RECRUTADOR_LOGADO_ID,
+        empresaId,
+        recrutadorId,
         nome: (document.getElementById('vaga-titulo') as HTMLInputElement).value,
         descricao: (document.getElementById('vaga-descricao') as HTMLTextAreaElement).value,
+        local: '',
         competencias
       })
       await renderizarPerfilRecrutador()
@@ -113,9 +118,17 @@ export async function renderizarPerfilRecrutador(): Promise<void> {
   document.querySelectorAll<HTMLButtonElement>('.btn-curtir-candidato').forEach(botao => {
     botao.addEventListener('click', async () => {
       const candidatoId = Number(botao.dataset.id)
+      const selecaoVaga = botao.closest('tr')
+        ?.querySelector<HTMLSelectElement>('.vaga-candidato')
+      const vagaId = Number(selecaoVaga?.value)
+      if (!Number.isInteger(vagaId) || vagaId <= 0) {
+        erroGeral.textContent = 'Selecione uma vaga para indicar o candidato.'
+        return
+      }
       botao.disabled = true
       try {
-        await recrutadorService.curtirCandidato(RECRUTADOR_LOGADO_ID, candidatoId)
+        const { match } = await recrutadorService.curtirCandidato(recrutadorId, candidatoId, vagaId)
+        if (match) alert('Deu Match!')
         await renderizarPerfilRecrutador()
       } catch (erro) {
         erroGeral.textContent = mensagemDoErro(erro)
@@ -146,15 +159,30 @@ function renderizarVagas(vagas: VagaInterface[] | null): void {
   `).join('')
 }
 
-function renderizarCandidatos(candidatos: CandidatoDisponivelInterface[] | null): void {
+function renderizarCandidatos(
+  candidatos: CandidatoDisponivelInterface[] | null,
+  vagas: VagaInterface[] | null
+): void {
   const tabela = document.getElementById('lista-candidatos')!
   if (candidatos === null) return
+  const opcoesVaga = vagas?.map(vaga => `
+    <option value="${escaparHtml(String(vaga.id))}">
+      ${escaparHtml(vaga.nome ?? vaga.titulo ?? '')}
+    </option>
+  `).join('') ?? ''
   tabela.innerHTML = candidatos.map(candidato => `
     <tr>
       <td>${escaparHtml(candidato.descricao)}</td>
       <td>${candidato.competencias.map(escaparHtml).join(', ')}</td>
       <td>
-        <button class="btn-curtir-candidato" data-id="${escaparHtml(String(candidato.id))}">
+        <select class="vaga-candidato" aria-label="Vaga para indicação do candidato">
+          <option value="">Selecione uma vaga</option>
+          ${opcoesVaga}
+        </select>
+      </td>
+      <td>
+        <button class="btn-curtir-candidato"
+          data-id="${escaparHtml(String(candidato.id))}" ${opcoesVaga ? '' : 'disabled'}>
           Curtir
         </button>
       </td>

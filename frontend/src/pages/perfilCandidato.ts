@@ -1,14 +1,20 @@
 import * as candidatoService from '../service/candidatoService'
 import * as vagaService from '../service/vagaService'
+import { obterSessao } from '../service/sessaoService'
 import type { MatchCandidatoInterface, VagaAnonimaInterface } from '../types/models'
 
-const CANDIDATO_LOGADO_ID = 1
-
 export async function renderizarPerfilCandidato(): Promise<void> {
+  const sessao = obterSessao()
+  if (!sessao || sessao.tipo !== 'CANDIDATO') {
+    window.location.hash = '#/login'
+    return
+  }
+
+  const candidatoId = sessao.id
   const app = document.getElementById('app')!
   app.innerHTML = `
     <h1>Perfil do Candidato</h1>
-    <p style="color: red; font-weight: bold;">[VERSAO NOVA 2.0]</p>
+    <h2>Bem-vindo(a), ${escaparHtml(sessao.nome)}!</h2>
     <section>
       <h2>Vagas disponíveis</h2>
       <p id="erro-vagas" class="mensagem-erro" role="alert"></p>
@@ -17,6 +23,16 @@ export async function renderizarPerfilCandidato(): Promise<void> {
           <tr><th>Nome</th><th>Descrição</th><th>Competências</th><th>Ações</th></tr>
         </thead>
         <tbody id="lista-vagas"></tbody>
+      </table>
+    </section>
+    <section>
+      <h2>Minhas Curtidas</h2>
+      <p id="erro-curtidas" class="mensagem-erro" role="alert"></p>
+      <table>
+        <thead>
+          <tr><th>Nome</th><th>Descrição</th><th>Competências</th></tr>
+        </thead>
+        <tbody id="lista-curtidas"></tbody>
       </table>
     </section>
     <section>
@@ -32,14 +48,16 @@ export async function renderizarPerfilCandidato(): Promise<void> {
     <a href="#/">Voltar</a>
   `
 
-  const [vagas, matches] = await Promise.all([
-    carregar(() => vagaService.listarVagasAnonimas(), 'erro-vagas'),
+  const [vagas, curtidas, matches] = await Promise.all([
+    carregar(() => vagaService.listarVagasAnonimas(candidatoId), 'erro-vagas'),
+    carregar(() => candidatoService.listarCurtidasCandidato(candidatoId), 'erro-curtidas'),
     carregar(
-      () => candidatoService.listarMatchesCandidatoService(CANDIDATO_LOGADO_ID),
+      () => candidatoService.listarMatchesCandidatoService(candidatoId),
       'erro-matches'
     )
   ])
-  renderizarVagas(vagas)
+  renderizarVagas(vagas, candidatoId)
+  renderizarCurtidas(curtidas)
   renderizarMatches(matches)
 }
 
@@ -53,7 +71,7 @@ async function carregar<T>(carregador: () => Promise<T>, idErro: string): Promis
   }
 }
 
-function renderizarVagas(vagas: VagaAnonimaInterface[] | null): void {
+function renderizarVagas(vagas: VagaAnonimaInterface[] | null, candidatoId: number): void {
   if (vagas === null) return
   document.getElementById('lista-vagas')!.innerHTML = vagas.map(vaga => `
     <tr>
@@ -70,24 +88,51 @@ function renderizarVagas(vagas: VagaAnonimaInterface[] | null): void {
       document.getElementById('erro-vagas')!.textContent = ''
       try {
         const { match } = await candidatoService.curtirVaga(
-          CANDIDATO_LOGADO_ID,
+          candidatoId,
           Number(botao.dataset.id)
         )
+        const vagaCurtida = vagas.find(vaga => String(vaga.id) === botao.dataset.id)
+        botao.closest('tr')?.remove()
+        if (vagaCurtida) adicionarVagaCurtida(vagaCurtida)
         if (match) {
           alert('Deu Match!')
-          const matchesAtualizados = await candidatoService.listarMatchesCandidatoService(CANDIDATO_LOGADO_ID)
+          const matchesAtualizados = await candidatoService.listarMatchesCandidatoService(candidatoId)
           console.log("DADOS DO FETCH DO MATCH:", matchesAtualizados)
           renderizarMatches(matchesAtualizados)
-        } else {
-          botao.textContent = 'Curtido'
         }
       } catch (erro) {
         document.getElementById('erro-vagas')!.textContent =
           erro instanceof Error ? erro.message : 'Ocorreu um erro inesperado.'
-        botao.disabled = false
+        if (botao.isConnected) botao.disabled = false
       }
     })
   })
+}
+
+function renderizarCurtidas(curtidas: VagaAnonimaInterface[] | null): void {
+  if (curtidas === null) return
+  const tbody = document.getElementById('lista-curtidas')!
+  tbody.innerHTML = ''
+  if (curtidas.length === 0) {
+    tbody.innerHTML = '<tr><td colspan="3">Nenhuma curtida ainda.</td></tr>'
+    return
+  }
+  curtidas.forEach(adicionarVagaCurtida)
+}
+
+function adicionarVagaCurtida(vaga: VagaAnonimaInterface): void {
+  const tbody = document.getElementById('lista-curtidas')
+  if (!tbody) return
+  tbody.querySelector('td[colspan="3"]')?.closest('tr')?.remove()
+  const tr = document.createElement('tr')
+  const tdNome = document.createElement('td')
+  const tdDescricao = document.createElement('td')
+  const tdCompetencias = document.createElement('td')
+  tdNome.textContent = vaga.nome
+  tdDescricao.textContent = vaga.descricao
+  tdCompetencias.textContent = vaga.competencias.join(', ')
+  tr.append(tdNome, tdDescricao, tdCompetencias)
+  tbody.appendChild(tr)
 }
 
 function renderizarMatches(matches: MatchCandidatoInterface[] | null): void {

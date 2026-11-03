@@ -103,7 +103,7 @@ class RecrutadorServiceSpec extends Specification {
         resultado == [candidatoAnonimo]
     }
 
-    def "curte candidato em nome da empresa do recrutador"() {
+    def "curte candidato para vaga especifica e retorna true se ele ja curtiu a vaga"() {
         given:
         def repository = Mock(RecrutadorRepository)
         def service = new RecrutadorService(repository)
@@ -111,15 +111,18 @@ class RecrutadorServiceSpec extends Specification {
         recrutador.id = 23
 
         when:
-        service.curtirCandidato(23, 8)
+        boolean match = service.curtirCandidato(23, 8, 42)
 
         then:
         1 * repository.buscarRecrutadorPorId(23) >> recrutador
-        1 * repository.empresaJaCurtiuCandidato(1, 8) >> false
-        1 * repository.curtirCandidato(1, 8, 23)
+        1 * repository.vagaPertenceEmpresa(42, 1) >> true
+        1 * repository.empresaJaCurtiuCandidatoNaVaga(1, 8, 42) >> false
+        1 * repository.curtirCandidato(1, 8, 23, 42)
+        1 * repository.candidatoCurtiuVaga(8, 42) >> true
+        match
     }
 
-    def "não repete curtida já feita pela empresa"() {
+    def "retorna false quando o candidato nao curtiu a vaga indicada"() {
         given:
         def repository = Mock(RecrutadorRepository)
         def service = new RecrutadorService(repository)
@@ -127,12 +130,49 @@ class RecrutadorServiceSpec extends Specification {
         recrutador.id = 23
 
         when:
-        service.curtirCandidato(23, 8)
+        boolean match = service.curtirCandidato(23, 8, 42)
 
         then:
         1 * repository.buscarRecrutadorPorId(23) >> recrutador
-        1 * repository.empresaJaCurtiuCandidato(1, 8) >> true
-        0 * repository.curtirCandidato(_, _, _)
+        1 * repository.vagaPertenceEmpresa(42, 1) >> true
+        1 * repository.empresaJaCurtiuCandidatoNaVaga(1, 8, 42) >> false
+        1 * repository.curtirCandidato(1, 8, 23, 42)
+        1 * repository.candidatoCurtiuVaga(8, 42) >> false
+        !match
+    }
+
+    def "nao associa curtida a vaga de outra empresa"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        service.curtirCandidato(23, 8, 42)
+
+        then:
+        1 * repository.buscarRecrutadorPorId(23) >> recrutador
+        1 * repository.vagaPertenceEmpresa(42, 1) >> false
+        0 * repository.curtirCandidato(_, _, _, _)
+        thrown(com.linketinder.exception.DadosInvalidosException)
+    }
+
+    def "nao repete curtida do candidato na mesma vaga"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador()
+        recrutador.id = 23
+
+        when:
+        service.curtirCandidato(23, 8, 42)
+
+        then:
+        1 * repository.buscarRecrutadorPorId(23) >> recrutador
+        1 * repository.vagaPertenceEmpresa(42, 1) >> true
+        1 * repository.empresaJaCurtiuCandidatoNaVaga(1, 8, 42) >> true
+        0 * repository.curtirCandidato(_, _, _, _)
         thrown(RegistroDuplicadoException)
     }
 
@@ -161,8 +201,24 @@ class RecrutadorServiceSpec extends Specification {
 
         then:
         1 * repository.existeEmail('recrutador@exemplo.com') >> false
-        1 * repository.existeCpf(recrutador.cpf) >> false
+        1 * repository.existeCpf('52998224725') >> false
         1 * repository.inserirRecrutador(_ as Recrutador) >> 42
+        id == 42
+    }
+
+    def "aceita CPF sem pontuacao e persiste somente digitos"() {
+        given:
+        def repository = Mock(RecrutadorRepository)
+        def service = new RecrutadorService(repository)
+        def recrutador = novoRecrutador('recrutador@exemplo.com', '52998224725')
+
+        when:
+        Integer id = service.cadastrarRecrutador(recrutador, 'senha-ficticia')
+
+        then:
+        1 * repository.existeEmail('recrutador@exemplo.com') >> false
+        1 * repository.existeCpf('52998224725') >> false
+        1 * repository.inserirRecrutador({ it.cpf == '52998224725' }) >> 42
         id == 42
     }
 
@@ -206,7 +262,7 @@ class RecrutadorServiceSpec extends Specification {
 
         then:
         1 * repository.existeEmail(recrutador.email) >> false
-        1 * repository.existeCpf(recrutador.cpf) >> true
+        1 * repository.existeCpf('52998224725') >> true
         0 * repository._
         thrown(RegistroDuplicadoException)
     }
@@ -238,7 +294,7 @@ class RecrutadorServiceSpec extends Specification {
 
         then:
         1 * repository.existeEmail(recrutador.email) >> false
-        1 * repository.existeCpf(recrutador.cpf) >> false
+        1 * repository.existeCpf('52998224725') >> false
         1 * repository.inserirRecrutador({
             it.senhaHash != senhaPura && BCrypt.checkpw(senhaPura, it.senhaHash)
         }) >> 42
