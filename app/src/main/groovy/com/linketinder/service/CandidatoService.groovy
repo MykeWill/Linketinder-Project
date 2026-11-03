@@ -7,6 +7,7 @@ import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
 import com.linketinder.repository.CandidatoRepository
 import com.linketinder.repository.CompetenciaRepository
+import org.mindrot.jbcrypt.BCrypt
 
 import java.sql.SQLException
 
@@ -26,6 +27,7 @@ class CandidatoService {
             throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
         }
         c.cpf = cpf
+        c.senha = BCrypt.hashpw(c.senha, BCrypt.gensalt())
 
         try {
             Integer candidatoId = candidatoDao.inserirCandidato(c)

@@ -21,7 +21,8 @@ class LoginServiceSpec extends Specification {
         def recrutadorRepository = Mock(RecrutadorRepository)
         def service = new LoginService(candidatoRepository, empresaRepository, recrutadorRepository)
         def candidato = new Candidato('Ana Souza', 'ana@example.com', '123.456.789-00',
-                28, 'SP', '01000-000', 'Descrição fictícia', 'senha-segura', [])
+                28, 'SP', '01000-000', 'Descrição fictícia',
+                BCrypt.hashpw('senha-segura', BCrypt.gensalt()), [])
         candidato.id = 42
 
         when:
@@ -41,7 +42,8 @@ class LoginServiceSpec extends Specification {
         def recrutadorRepository = Mock(RecrutadorRepository)
         def service = new LoginService(candidatoRepository, empresaRepository, recrutadorRepository)
         def empresa = new Empresa('Empresa Exemplo', 'rh@example.com', '12.345.678/0001-90',
-                'Brasil', 'SP', '01000-000', 'Descrição fictícia', 'senha-segura')
+                'Brasil', 'SP', '01000-000', 'Descrição fictícia',
+                BCrypt.hashpw('senha-segura', BCrypt.gensalt()))
         empresa.id = 73
 
         when:
@@ -84,7 +86,8 @@ class LoginServiceSpec extends Specification {
                 Mock(RecrutadorRepository)
         )
         def candidato = new Candidato('Ana Souza', 'ana@example.com', '123.456.789-00',
-                28, 'SP', '01000-000', 'Descrição fictícia', 'senha-correta', [])
+                28, 'SP', '01000-000', 'Descrição fictícia',
+                BCrypt.hashpw('senha-correta', BCrypt.gensalt()), [])
 
         when:
         service.autenticar('ana@example.com', 'senha-incorreta', 'CANDIDATO')

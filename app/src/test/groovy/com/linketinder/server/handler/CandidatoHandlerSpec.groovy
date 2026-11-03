@@ -8,6 +8,7 @@ import com.linketinder.service.CandidatoService
 import com.sun.net.httpserver.Headers
 import com.sun.net.httpserver.HttpExchange
 import groovy.json.JsonSlurper
+import org.mindrot.jbcrypt.BCrypt
 import spock.lang.Specification
 
 import java.io.ByteArrayInputStream
@@ -52,7 +53,7 @@ class CandidatoHandlerSpec extends Specification {
                         candidato.estado == 'SP' &&
                         candidato.cep == '01000-000' &&
                         candidato.descricao == 'Perfil fictício para teste' &&
-                        candidato.senha == 'senha-ficticia' &&
+                        BCrypt.checkpw('senha-ficticia', candidato.senha) &&
                         candidato.competencias == ['Java', 'SQL']
         }) >> 56
         1 * competenciaRepository.buscarOuCriar('Java') >> 10

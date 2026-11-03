@@ -6,6 +6,7 @@ import com.linketinder.exception.MensagensErro
 import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Empresa
 import com.linketinder.repository.EmpresaRepository
+import org.mindrot.jbcrypt.BCrypt
 
 import java.sql.SQLException
 
@@ -23,6 +24,7 @@ class EmpresaService {
             throw new DadosInvalidosException(MensagensErro.DADOS_INVALIDOS)
         }
         e.cnpj = cnpj
+        e.senha = BCrypt.hashpw(e.senha, BCrypt.gensalt())
 
         try {
             return empresaDao.inserirEmpresa(e)

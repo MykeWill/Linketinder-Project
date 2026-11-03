@@ -5,6 +5,7 @@ import com.linketinder.exception.RegistroDuplicadoException
 import com.linketinder.model.Candidato
 import com.linketinder.repository.CandidatoRepository
 import com.linketinder.repository.CompetenciaRepository
+import org.mindrot.jbcrypt.BCrypt
 import spock.lang.Specification
 
 class CandidatoServiceSpec extends Specification {
@@ -100,7 +101,7 @@ class CandidatoServiceSpec extends Specification {
         !resultado
     }
 
-    def "deve cadastrar candidato e vincular suas competências"() {
+    def "deve cadastrar candidato com hash bcrypt e vincular suas competências"() {
         given:
         def candidatoDaoMock = Mock(CandidatoRepository)
         def competenciaDaoMock = Mock(CompetenciaRepository)
@@ -111,7 +112,11 @@ class CandidatoServiceSpec extends Specification {
         service.cadastrarCandidato(candidato)
 
         then:
-        1 * candidatoDaoMock.inserirCandidato(candidato) >> 42
+        1 * candidatoDaoMock.inserirCandidato({
+            it.is(candidato) &&
+                    it.senha != 'senha123' &&
+                    BCrypt.checkpw('senha123', it.senha)
+        }) >> 42
         1 * competenciaDaoMock.buscarOuCriar("Java") >> 1
         1 * candidatoDaoMock.vincularCompetenciaAoCandidato(42, 1)
         1 * competenciaDaoMock.buscarOuCriar("SQL") >> 2

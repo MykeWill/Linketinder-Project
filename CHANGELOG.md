@@ -8,6 +8,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Bcrypt implementado no cadastro e login de candidatos e empresas.
 - Autenticação de candidatos, empresas e recrutadores via API, com sessão local e perfis vinculados ao usuário autenticado.
 - Curtidas de vagas pelo candidato com confirmação de match, apresentação de matches atualizada e botão de ação no perfil do candidato.
 - Perfil do candidato integrado à API para exibir vagas anônimas e contatos de matches pós-match permitidos pela spec.
@@ -26,6 +27,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 - Tipos TypeScript para recrutador, candidatos anônimos e matches, além de cliente HTTP para cadastro, listagem de candidatos, curtidas e matches.
 
 ### Modificado
+- Contas antigas de desenvolvimento com senhas em texto puro precisam ser recriadas; não é possível convertê-las em hashes bcrypt sem as senhas originais.
 - Listagens de vagas por candidato, recrutador e empresa priorizam o vínculo obrigatório com a empresa e não exigem recrutador criador.
 - Vagas anônimas incluem apenas um ID técnico não exibido na tela, necessário para registrar a curtida, além dos campos públicos permitidos.
 - Endpoints públicos de listagem de vagas restritos a nome, descrição e competências; adicionada listagem dos matches de um candidato com campos pós-match permitidos.

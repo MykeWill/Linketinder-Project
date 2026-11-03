@@ -52,7 +52,7 @@ class LoginService {
 
     private Map autenticarCandidato(String email, String senha) throws SQLException {
         Candidato candidato = candidatoRepository.buscarPorEmail(email)
-        if (candidato == null || candidato.senha != senha) {
+        if (candidato == null || !BCrypt.checkpw(senha, candidato.senha)) {
             throw new DadosInvalidosException(MensagensErro.CREDENCIAIS_INVALIDAS)
         }
         return [id: candidato.id, nome: candidato.nome, tipo: 'CANDIDATO']
@@ -60,7 +60,7 @@ class LoginService {
 
     private Map autenticarEmpresa(String email, String senha) throws SQLException {
         Empresa empresa = empresaRepository.buscarPorEmail(email)
-        if (empresa == null || empresa.senha != senha) {
+        if (empresa == null || !BCrypt.checkpw(senha, empresa.senha)) {
             throw new DadosInvalidosException(MensagensErro.CREDENCIAIS_INVALIDAS)
         }
         return [id: empresa.id, nome: empresa.nome, tipo: 'EMPRESA']
