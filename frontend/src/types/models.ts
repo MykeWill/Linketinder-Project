@@ -38,11 +38,15 @@ export interface VagaInterface {
   recrutadorId?: number
 }
 
-export interface VagaAnonimaInterface {
+export interface VagaResumoAnonimaInterface {
   id: number
   nome: string
   descricao: string
   competencias: string[]
+}
+
+export interface VagaAnonimaInterface extends VagaResumoAnonimaInterface {
+  afinidade: number
 }
 
 export interface MatchCandidatoInterface {

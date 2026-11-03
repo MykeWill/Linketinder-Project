@@ -8,6 +8,7 @@ e o versionamento segue o [SemVer](https://semver.org/lang/pt-BR/).
 ## [Não lançado]
 
 ### Adicionado
+- Exibição do Índice de Afinidade percentual e colorido na listagem de vagas disponíveis do candidato.
 - Edição dos dados de recrutadores pela empresa proprietária, com senha opcional protegida por bcrypt e sem leitura ou alteração de CPF.
 - Espaçamento superior de 16px no botão de cadastro de recrutadores no perfil da empresa.
 - Edição de perfil de candidatos e empresas com atualização de senha opcional via bcrypt e edição de vagas por empresa ou recrutador responsável.

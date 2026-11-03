@@ -183,6 +183,28 @@ td {
   border-top: 1px solid var(--cor-borda);
 }
 
+.afinidade {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 999px;
+  font-weight: 600;
+}
+
+.afinidade-alta {
+  color: #176b34;
+  background-color: #e6f4ea;
+}
+
+.afinidade-media {
+  color: #795b00;
+  background-color: #fff4cc;
+}
+
+.afinidade-baixa {
+  color: #a12622;
+  background-color: #fde8e7;
+}
+
 tbody tr:hover {
   background-color: #eaf5f5;
   cursor: default;

@@ -75,7 +75,7 @@ class VagaHandler implements HttpHandler {
         if (path == '/vagas/anonimas') {
             Integer candidatoId = inteiroPositivo(parametroUnico(exchange, 'candidatoId'), 'candidatoId')
             responder(exchange, 200, vagaController.listarVagasNaoCurtidasPorCandidatoController(candidatoId)
-                    .collect { Vaga vaga -> mapearVagaAnonima(vaga) })
+                    .collect { Vaga vaga -> mapearVagaAnonima(vaga, true) })
             return
         }
 
@@ -165,13 +165,17 @@ class VagaHandler implements HttpHandler {
         responder(exchange, 200, [mensagem: 'Vaga atualizada.'])
     }
 
-    private static Map mapearVagaAnonima(Vaga vaga) {
-        [
+    private static Map mapearVagaAnonima(Vaga vaga, boolean incluirAfinidade = false) {
+        Map resposta = [
                 id          : vaga.id,
                 nome        : vaga.nome,
                 descricao   : vaga.descricao,
                 competencias: vaga.competencias
         ]
+        if (incluirAfinidade) {
+            resposta.afinidade = vaga.afinidade
+        }
+        return resposta
     }
 
     private static String parametroUnico(HttpExchange exchange, String nome) {
